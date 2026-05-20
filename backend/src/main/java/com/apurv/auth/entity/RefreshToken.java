@@ -5,7 +5,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.UUID;
 
 import jakarta.persistence.Column;
@@ -37,12 +37,9 @@ public class RefreshToken {
     private User user;
 
     @Column(nullable = false)
-    private LocalDateTime expiresAt;
-
-    @Column(nullable = false)
-    private LocalDateTime createdAt;
+    private Instant expiresAt;
 
     public boolean isExpired() {
-        return LocalDateTime.now().isAfter(expiresAt);
+        return Instant.now().isAfter(expiresAt);
     }
 }
