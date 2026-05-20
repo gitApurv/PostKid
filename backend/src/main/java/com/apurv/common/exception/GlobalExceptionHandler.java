@@ -67,6 +67,14 @@ public class GlobalExceptionHandler {
                                 .body(ApiResponse.error(ex.getMessage()));
         }
 
+        @ExceptionHandler(TokenRefreshException.class)
+        public ResponseEntity<ApiResponse<?>> handleTokenRefreshException(TokenRefreshException ex) {
+                log.warn("Token refresh failed: {}", ex.getMessage());
+
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                                .body(ApiResponse.error(ex.getMessage()));
+        }
+
         @ExceptionHandler(Exception.class)
         public ResponseEntity<ApiResponse<?>> handleGenericException(Exception exception) {
                 log.error("Unhandled exception occurred", exception);
