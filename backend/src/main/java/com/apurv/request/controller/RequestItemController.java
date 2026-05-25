@@ -5,8 +5,11 @@ import java.util.UUID;
 
 import com.apurv.auth.entity.User;
 import com.apurv.common.dto.ApiResponse;
+import com.apurv.request.dto.ExecutionRequest;
+import com.apurv.request.dto.ExecutionResponse;
 import com.apurv.request.dto.RequestItemRequest;
 import com.apurv.request.dto.RequestItemResponse;
+import com.apurv.request.service.RequestExecutionService;
 import com.apurv.request.service.RequestItemService;
 
 import org.springframework.http.HttpStatus;
@@ -30,6 +33,14 @@ import lombok.RequiredArgsConstructor;
 public class RequestItemController {
 
     private final RequestItemService requestItemService;
+    private final RequestExecutionService requestExecutionService;
+
+    @PostMapping("/execute")
+    public ResponseEntity<ApiResponse<ExecutionResponse>> executeRequest(@Valid @RequestBody ExecutionRequest request,
+            @AuthenticationPrincipal User currentUser) {
+        ExecutionResponse response = requestExecutionService.executeRequest(request);
+        return ResponseEntity.ok(ApiResponse.success("Request executed successfully", response));
+    }
 
     @PostMapping
     public ResponseEntity<ApiResponse<RequestItemResponse>> createRequestItem(
