@@ -21,6 +21,10 @@ spring:
       host: ${REDIS_HOST:localhost}
       port: ${REDIS_PORT:6379}
 
+    mongodb:
+      uri: ${MONGODB_URI:mongodb://localhost:27017/postKid}
+      auto-index-creation: true
+
 server:
   port: 8080
 
