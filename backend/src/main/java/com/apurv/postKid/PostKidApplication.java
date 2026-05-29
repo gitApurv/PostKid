@@ -5,10 +5,12 @@ import java.util.TimeZone;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.persistence.autoconfigure.EntityScan;
+import org.springframework.data.mongodb.repository.config.EnableMongoRepositories;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
 @SpringBootApplication(scanBasePackages = "com.apurv")
 @EnableJpaRepositories(basePackages = "com.apurv")
+@EnableMongoRepositories(basePackages = "com.apurv")
 @EntityScan(basePackages = "com.apurv")
 public class PostKidApplication {
 
