@@ -4,6 +4,7 @@ import java.net.URI;
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
@@ -14,6 +15,8 @@ import org.springframework.web.reactive.function.client.WebClientResponseExcepti
 import org.springframework.web.reactive.function.client.WebClient.RequestBodySpec;
 import org.springframework.web.reactive.function.client.WebClient.RequestHeadersSpec;
 
+import com.apurv.auth.entity.User;
+import com.apurv.history.service.HistoryService;
 import com.apurv.request.dto.ExecutionRequest;
 import com.apurv.request.dto.ExecutionResponse;
 
@@ -24,17 +27,20 @@ import lombok.extern.slf4j.Slf4j;
 public class RequestExecutionService {
 
         private final WebClient webClient;
+        private final HistoryService historyService;
 
-        public RequestExecutionService(WebClient.Builder webClientBuilder) {
+        public RequestExecutionService(WebClient.Builder webClientBuilder, HistoryService historyService) {
                 this.webClient = webClientBuilder
                                 .codecs(config -> config
                                                 .defaultCodecs()
                                                 .maxInMemorySize(10 * 1024 * 1024))
                                 .build();
+                this.historyService = historyService;
         }
 
-        public ExecutionResponse executeRequest(ExecutionRequest request) {
+        public ExecutionResponse executeRequest(ExecutionRequest request, User currentUser, UUID requestItemId) {
                 long startTime = System.currentTimeMillis();
+                ExecutionResponse response;
 
                 try {
                         validateUrl(request.getUrl());
@@ -53,7 +59,7 @@ public class RequestExecutionService {
                                                 .bodyValue(request.getBody());
                         }
 
-                        ResponseEntity<String> response = headersSpec
+                        ResponseEntity<String> httpResponse = headersSpec
                                         .retrieve()
                                         .onStatus(
                                                         status -> !status.is2xxSuccessful(),
@@ -70,18 +76,18 @@ public class RequestExecutionService {
                         long duration = System.currentTimeMillis() - startTime;
 
                         Map<String, String> responseHeaders = new HashMap<>();
-                        response.getHeaders()
+                        httpResponse.getHeaders()
                                         .forEach((key, values) -> responseHeaders.put(key, String.join(",", values)));
 
                         log.info("Request {} to {} completed in {} ms with status code {}", request.getMethod(),
                                         request.getUrl(),
                                         duration,
-                                        response.getStatusCode().value());
+                                        httpResponse.getStatusCode().value());
 
-                        return ExecutionResponse.builder()
-                                        .statusCode(response.getStatusCode().value())
+                        response = ExecutionResponse.builder()
+                                        .statusCode(httpResponse.getStatusCode().value())
                                         .responseHeaders(responseHeaders)
-                                        .responseBody(response.getBody())
+                                        .responseBody(httpResponse.getBody())
                                         .durationMs(duration)
                                         .success(true)
                                         .build();
@@ -93,7 +99,7 @@ public class RequestExecutionService {
                                         request.getMethod(),
                                         request.getUrl(), duration, e.getStatusCode().value());
 
-                        return ExecutionResponse.builder()
+                        response = ExecutionResponse.builder()
                                         .statusCode(e.getStatusCode().value())
                                         .responseBody(e.getResponseBodyAsString())
                                         .durationMs(duration)
@@ -108,13 +114,16 @@ public class RequestExecutionService {
                                         duration,
                                         e.getMessage());
 
-                        return ExecutionResponse.builder()
+                        response = ExecutionResponse.builder()
                                         .statusCode(0)
                                         .durationMs(duration)
                                         .success(false)
                                         .errorMessage("Execution failed: " + e.getMessage())
                                         .build();
                 }
+
+                historyService.saveHistory(request, response, currentUser, requestItemId);
+                return response;
         }
 
         private HttpMethod toSpringMethod(com.apurv.request.entity.HttpMethod method) {

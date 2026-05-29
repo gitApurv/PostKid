@@ -3,15 +3,6 @@ package com.apurv.request.controller;
 import java.util.List;
 import java.util.UUID;
 
-import com.apurv.auth.entity.User;
-import com.apurv.common.dto.ApiResponse;
-import com.apurv.request.dto.ExecutionRequest;
-import com.apurv.request.dto.ExecutionResponse;
-import com.apurv.request.dto.RequestItemRequest;
-import com.apurv.request.dto.RequestItemResponse;
-import com.apurv.request.service.RequestExecutionService;
-import com.apurv.request.service.RequestItemService;
-
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -23,6 +14,15 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import com.apurv.auth.entity.User;
+import com.apurv.common.dto.ApiResponse;
+import com.apurv.request.dto.ExecutionRequest;
+import com.apurv.request.dto.ExecutionResponse;
+import com.apurv.request.dto.RequestItemRequest;
+import com.apurv.request.dto.RequestItemResponse;
+import com.apurv.request.service.RequestExecutionService;
+import com.apurv.request.service.RequestItemService;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -38,7 +38,7 @@ public class RequestItemController {
     @PostMapping("/execute")
     public ResponseEntity<ApiResponse<ExecutionResponse>> executeRequest(@Valid @RequestBody ExecutionRequest request,
             @AuthenticationPrincipal User currentUser) {
-        ExecutionResponse response = requestExecutionService.executeRequest(request);
+        ExecutionResponse response = requestExecutionService.executeRequest(request, currentUser, null);
         return ResponseEntity.ok(ApiResponse.success("Request executed successfully", response));
     }
 
