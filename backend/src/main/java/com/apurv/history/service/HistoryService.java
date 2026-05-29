@@ -1,0 +1,100 @@
+package com.apurv.history.service;
+
+import java.util.UUID;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+
+import com.apurv.auth.entity.User;
+import com.apurv.common.exception.ResourceNotFoundException;
+import com.apurv.history.document.RequestHistory;
+import com.apurv.history.dto.HistoryResponse;
+import com.apurv.history.repository.RequestHistoryRepository;
+import com.apurv.request.dto.ExecutionRequest;
+import com.apurv.request.dto.ExecutionResponse;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
+@Service
+@RequiredArgsConstructor
+@Slf4j
+public class HistoryService {
+
+    private final RequestHistoryRepository historyRepository;
+
+    public void saveHistory(ExecutionRequest request, ExecutionResponse response, User currentUser, UUID requestId) {
+        RequestHistory requestHistory = RequestHistory.builder()
+                .userId(currentUser.getId())
+                .requestItemId(requestId)
+                .collectionId(null)
+                .method(request.getMethod().name())
+                .url(request.getUrl())
+                .requestHeaders(request.getHeaders())
+                .requestBody(request.getBody())
+                .statusCode(response.getStatusCode())
+                .responseHeaders(response.getResponseHeaders())
+                .responseBody(response.getResponseBody())
+                .durationMs(response.getDurationMs())
+                .success(response.isSuccess())
+                .errorMessage(response.getErrorMessage())
+                .build();
+
+        historyRepository.save(requestHistory);
+        log.info("Saved request history for userId: {}, requestId: {}, statusCode: {}",
+                currentUser.getId(), requestId, response.getStatusCode());
+    }
+
+    public Page<HistoryResponse> getUserHistory(User currentUser, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        return historyRepository.findByUserIdOrderByExecutedAtDesc(currentUser.getId(), pageable)
+                .map(this::toHistoryResponse);
+    }
+
+    public HistoryResponse getHistory(String id, User currentUser) {
+        RequestHistory history = historyRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("History entry not found with id: " + id));
+        if (!history.getUserId().equals(currentUser.getId())) {
+            throw new ResourceNotFoundException("History entry not found with id: " + id);
+        }
+        return toHistoryResponse(history);
+    }
+
+    public void deleteHistoryEntry(String id, User currentUser) {
+        RequestHistory history = historyRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("History entry not found with id: " + id));
+        if (!history.getUserId().equals(currentUser.getId())) {
+            throw new ResourceNotFoundException("History entry not found with id: " + id);
+        }
+
+        historyRepository.delete(history);
+        log.info("Deleted history entry with id: {} for userId: {}", id, currentUser.getId());
+    }
+
+    public void clearUserHistory(User currentUser) {
+        historyRepository.deleteByUserId(currentUser.getId());
+        log.info("Cleared history for userId: {}", currentUser.getId());
+    }
+
+    private HistoryResponse toHistoryResponse(RequestHistory history) {
+        return HistoryResponse.builder()
+                .id(history.getId())
+                .userId(history.getUserId())
+                .requestItemId(history.getRequestItemId())
+                .collectionId(history.getCollectionId())
+                .method(history.getMethod())
+                .url(history.getUrl())
+                .requestHeaders(history.getRequestHeaders())
+                .requestBody(history.getRequestBody())
+                .statusCode(history.getStatusCode())
+                .responseHeaders(history.getResponseHeaders())
+                .responseBody(history.getResponseBody())
+                .durationMs(history.getDurationMs())
+                .success(history.isSuccess())
+                .errorMessage(history.getErrorMessage())
+                .executedAt(history.getExecutedAt())
+                .build();
+    }
+}
