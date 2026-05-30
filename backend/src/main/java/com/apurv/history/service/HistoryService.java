@@ -6,6 +6,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.apurv.auth.entity.User;
 import com.apurv.common.exception.ResourceNotFoundException;
@@ -25,6 +26,7 @@ public class HistoryService {
 
     private final RequestHistoryRepository historyRepository;
 
+    @Transactional
     public void saveHistory(ExecutionRequest request, ExecutionResponse response, User currentUser, UUID requestId) {
         RequestHistory requestHistory = RequestHistory.builder()
                 .userId(currentUser.getId())
@@ -47,12 +49,14 @@ public class HistoryService {
                 currentUser.getId(), requestId, response.getStatusCode());
     }
 
+    @Transactional(readOnly = true)
     public Page<HistoryResponse> getUserHistory(User currentUser, int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
         return historyRepository.findByUserIdOrderByExecutedAtDesc(currentUser.getId(), pageable)
                 .map(this::toHistoryResponse);
     }
 
+    @Transactional(readOnly = true)
     public HistoryResponse getHistory(String id, User currentUser) {
         RequestHistory history = historyRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("History entry not found with id: " + id));
@@ -62,6 +66,7 @@ public class HistoryService {
         return toHistoryResponse(history);
     }
 
+    @Transactional
     public void deleteHistoryEntry(String id, User currentUser) {
         RequestHistory history = historyRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("History entry not found with id: " + id));
@@ -73,6 +78,7 @@ public class HistoryService {
         log.info("Deleted history entry with id: {} for userId: {}", id, currentUser.getId());
     }
 
+    @Transactional
     public void clearUserHistory(User currentUser) {
         historyRepository.deleteByUserId(currentUser.getId());
         log.info("Cleared history for userId: {}", currentUser.getId());
