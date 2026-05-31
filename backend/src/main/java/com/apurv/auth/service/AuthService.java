@@ -111,20 +111,7 @@ public class AuthService {
         return response;
     }
 
-    private AuthResponse buildAuthResponse(User user) {
-        String accessToken = jwtService.generateToken(user);
-        String refreshToken = saveRefreshToken(user);
-
-        return AuthResponse.builder()
-                .accessToken(accessToken)
-                .refreshToken(refreshToken)
-                .userId(user.getId())
-                .email(user.getEmail())
-                .username(user.getUsername())
-                .expiresIn(jwtExpiration / 1000)
-                .build();
-    }
-
+    @Transactional
     private String saveRefreshToken(User user) {
         refreshTokenRepository.deleteByUser(user);
         refreshTokenRepository.flush();
@@ -137,5 +124,19 @@ public class AuthService {
 
         refreshTokenRepository.save(refreshToken);
         return refreshToken.getToken();
+    }
+
+    private AuthResponse buildAuthResponse(User user) {
+        String accessToken = jwtService.generateToken(user);
+        String refreshToken = saveRefreshToken(user);
+
+        return AuthResponse.builder()
+                .accessToken(accessToken)
+                .refreshToken(refreshToken)
+                .userId(user.getId())
+                .email(user.getEmail())
+                .username(user.getUsername())
+                .expiresIn(jwtExpiration / 1000)
+                .build();
     }
 }
