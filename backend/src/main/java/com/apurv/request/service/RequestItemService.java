@@ -126,16 +126,19 @@ public class RequestItemService {
         log.info("Deleted request item with ID: {} for user: {}", requestItem.getId(), currentUser.getUsername());
     }
 
+    @Transactional(readOnly = true)
     private Collection findCollectionByIdAndOwner(UUID collectionId, User currentUser) {
         return collectionRepository.findByIdAndOwner(collectionId, currentUser)
                 .orElseThrow(() -> new ResourceNotFoundException("Collection not found"));
     }
 
+    @Transactional(readOnly = true)
     private Folder findFolderByIdAndCollection(UUID folderId, Collection collection) {
         return folderRepository.findByIdAndCollection(folderId, collection)
                 .orElseThrow(() -> new ResourceNotFoundException("Folder not found"));
     }
 
+    @Transactional(readOnly = true)
     private RequestItem findRequestItemByIdAndOwner(UUID id, User currentUser) {
         return requestItemRepository.findByIdAndOwner(id, currentUser)
                 .orElseThrow(() -> new ResourceNotFoundException("Request item not found"));
