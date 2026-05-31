@@ -139,11 +139,13 @@ public class CollectionService {
                 collection.getId(), currentUser.getUsername());
     }
 
+    @Transactional(readOnly = true)
     private Folder findFolderByIdAndCollection(UUID folderId, Collection collection, String errorMessage) {
         return folderRepository.findByIdAndCollection(folderId, collection)
                 .orElseThrow(() -> new ResourceNotFoundException(errorMessage));
     }
 
+    @Transactional(readOnly = true)
     private Collection findCollectionByIdAndOwner(UUID id, User currentUser) {
         return collectionRepository.findByIdAndOwner(id, currentUser)
                 .orElseThrow(() -> new ResourceNotFoundException("Collection not found"));
