@@ -19,22 +19,6 @@ export const useAuthStore = create<AuthState>((set) => ({
     }
     return null;
   })(),
-  login: (email, username) => {
-    const hash = md5(email.trim().toLowerCase());
-    const avatarUrl = `https://www.gravatar.com/avatar/${hash}?d=identicon`;
-    const userObj = { name: username, email, avatar: avatarUrl };
-    localStorage.setItem("currentUser", JSON.stringify(userObj));
-    set({
-      isAuthenticated: true,
-      currentUser: userObj,
-    });
-  },
-  logout: () => {
-    localStorage.removeItem("accessToken");
-    localStorage.removeItem("refreshToken");
-    localStorage.removeItem("currentUser");
-    set({ isAuthenticated: false, currentUser: null });
-  },
 
   loginAction: async (req) => {
     try {
