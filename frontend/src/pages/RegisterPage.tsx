@@ -86,10 +86,6 @@ export default function RegisterPage() {
 
   return (
     <div className="relative min-h-screen w-full flex items-center justify-center bg-brand-bg font-sans overflow-hidden py-12 px-4 sm:px-6 lg:px-8">
-      {/* Background Radial Glows */}
-      <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full ambient-glow-1 animate-pulse-slow pointer-events-none" />
-      <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] rounded-full ambient-glow-2 animate-pulse-slow pointer-events-none" />
-
       <div className="w-full max-w-[460px] relative z-10">
         {/* Brand Logo Header */}
         <div className="flex flex-col items-center mb-8">
