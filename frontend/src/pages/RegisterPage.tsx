@@ -1,15 +1,10 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { useAuthStore } from "../store/store";
+import { useAuthStore } from "../store/authStore";
 import { Mail, Lock, User, Terminal, ArrowRight, Check } from "lucide-react";
-import api from "../lib/axios";
-import axios from "axios";
-import type { ApiResponse } from "../types/common/ApiResponse";
-import type { AuthResponse } from "../types/auth/AuthResponse";
-import type { RegisterRequest } from "../types/auth/RegisterRequest";
 
 export default function RegisterPage() {
-  const login = useAuthStore((state) => state.login);
+  const registerAction = useAuthStore((state) => state.registerAction);
   const navigate = useNavigate();
 
   const [username, setUsername] = useState("");
@@ -56,31 +51,14 @@ export default function RegisterPage() {
 
     setLoading(true);
     setError(null);
-    try {
-      const payload: RegisterRequest = { username, email, password };
-      const response = await api.post<ApiResponse<AuthResponse>>("/auth/register", payload);
 
-      if (response.data.success && response.data.data) {
-        const authData = response.data.data;
-        localStorage.setItem("accessToken", authData.accessToken);
-        localStorage.setItem("refreshToken", authData.refreshToken);
+    const res = await registerAction({ username, email, password });
+    setLoading(false);
 
-        login(authData.email, authData.username);
-        navigate("/");
-      } else {
-        setError(response.data.message || "Registration failed. Please check your details.");
-      }
-    } catch (err: unknown) {
-      console.error("Registration error: ", err);
-      let errMsg = "An error occurred during registration.";
-      if (axios.isAxiosError<ApiResponse<AuthResponse>>(err)) {
-        errMsg = err.response?.data?.message || err.message || errMsg;
-      } else if (err instanceof Error) {
-        errMsg = err.message;
-      }
-      setError(errMsg);
-    } finally {
-      setLoading(false);
+    if (res.success) {
+      navigate("/");
+    } else {
+      setError(res.error || "Registration failed.");
     }
   };
 
