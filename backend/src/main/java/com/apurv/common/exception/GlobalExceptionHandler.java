@@ -7,6 +7,8 @@ import jakarta.validation.ConstraintViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
@@ -72,6 +74,22 @@ public class GlobalExceptionHandler {
                 log.warn("Token refresh failed: {}", ex.getMessage());
 
                 return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                                .body(ApiResponse.error(ex.getMessage()));
+        }
+
+        @ExceptionHandler(BadCredentialsException.class)
+        public ResponseEntity<ApiResponse<?>> handleBadCredentialsException(BadCredentialsException ex) {
+                log.warn("Authentication failed: {}", ex.getMessage());
+
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                                .body(ApiResponse.error("Invalid username or password"));
+        }
+
+        @ExceptionHandler(AuthenticationException.class)
+        public ResponseEntity<ApiResponse<?>> handleAuthenticationException(AuthenticationException ex) {
+                log.warn("Authentication error: {}", ex.getMessage());
+
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                                 .body(ApiResponse.error(ex.getMessage()));
         }
 
