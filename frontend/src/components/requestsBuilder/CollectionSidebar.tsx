@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useCollectionTreeStore } from "../../store/collectionTreeStore";
+import { useActiveRequestStore } from "../../store/activeRequestStore";
 import type { RequestItem } from "../../types/request/RequestItem";
 import FolderTreeItem from "./FolderTreeItem";
 import RequestTreeItem from "./RequestTreeItem";
@@ -23,9 +24,13 @@ export default function CollectionSidebar() {
   const addRequestAction = useCollectionTreeStore((state) => state.addRequestAction);
   const deleteRequestAction = useCollectionTreeStore((state) => state.deleteRequestAction);
 
+  const activeCollectionId = useActiveRequestStore((state) => state.activeCollectionId);
+  const setActiveCollection = useActiveRequestStore((state) => state.setActiveCollection);
+
   const [expandedCollections, setExpandedCollections] = useState<Record<string, boolean>>({});
   const [showAddModal, setShowAddModal] = useState<{ type: "collection" | "folder" | "request"; collectionId?: string; folderId?: string | null } | null>(null);
   const [newItemName, setNewItemName] = useState("");
+  const [newItemDescription, setNewItemDescription] = useState("");
   const [newRequestType, setNewRequestType] = useState<RequestItem["method"]>("GET");
 
   useEffect(() => {
@@ -52,7 +57,7 @@ export default function CollectionSidebar() {
 
     const { type, collectionId, folderId } = showAddModal;
     if (type === "collection") {
-      await addCollectionAction({ name: newItemName, description: "Created via sidebar" });
+      await addCollectionAction({ name: newItemName, description: newItemDescription });
     } else if (type === "folder" && collectionId) {
       await addFolderAction(collectionId, { name: newItemName, parentFolderId: folderId || null });
     } else if (type === "request" && collectionId) {
@@ -66,12 +71,23 @@ export default function CollectionSidebar() {
     }
 
     setNewItemName("");
+    setNewItemDescription("");
+    setShowAddModal(null);
+  };
+
+  const handleCloseModal = () => {
+    setNewItemName("");
+    setNewItemDescription("");
+    setNewRequestType("GET");
     setShowAddModal(null);
   };
 
   const handleDeleteCollection = async (collectionId: string, name: string) => {
     if (confirm(`Are you sure you want to permanently delete collection '${name}' and all its folders/requests?`)) {
       await deleteCollectionAction(collectionId);
+      if (activeCollectionId === collectionId) {
+        setActiveCollection(null);
+      }
     }
   };
 
@@ -109,16 +125,38 @@ export default function CollectionSidebar() {
       <div className="flex-1 overflow-y-auto p-2 space-y-3">
         {collections.map((collection) => {
           const isExpanded = !!expandedCollections[collection.id];
+          const isActive = collection.id === activeCollectionId;
 
           return (
             <div key={collection.id} className="space-y-1">
               {/* Collection Title Panel */}
-              <div className="flex items-center justify-between px-2 py-1.5 hover:bg-white/[0.01] rounded-md group">
+              <div
+                className={`flex items-center justify-between px-2 py-1.5 rounded-md group relative transition-standard ${isActive ? "bg-brand-primary/10 text-white font-semibold" : "hover:bg-white/[0.01]"
+                  }`}
+              >
+                {isActive && (
+                  <span className="absolute left-0 top-1 bottom-1 w-[2px] bg-brand-primary rounded-r" />
+                )}
+
                 <span
-                  onClick={() => toggleCollection(collection.id)}
-                  className="text-xs font-bold text-slate-300 truncate tracking-wide flex items-center gap-1.5 cursor-pointer hover:text-white flex-1 min-w-0"
+                  onClick={() => {
+                    setActiveCollection(collection.id);
+                    if (!isExpanded) {
+                      toggleCollection(collection.id);
+                    }
+                  }}
+                  className={`text-xs font-bold truncate tracking-wide flex items-center gap-1.5 cursor-pointer flex-1 min-w-0 ${isActive ? "text-white" : "text-slate-300 hover:text-white"
+                    }`}
                 >
-                  <ChevronRight className={`w-3 h-3 text-slate-500 transition-transform ${isExpanded ? "rotate-90" : ""}`} />
+                  <span
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      toggleCollection(collection.id);
+                    }}
+                    className="p-0.5 hover:bg-white/5 rounded text-slate-500 hover:text-slate-300 shrink-0"
+                  >
+                    <ChevronRight className={`w-3 h-3 transition-transform ${isExpanded ? "rotate-90" : ""}`} />
+                  </span>
                   📦 {collection.name}
                 </span>
 
@@ -128,7 +166,10 @@ export default function CollectionSidebar() {
 
                 <div className="opacity-0 group-hover:opacity-100 flex items-center gap-1 shrink-0">
                   <button
-                    onClick={() => setShowAddModal({ type: "folder", collectionId: collection.id, folderId: null })}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setShowAddModal({ type: "folder", collectionId: collection.id, folderId: null });
+                    }}
                     className="p-0.5 hover:bg-white/5 rounded text-slate-500 hover:text-slate-300 transition-standard cursor-pointer"
                     title="Create Folder"
                     aria-label={`Create folder in ${collection.name}`}
@@ -136,7 +177,10 @@ export default function CollectionSidebar() {
                     <FolderPlus className="w-3.5 h-3.5" />
                   </button>
                   <button
-                    onClick={() => setShowAddModal({ type: "request", collectionId: collection.id, folderId: null })}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setShowAddModal({ type: "request", collectionId: collection.id, folderId: null });
+                    }}
                     className="p-0.5 hover:bg-white/5 rounded text-slate-500 hover:text-slate-300 transition-standard cursor-pointer"
                     title="Create Request"
                     aria-label={`Create request in ${collection.name}`}
@@ -144,7 +188,10 @@ export default function CollectionSidebar() {
                     <FilePlus className="w-3.5 h-3.5" />
                   </button>
                   <button
-                    onClick={() => handleDeleteCollection(collection.id, collection.name)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDeleteCollection(collection.id, collection.name);
+                    }}
                     className="p-0.5 hover:bg-brand-error/10 rounded text-slate-500 hover:text-brand-error transition-standard cursor-pointer"
                     title="Delete Collection"
                     aria-label={`Delete collection ${collection.name}`}
@@ -227,6 +274,21 @@ export default function CollectionSidebar() {
                 />
               </div>
 
+              {showAddModal.type === "collection" && (
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">
+                    Collection description
+                  </label>
+                  <textarea
+                    value={newItemDescription}
+                    onChange={(e) => setNewItemDescription(e.target.value)}
+                    placeholder="Describe the purpose of this collection..."
+                    rows={3}
+                    className="block w-full px-3 py-2 bg-brand-layer-2 border border-white/5 rounded-lg text-xs text-slate-200 focus:outline-none focus:border-brand-primary resize-none"
+                  />
+                </div>
+              )}
+
               {showAddModal.type === "request" && (
                 <div className="space-y-1">
                   <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">HTTP method</label>
@@ -247,7 +309,7 @@ export default function CollectionSidebar() {
               <div className="flex gap-3 justify-end pt-4">
                 <button
                   type="button"
-                  onClick={() => setShowAddModal(null)}
+                  onClick={handleCloseModal}
                   className="px-3 py-1.5 hover:bg-white/5 rounded-lg text-[11px] font-semibold text-slate-400 cursor-pointer"
                 >
                   Cancel

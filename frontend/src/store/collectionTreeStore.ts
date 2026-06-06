@@ -61,6 +61,9 @@ export const useCollectionTreeStore = create<CollectionTreeState>((set) => ({
           folders: [],
           requests: [],
           isLoaded: false,
+          ownerUsername: collection.ownerUsername,
+          createdAt: collection.createdAt,
+          updatedAt: collection.updatedAt,
         }));
         set({ collections });
         return { success: true };
@@ -127,10 +130,11 @@ export const useCollectionTreeStore = create<CollectionTreeState>((set) => ({
           headers,
           bodyType: request.body ? "json" : "none",
           bodyJson: request.body || "",
-          authType: "none",
-          authValue: {},
+          authType: request.authType || "none",
+          authValue: request.authValue || {},
           folderId: request.folderId,
           collectionId: request.collectionId,
+          timeoutMs: request.timeoutMs || 5000,
         };
       });
 
@@ -215,10 +219,11 @@ export const useCollectionTreeStore = create<CollectionTreeState>((set) => ({
           headers,
           bodyType: request.body ? "json" : "none",
           bodyJson: request.body || "",
-          authType: "none",
-          authValue: {},
+          authType: request.authType || "none",
+          authValue: request.authValue || {},
           folderId: request.folderId,
           collectionId: request.collectionId,
+          timeoutMs: request.timeoutMs || 5000,
         };
       });
 
@@ -276,6 +281,9 @@ export const useCollectionTreeStore = create<CollectionTreeState>((set) => ({
           folders: [],
           requests: [],
           isLoaded: true,
+          ownerUsername: addCollectionRes.data.data.ownerUsername,
+          createdAt: addCollectionRes.data.data.createdAt,
+          updatedAt: addCollectionRes.data.data.updatedAt,
         };
         set((state) => ({
           collections: [...state.collections, newCollection],
@@ -287,6 +295,34 @@ export const useCollectionTreeStore = create<CollectionTreeState>((set) => ({
     } catch (error) {
       console.error("Failed to add collection:", error);
       let errorMessage = "Failed to add collection.";
+      if (axios.isAxiosError<ApiResponse<unknown>>(error)) {
+        errorMessage = error.response?.data?.message || error.message || errorMessage;
+      } else if (error instanceof Error) {
+        errorMessage = error.message;
+      }
+      return { success: false, error: errorMessage };
+    }
+  },
+
+  updateCollectionAction: async (id, req: CollectionRequest) => {
+    try {
+      const updateCollectionRes = await api.put<ApiResponse<CollectionResponse>>(`/collections/${id}`, req);
+      if (updateCollectionRes.data.success && updateCollectionRes.data.data) {
+        const updated = updateCollectionRes.data.data;
+        set((state) => ({
+          collections: updateCollectionInList(state.collections, id, () => ({
+            name: updated.name,
+            description: updated.description || "",
+            updatedAt: updated.updatedAt,
+          })),
+        }));
+        return { success: true };
+      } else {
+        return { success: false, error: updateCollectionRes.data.message || "Failed to update collection." };
+      }
+    } catch (error) {
+      console.error("Failed to update collection:", error);
+      let errorMessage = "Failed to update collection.";
       if (axios.isAxiosError<ApiResponse<unknown>>(error)) {
         errorMessage = error.response?.data?.message || error.message || errorMessage;
       } else if (error instanceof Error) {
@@ -450,10 +486,11 @@ export const useCollectionTreeStore = create<CollectionTreeState>((set) => ({
           headers,
           bodyType: requestResponse.body ? "json" : "none",
           bodyJson: requestResponse.body || "",
-          authType: "none",
-          authValue: {},
+          authType: requestResponse.authType || "none",
+          authValue: requestResponse.authValue || {},
           folderId: requestResponse.folderId,
           collectionId: requestResponse.collectionId,
+          timeoutMs: requestResponse.timeoutMs || 5000,
         };
         set((state) => {
           const collections = state.collections.map((collection) => {

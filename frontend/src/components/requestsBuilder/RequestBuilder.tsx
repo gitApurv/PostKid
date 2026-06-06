@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { useActiveRequestStore } from "../../store/activeRequestStore";
 import type { RequestItem } from "../../types/request/RequestItem";
 import { useEnvironmentStore } from "../../store/environmentStore";
@@ -14,7 +14,8 @@ import {
   Sliders,
   Sparkles,
   RefreshCw,
-  Trash2
+  Trash2,
+  Edit3
 } from "lucide-react";
 
 export default function RequestBuilder() {
@@ -38,13 +39,34 @@ export default function RequestBuilder() {
   const [methodDropdownOpen, setMethodDropdownOpen] = useState(false);
   const [showResolvedUrl, setShowResolvedUrl] = useState(false);
 
+  const [isEditingName, setIsEditingName] = useState(false);
+  const [editName, setEditName] = useState("");
+
+  useEffect(() => {
+    if (activeRequest) {
+      setEditName(activeRequest.name);
+      setIsEditingName(false);
+    }
+  }, [activeRequest?.id]);
+
+  const methodDropdownRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
     if (!methodDropdownOpen) return;
+    const handleClickOutside = (e: MouseEvent) => {
+      if (methodDropdownRef.current && !methodDropdownRef.current.contains(e.target as Node)) {
+        setMethodDropdownOpen(false);
+      }
+    };
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === "Escape") setMethodDropdownOpen(false);
     };
+    document.addEventListener("mousedown", handleClickOutside);
     document.addEventListener("keydown", handleEscape);
-    return () => document.removeEventListener("keydown", handleEscape);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("keydown", handleEscape);
+    };
   }, [methodDropdownOpen]);
 
   const activeEnvironment = environments.find((environment) => environment.id === activeEnvironmentId) || environments[0];
@@ -168,9 +190,50 @@ export default function RequestBuilder() {
       {/* Top API URL Builder strip */}
       <div className="space-y-2">
         <div className="flex items-center justify-between">
-          <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
-            Request Sandbox / {activeRequest.name}
-          </span>
+          <div className="flex items-center gap-1.5 min-w-0 group">
+            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest shrink-0">
+              Request Sandbox /
+            </span>
+            {isEditingName ? (
+              <input
+                type="text"
+                value={editName}
+                onChange={(e) => setEditName(e.target.value)}
+                onBlur={() => {
+                  setIsEditingName(false);
+                  if (editName.trim() && editName.trim() !== activeRequest.name) {
+                    updateActiveRequest({ name: editName.trim() });
+                  } else {
+                    setEditName(activeRequest.name);
+                  }
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    setIsEditingName(false);
+                    if (editName.trim() && editName.trim() !== activeRequest.name) {
+                      updateActiveRequest({ name: editName.trim() });
+                    } else {
+                      setEditName(activeRequest.name);
+                    }
+                  } else if (e.key === "Escape") {
+                    setIsEditingName(false);
+                    setEditName(activeRequest.name);
+                  }
+                }}
+                autoFocus
+                className="bg-brand-layer-2 border border-white/10 rounded px-1 py-0.5 text-[10px] text-slate-200 font-bold uppercase focus:outline-none focus:border-brand-primary max-w-[200px]"
+              />
+            ) : (
+              <button
+                onClick={() => setIsEditingName(true)}
+                className="text-[10px] font-bold text-slate-300 uppercase tracking-widest hover:text-white cursor-pointer truncate max-w-[250px] flex items-center gap-1 hover:bg-white/5 px-1 py-0.5 rounded transition-standard text-left"
+                title="Click to edit request name"
+              >
+                {activeRequest.name}
+                <Edit3 className="w-3 h-3 text-slate-500 opacity-0 group-hover:opacity-100 transition-opacity" />
+              </button>
+            )}
+          </div>
           <button
             onClick={handleSave}
             className="flex items-center gap-1.5 bg-white/[0.02] hover:bg-white/[0.05] border border-white/5 px-2.5 py-1 rounded text-[10px] font-semibold text-slate-300 transition-standard cursor-pointer"
@@ -183,7 +246,7 @@ export default function RequestBuilder() {
         {/* Main Address bar container */}
         <div className={`flex bg-brand-layer-1 border border-white/5 rounded-xl p-1.5 transition-all duration-200 ${currentStyles.border}`}>
           {/* Colored Pill Method Dropdown */}
-          <div className="relative">
+          <div className="relative" ref={methodDropdownRef}>
             <button
               onClick={() => setMethodDropdownOpen(!methodDropdownOpen)}
               className={`px-3 py-2 rounded-lg text-xs font-bold border transition-standard cursor-pointer ${currentStyles.pill}`}
@@ -192,26 +255,23 @@ export default function RequestBuilder() {
             </button>
 
             {methodDropdownOpen && (
-              <>
-                <div className="fixed inset-0 z-40" onClick={() => setMethodDropdownOpen(false)} />
-                <div className="absolute top-11 left-0 bg-brand-layer-2 border border-white/10 rounded-lg shadow-2xl p-1 z-50 w-28">
-                  {(["GET", "POST", "PUT", "DELETE", "PATCH"] as const).map((method) => (
-                    <button
-                      key={method}
-                      onClick={() => {
-                        updateActiveRequest({ method: method });
-                        setMethodDropdownOpen(false);
-                      }}
-                      className={`w-full text-left px-3 py-1.5 text-xs font-semibold rounded transition-standard ${method === activeRequest.method
-                        ? "bg-brand-primary/10 text-white"
-                        : "text-slate-400 hover:text-slate-200 hover:bg-white/[0.02]"
-                        }`}
-                    >
-                      {method}
-                    </button>
-                  ))}
-                </div>
-              </>
+              <div className="absolute top-11 left-0 bg-brand-layer-2 border border-white/10 rounded-lg shadow-2xl p-1 z-50 w-28">
+                {(["GET", "POST", "PUT", "DELETE", "PATCH"] as const).map((method) => (
+                  <button
+                    key={method}
+                    onClick={() => {
+                      updateActiveRequest({ method: method });
+                      setMethodDropdownOpen(false);
+                    }}
+                    className={`w-full text-left px-3 py-1.5 text-xs font-semibold rounded transition-standard ${method === activeRequest.method
+                      ? "bg-brand-primary/10 text-white"
+                      : "text-slate-400 hover:text-slate-200 hover:bg-white/[0.02]"
+                      }`}
+                  >
+                    {method}
+                  </button>
+                ))}
+              </div>
             )}
           </div>
 

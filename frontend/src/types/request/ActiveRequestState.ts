@@ -4,6 +4,7 @@ import type { RequestItem } from "./RequestItem";
 export interface ActiveRequestState {
   activeRequestId: string | null;
   activeRequest: RequestItem | null;
+  activeCollectionId: string | null;
   isExecuting: boolean;
   lastResponse: {
     status: number;
@@ -16,6 +17,7 @@ export interface ActiveRequestState {
 
   setActiveRequest: (id: string | null) => Promise<void>;
   setActiveRequestDirectly: (req: RequestItem | null) => void;
+  setActiveCollection: (id: string | null) => void;
   updateActiveRequest: (fields: Partial<RequestItem>) => Promise<void>;
   executeRequest: (activeEnvironmentId: string, environments: any[]) => Promise<void>;
 }

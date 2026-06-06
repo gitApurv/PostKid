@@ -7,6 +7,9 @@ export interface RequestItemResponse {
   url: string;
   headers: Record<string, string> | null;
   body: string | null;
+  authType: "none" | "bearer" | "basic" | null;
+  authValue: Record<string, string> | null;
+  timeoutMs: number | null;
   collectionId: string;
   folderId: string | null;
   ownerId: string;

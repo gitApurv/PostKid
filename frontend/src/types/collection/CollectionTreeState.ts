@@ -10,6 +10,7 @@ export interface CollectionTreeState {
   fetchCollectionDetailsAction: (collectionId: string) => Promise<{ success: boolean; error?: string }>;
   fetchFolderDetailsAction: (collectionId: string, folderId: string) => Promise<{ success: boolean; error?: string }>;
   addCollectionAction: (req: CollectionRequest) => Promise<{ success: boolean; error?: string }>;
+  updateCollectionAction: (id: string, req: CollectionRequest) => Promise<{ success: boolean; error?: string }>;
   deleteCollectionAction: (id: string) => Promise<{ success: boolean; error?: string }>;
   addFolderAction: (collectionId: string, req: FolderRequest) => Promise<{ success: boolean; error?: string }>;
   deleteFolderAction: (collectionId: string, folderId: string) => Promise<{ success: boolean; error?: string }>;

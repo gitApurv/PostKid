@@ -10,4 +10,7 @@ export interface CollectionItem {
   requests?: RequestItem[];
   isLoaded?: boolean;
   isLoading?: boolean;
+  ownerUsername?: string;
+  createdAt?: string;
+  updatedAt?: string;
 }

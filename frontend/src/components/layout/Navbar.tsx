@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { useWorkspaceStore } from "../../store/workspaceStore";
 import { useEnvironmentStore } from "../../store/environmentStore";
@@ -19,22 +19,43 @@ export default function Navbar() {
   const [workspaceDropdownOpen, setWorkspaceDropdownOpen] = useState(false);
   const [environmentDropdownOpen, setEnvironmentDropdownOpen] = useState(false);
 
+  const workspaceRef = useRef<HTMLDivElement>(null);
+  const environmentRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
     if (!workspaceDropdownOpen) return;
+    const handleClickOutside = (e: MouseEvent) => {
+      if (workspaceRef.current && !workspaceRef.current.contains(e.target as Node)) {
+        setWorkspaceDropdownOpen(false);
+      }
+    };
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === "Escape") setWorkspaceDropdownOpen(false);
     };
+    document.addEventListener("mousedown", handleClickOutside);
     document.addEventListener("keydown", handleEscape);
-    return () => document.removeEventListener("keydown", handleEscape);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("keydown", handleEscape);
+    };
   }, [workspaceDropdownOpen]);
 
   useEffect(() => {
     if (!environmentDropdownOpen) return;
+    const handleClickOutside = (e: MouseEvent) => {
+      if (environmentRef.current && !environmentRef.current.contains(e.target as Node)) {
+        setEnvironmentDropdownOpen(false);
+      }
+    };
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === "Escape") setEnvironmentDropdownOpen(false);
     };
+    document.addEventListener("mousedown", handleClickOutside);
     document.addEventListener("keydown", handleEscape);
-    return () => document.removeEventListener("keydown", handleEscape);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("keydown", handleEscape);
+    };
   }, [environmentDropdownOpen]);
 
   const activeWorkspace = workspaces.find((workspace) => workspace.id === activeWorkspaceId) || workspaces[0];
@@ -51,7 +72,7 @@ export default function Navbar() {
       {/* Workspace Switcher & Environment Selector */}
       <div className="flex items-center gap-6">
         {/* Workspace Selector dropdown */}
-        <div className="relative">
+        <div className="relative" ref={workspaceRef}>
           <button
             onClick={() => setWorkspaceDropdownOpen(!workspaceDropdownOpen)}
             className="flex items-center gap-2 bg-white/[0.03] hover:bg-white/[0.06] border border-white/5 px-3 py-1.5 rounded-lg text-xs font-medium text-slate-200 transition-standard cursor-pointer min-w-36"
@@ -65,35 +86,32 @@ export default function Navbar() {
           </button>
 
           {workspaceDropdownOpen && (
-            <>
-              <div className="fixed inset-0 z-40" onClick={() => setWorkspaceDropdownOpen(false)} />
-              <div className="absolute top-10 left-0 w-64 bg-brand-layer-2 border border-white/10 rounded-lg shadow-2xl p-2 z-50">
-                <div className="px-2 py-1 text-[10px] text-slate-500 font-semibold uppercase tracking-wider">
-                  Workspaces
-                </div>
-                <div className="space-y-0.5 mt-1">
-                  {workspaces.map((workspace) => (
-                    <button
-                      key={workspace.id}
-                      onClick={() => {
-                        setActiveWorkspace(workspace.id);
-                        setWorkspaceDropdownOpen(false);
-                      }}
-                      className={`w-full flex flex-col items-start px-2 py-2 rounded-md transition-standard text-left ${workspace.id === activeWorkspaceId ? "bg-brand-primary/10 text-white" : "hover:bg-white/[0.03] text-slate-400"
-                        }`}
-                    >
-                      <span className="text-xs font-medium">{workspace.name}</span>
-                      <span className="text-[10px] opacity-75 truncate max-w-[220px]">{workspace.description}</span>
-                    </button>
-                  ))}
-                </div>
+            <div className="absolute top-10 left-0 w-64 bg-brand-layer-2 border border-white/10 rounded-lg shadow-2xl p-2 z-50">
+              <div className="px-2 py-1 text-[10px] text-slate-500 font-semibold uppercase tracking-wider">
+                Workspaces
               </div>
-            </>
+              <div className="space-y-0.5 mt-1">
+                {workspaces.map((workspace) => (
+                  <button
+                    key={workspace.id}
+                    onClick={() => {
+                      setActiveWorkspace(workspace.id);
+                      setWorkspaceDropdownOpen(false);
+                    }}
+                    className={`w-full flex flex-col items-start px-2 py-2 rounded-md transition-standard text-left ${workspace.id === activeWorkspaceId ? "bg-brand-primary/10 text-white" : "hover:bg-white/[0.03] text-slate-400"
+                      }`}
+                  >
+                    <span className="text-xs font-medium">{workspace.name}</span>
+                    <span className="text-[10px] opacity-75 truncate max-w-[220px]">{workspace.description}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
           )}
         </div>
 
         {/* Environment Switcher dropdown */}
-        <div className="relative">
+        <div className="relative" ref={environmentRef}>
           <button
             onClick={() => setEnvironmentDropdownOpen(!environmentDropdownOpen)}
             className="flex items-center gap-2 bg-white/[0.03] hover:bg-white/[0.06] border border-white/5 px-3 py-1.5 rounded-lg text-xs font-medium text-slate-200 transition-standard cursor-pointer"
@@ -107,25 +125,22 @@ export default function Navbar() {
           </button>
 
           {environmentDropdownOpen && (
-            <>
-              <div className="fixed inset-0 z-40" onClick={() => setEnvironmentDropdownOpen(false)} />
-              <div className="absolute top-10 left-0 w-44 bg-brand-layer-2 border border-white/10 rounded-lg shadow-2xl p-1.5 z-50">
-                {environments.map((environment) => (
-                  <button
-                    key={environment.id}
-                    onClick={() => {
-                      setActiveEnvironment(environment.id);
-                      setEnvironmentDropdownOpen(false);
-                    }}
-                    className={`w-full flex items-center gap-2.5 px-2 py-2 rounded-md transition-standard text-left text-xs ${environment.id === activeEnvironmentId ? "bg-brand-primary/10 text-white" : "hover:bg-white/[0.03] text-slate-400"
-                      }`}
-                  >
-                    <span className={`w-2 h-2 rounded-full ${getEnvDotColor(environment.color)}`} />
-                    {environment.name}
-                  </button>
-                ))}
-              </div>
-            </>
+            <div className="absolute top-10 left-0 w-44 bg-brand-layer-2 border border-white/10 rounded-lg shadow-2xl p-1.5 z-50">
+              {environments.map((environment) => (
+                <button
+                  key={environment.id}
+                  onClick={() => {
+                    setActiveEnvironment(environment.id);
+                    setEnvironmentDropdownOpen(false);
+                  }}
+                  className={`w-full flex items-center gap-2.5 px-2 py-2 rounded-md transition-standard text-left text-xs ${environment.id === activeEnvironmentId ? "bg-brand-primary/10 text-white" : "hover:bg-white/[0.03] text-slate-400"
+                    }`}
+                >
+                  <span className={`w-2 h-2 rounded-full ${getEnvDotColor(environment.color)}`} />
+                  {environment.name}
+                </button>
+              ))}
+            </div>
           )}
         </div>
       </div>
