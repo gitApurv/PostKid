@@ -14,6 +14,8 @@ import com.apurv.common.exception.DuplicateResourceException;
 import com.apurv.common.exception.ResourceNotFoundException;
 import com.apurv.collection.repository.CollectionRepository;
 import com.apurv.collection.repository.FolderRepository;
+import com.apurv.request.entity.RequestItem;
+import com.apurv.request.repository.RequestItemRepository;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,6 +30,7 @@ public class CollectionService {
 
     private final CollectionRepository collectionRepository;
     private final FolderRepository folderRepository;
+    private final RequestItemRepository requestItemRepository;
 
     @Transactional
     public CollectionResponse createCollection(CollectionRequest request, User currentUser) {
@@ -82,6 +85,9 @@ public class CollectionService {
     public void deleteCollection(UUID id, User currentUser) {
         Collection collection = findCollectionByIdAndOwner(id, currentUser);
 
+        List<RequestItem> requests = requestItemRepository.findByCollection(collection);
+        requestItemRepository.deleteAll(requests);
+
         collectionRepository.delete(collection);
 
         log.info("Deleted collection with ID: {} for user: {}", collection.getId(), currentUser.getUsername());
@@ -134,9 +140,20 @@ public class CollectionService {
         Collection collection = findCollectionByIdAndOwner(collectionId, currentUser);
         Folder folder = findFolderByIdAndCollection(folderId, collection, "Folder not found");
 
+        deleteRequestsInFolderRecursive(folder);
+
         folderRepository.delete(folder);
         log.info("Deleted folder with ID: {} in collection ID: {} for user: {}", folder.getId(),
                 collection.getId(), currentUser.getUsername());
+    }
+
+    private void deleteRequestsInFolderRecursive(Folder folder) {
+        List<RequestItem> requests = requestItemRepository.findByFolder(folder);
+        requestItemRepository.deleteAll(requests);
+
+        for (Folder subfolder : folder.getSubFolders()) {
+            deleteRequestsInFolderRecursive(subfolder);
+        }
     }
 
     @Transactional(readOnly = true)

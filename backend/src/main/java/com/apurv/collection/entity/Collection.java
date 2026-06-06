@@ -10,6 +10,7 @@ import com.apurv.auth.entity.User;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -51,7 +52,7 @@ public class Collection {
     @Builder.Default
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
-    @OneToMany(mappedBy = "collection", fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "collection", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Folder> folders = new ArrayList<>();
 
     @CreationTimestamp
