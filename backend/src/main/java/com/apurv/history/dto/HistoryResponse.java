@@ -20,6 +20,9 @@ public class HistoryResponse {
     private String url;
     private Map<String, String> requestHeaders;
     private String requestBody;
+    private String authType;
+    private Map<String, String> authValue;
+    private int timeoutSeconds;
 
     private int statusCode;
     private Map<String, String> responseHeaders;
