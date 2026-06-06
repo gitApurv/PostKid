@@ -40,7 +40,7 @@ public class EnvironmentService {
                 .ownerId(ownerId)
                 .build();
 
-        Environment savedEnvironment = environmentRepository.save(environment);
+        Environment savedEnvironment = environmentRepository.saveAndFlush(environment);
         log.info("Created environment with id {} for owner {}", savedEnvironment.getId(), ownerId);
         return toEnvironmentResponse(savedEnvironment);
     }
@@ -65,7 +65,7 @@ public class EnvironmentService {
 
         environment.setName(request.getName());
 
-        Environment updatedEnvironment = environmentRepository.save(environment);
+        Environment updatedEnvironment = environmentRepository.saveAndFlush(environment);
         log.info("Updated environment with id {} for owner {}", updatedEnvironment.getId(), ownerId);
 
         return toEnvironmentResponse(updatedEnvironment);

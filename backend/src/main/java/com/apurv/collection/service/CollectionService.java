@@ -44,7 +44,7 @@ public class CollectionService {
                 .owner(currentUser)
                 .build();
 
-        Collection savedCollection = collectionRepository.save(collection);
+        Collection savedCollection = collectionRepository.saveAndFlush(collection);
         log.info("Created new collection with ID: {} for user: {}", savedCollection.getId(), currentUser.getUsername());
         return toCollectionResponse(savedCollection);
     }
@@ -75,7 +75,7 @@ public class CollectionService {
         collection.setName(request.getName());
         collection.setDescription(request.getDescription());
 
-        Collection updatedCollection = collectionRepository.save(collection);
+        Collection updatedCollection = collectionRepository.saveAndFlush(collection);
         log.info("Updated collection with ID: {} for user: {}", updatedCollection.getId(), currentUser.getUsername());
 
         return toCollectionResponse(updatedCollection);
@@ -108,7 +108,7 @@ public class CollectionService {
                 .parentFolder(parent)
                 .build();
 
-        Folder savedFolder = folderRepository.save(folder);
+        Folder savedFolder = folderRepository.saveAndFlush(folder);
         log.info("Created new folder with ID: {} in collection ID: {} for user: {}", savedFolder.getId(),
                 collection.getId(), currentUser.getUsername());
         return toFolderResponse(savedFolder);

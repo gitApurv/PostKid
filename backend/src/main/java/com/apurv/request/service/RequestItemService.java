@@ -49,7 +49,7 @@ public class RequestItemService {
                 .owner(currentUser)
                 .build();
 
-        RequestItem savedRequestItem = requestItemRepository.save(requestItem);
+        RequestItem savedRequestItem = requestItemRepository.saveAndFlush(requestItem);
 
         log.info("Created request item with ID: {} in collection ID: {} for user: {}", savedRequestItem.getId(),
                 collection.getId(), currentUser.getUsername());
@@ -112,7 +112,7 @@ public class RequestItemService {
         requestItem.setCollection(collection);
         requestItem.setFolder(folder);
 
-        RequestItem updatedRequestItem = requestItemRepository.save(requestItem);
+        RequestItem updatedRequestItem = requestItemRepository.saveAndFlush(requestItem);
         log.info("Updated request item with ID: {} for user: {}", updatedRequestItem.getId(),
                 currentUser.getUsername());
 
