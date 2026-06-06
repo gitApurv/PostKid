@@ -49,7 +49,27 @@ public class RequestExecutionService {
                                         .method(toSpringMethod(request.getMethod()))
                                         .uri(request.getUrl());
 
-                        request.getHeaders().forEach(requestSpec::header);
+                        if (request.getHeaders() != null) {
+                                request.getHeaders().forEach(requestSpec::header);
+                        }
+
+                        if (request.getAuthType() != null && request.getAuthValue() != null) {
+                                if ("bearer".equalsIgnoreCase(request.getAuthType())) {
+                                        String token = request.getAuthValue().get("token");
+                                        if (token != null && !token.isBlank()) {
+                                                requestSpec.header("Authorization", "Bearer " + token);
+                                        }
+                                } else if ("basic".equalsIgnoreCase(request.getAuthType())) {
+                                        String username = request.getAuthValue().get("username");
+                                        String password = request.getAuthValue().get("password");
+                                        if (username != null && password != null) {
+                                                String credentials = java.util.Base64.getEncoder().encodeToString(
+                                                                (username + ":" + password).getBytes(
+                                                                                java.nio.charset.StandardCharsets.UTF_8));
+                                                requestSpec.header("Authorization", "Basic " + credentials);
+                                        }
+                                }
+                        }
 
                         RequestHeadersSpec<?> headersSpec = requestSpec;
 

@@ -63,6 +63,20 @@ public class RequestItem {
     @Column(columnDefinition = "TEXT")
     private String body;
 
+    @Column(name = "auth_type")
+    private String authType;
+
+    @ElementCollection
+    @CollectionTable(name = "request_auth_values", joinColumns = @JoinColumn(name = "request_id"))
+    @MapKeyColumn(name = "auth_key")
+    @Column(name = "auth_value")
+    @Builder.Default
+    private Map<String, String> authValue = new HashMap<>();
+
+    @Column(name = "timeout_ms")
+    @Builder.Default
+    private Integer timeoutMs = 5000;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "collection_id", nullable = false)
     private Collection collection;

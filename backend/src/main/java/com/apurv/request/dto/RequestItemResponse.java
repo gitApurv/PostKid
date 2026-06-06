@@ -19,6 +19,9 @@ public class RequestItemResponse {
     private String url;
     private Map<String, String> headers;
     private String body;
+    private String authType;
+    private Map<String, String> authValue;
+    private Integer timeoutMs;
     private UUID collectionId;
     private UUID folderId;
     private UUID ownerId;

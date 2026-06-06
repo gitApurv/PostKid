@@ -22,5 +22,9 @@ public class ExecutionRequest {
 
     private String body;
 
+    private String authType;
+
+    private Map<String, String> authValue = new HashMap<>();
+
     private int timeoutSeconds = 30;
 }

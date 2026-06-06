@@ -44,6 +44,9 @@ public class RequestItemService {
                 .url(request.getUrl())
                 .body(request.getBody())
                 .headers(request.getHeaders())
+                .authType(request.getAuthType())
+                .authValue(request.getAuthValue())
+                .timeoutMs(request.getTimeoutMs() != null ? request.getTimeoutMs() : 5000)
                 .collection(collection)
                 .folder(folder)
                 .owner(currentUser)
@@ -109,6 +112,9 @@ public class RequestItemService {
         requestItem.setUrl(request.getUrl());
         requestItem.setHeaders(request.getHeaders());
         requestItem.setBody(request.getBody());
+        requestItem.setAuthType(request.getAuthType());
+        requestItem.setAuthValue(request.getAuthValue());
+        requestItem.setTimeoutMs(request.getTimeoutMs() != null ? request.getTimeoutMs() : 5000);
         requestItem.setCollection(collection);
         requestItem.setFolder(folder);
 
@@ -152,6 +158,9 @@ public class RequestItemService {
                 .url(requestItem.getUrl())
                 .headers(requestItem.getHeaders())
                 .body(requestItem.getBody())
+                .authType(requestItem.getAuthType())
+                .authValue(requestItem.getAuthValue())
+                .timeoutMs(requestItem.getTimeoutMs() != null ? requestItem.getTimeoutMs() : 5000)
                 .collectionId(requestItem.getCollection().getId())
                 .folderId(requestItem.getFolder() != null ? requestItem.getFolder().getId() : null)
                 .ownerId(requestItem.getOwner().getId())

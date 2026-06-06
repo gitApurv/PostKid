@@ -26,6 +26,12 @@ public class RequestItemRequest {
 
     private Map<String, String> headers = new HashMap<>();
 
+    private String authType;
+
+    private Map<String, String> authValue = new HashMap<>();
+
+    private Integer timeoutMs;
+
     @NotNull(message = "Collection ID is required")
     private UUID collectionId;
 
