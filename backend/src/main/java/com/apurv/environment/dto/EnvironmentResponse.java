@@ -2,6 +2,9 @@ package com.apurv.environment.dto;
 
 import java.util.List;
 import java.util.UUID;
+
+import com.apurv.environment.entity.EnvironmentColor;
+
 import java.util.ArrayList;
 import java.time.Instant;
 
@@ -15,6 +18,7 @@ public class EnvironmentResponse {
     private UUID id;
     private String name;
     private UUID ownerId;
+    private EnvironmentColor environmentColor;
     @Builder.Default
     private List<VariableResponse> variables = new ArrayList<>();
     private Instant createdAt;

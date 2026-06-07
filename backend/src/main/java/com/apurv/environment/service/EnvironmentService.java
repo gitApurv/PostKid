@@ -37,6 +37,7 @@ public class EnvironmentService {
 
         Environment environment = Environment.builder()
                 .name(request.getName())
+                .environmentColor(request.getEnvironmentColor())
                 .ownerId(ownerId)
                 .build();
 
@@ -64,6 +65,7 @@ public class EnvironmentService {
         }
 
         environment.setName(request.getName());
+        environment.setEnvironmentColor(request.getEnvironmentColor());
 
         Environment updatedEnvironment = environmentRepository.saveAndFlush(environment);
         log.info("Updated environment with id {} for owner {}", updatedEnvironment.getId(), ownerId);
@@ -127,6 +129,7 @@ public class EnvironmentService {
         return EnvironmentResponse.builder()
                 .id(environment.getId())
                 .name(environment.getName())
+                .environmentColor(environment.getEnvironmentColor())
                 .ownerId(environment.getOwnerId())
                 .variables(environment.getVariables()
                         .stream()
