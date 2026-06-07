@@ -15,7 +15,7 @@ export const useActiveRequestStore = create<ActiveRequestState>((set, get) => ({
   isExecuting: false,
   lastResponse: null,
 
-  setActiveRequest: async (id) => {
+  setActiveRequestAction: async (id) => {
     if (!id) {
       set({ activeRequestId: null, activeRequest: null, lastResponse: null });
       return;
@@ -66,7 +66,7 @@ export const useActiveRequestStore = create<ActiveRequestState>((set, get) => ({
     }
   },
 
-  setActiveRequestDirectly: (req) => {
+  setActiveRequestDirectlyAction: (req) => {
     set({
       activeRequestId: req ? req.id : null,
       activeRequest: req,
@@ -75,7 +75,7 @@ export const useActiveRequestStore = create<ActiveRequestState>((set, get) => ({
     });
   },
 
-  setActiveCollection: (id) => {
+  setActiveCollectionAction: (id) => {
     set({
       activeCollectionId: id,
       activeRequestId: null,
@@ -84,7 +84,7 @@ export const useActiveRequestStore = create<ActiveRequestState>((set, get) => ({
     });
   },
 
-  updateActiveRequest: async (fields) => {
+  updateActiveRequestAction: async (fields) => {
     const active = get().activeRequest;
     if (!active) return;
 
@@ -123,13 +123,13 @@ export const useActiveRequestStore = create<ActiveRequestState>((set, get) => ({
     try {
       await api.put(`/requests/${updated.id}`, payload);
 
-      useCollectionTreeStore.getState().syncRequestInTree(updated);
+      useCollectionTreeStore.getState().syncRequestInTreeAction(updated);
     } catch (e) {
       console.error("Failed to save active request updates:", e);
     }
   },
 
-  executeRequest: async (activeEnvironmentId, environments) => {
+  executeRequestAction: async (activeEnvironmentId, environments) => {
     const req = get().activeRequest;
     if (!req) return;
 

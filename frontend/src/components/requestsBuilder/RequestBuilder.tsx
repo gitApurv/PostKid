@@ -21,8 +21,8 @@ import {
 export default function RequestBuilder() {
   const activeRequest = useActiveRequestStore((state) => state.activeRequest);
   const isExecuting = useActiveRequestStore((state) => state.isExecuting);
-  const updateActiveRequest = useActiveRequestStore((state) => state.updateActiveRequest);
-  const executeRequest = useActiveRequestStore((state) => state.executeRequest);
+  const updateActiveRequestAction = useActiveRequestStore((state) => state.updateActiveRequestAction);
+  const executeRequestAction = useActiveRequestStore((state) => state.executeRequestAction);
 
   const phantomRow = { key: "", value: "", active: true };
 
@@ -125,7 +125,7 @@ export default function RequestBuilder() {
 
   const handleSend = () => {
     if (!activeRequest) return;
-    executeRequest(activeEnvironmentId, environments);
+    executeRequestAction(activeEnvironmentId, environments);
   };
 
   const handleSave = () => {
@@ -145,11 +145,11 @@ export default function RequestBuilder() {
 
     if (isPhantomRow) {
       const newRow = { key: "", value: "", active: true, [field]: value };
-      updateActiveRequest({ [type]: [...storeGrid, newRow] });
+      updateActiveRequestAction({ [type]: [...storeGrid, newRow] });
     } else {
       const grid = [...storeGrid];
       grid[index] = { ...grid[index], [field]: value };
-      updateActiveRequest({ [type]: grid });
+      updateActiveRequestAction({ [type]: grid });
     }
   };
 
@@ -159,13 +159,13 @@ export default function RequestBuilder() {
     if (index >= storeGrid.length) return;
     const grid = [...storeGrid];
     grid[index] = { ...grid[index], active: status };
-    updateActiveRequest({ [type]: grid });
+    updateActiveRequestAction({ [type]: grid });
   };
 
   const handleDeleteGridRow = (type: "params" | "headers", index: number) => {
     if (!activeRequest) return;
     const grid = activeRequest[type].filter((_, idx) => idx !== index);
-    updateActiveRequest({ [type]: grid });
+    updateActiveRequestAction({ [type]: grid });
   };
 
   const beautifyJson = () => {
@@ -173,7 +173,7 @@ export default function RequestBuilder() {
     try {
       const parsed = JSON.parse(activeRequest.bodyJson);
       const beautified = JSON.stringify(parsed, null, 2);
-      updateActiveRequest({ bodyJson: beautified });
+      updateActiveRequestAction({ bodyJson: beautified });
     } catch {
       alert("Invalid JSON format. Check syntax parameters before indent alignment.");
     }
@@ -202,7 +202,7 @@ export default function RequestBuilder() {
                 onBlur={() => {
                   setIsEditingName(false);
                   if (editName.trim() && editName.trim() !== activeRequest.name) {
-                    updateActiveRequest({ name: editName.trim() });
+                    updateActiveRequestAction({ name: editName.trim() });
                   } else {
                     setEditName(activeRequest.name);
                   }
@@ -211,7 +211,7 @@ export default function RequestBuilder() {
                   if (e.key === "Enter") {
                     setIsEditingName(false);
                     if (editName.trim() && editName.trim() !== activeRequest.name) {
-                      updateActiveRequest({ name: editName.trim() });
+                      updateActiveRequestAction({ name: editName.trim() });
                     } else {
                       setEditName(activeRequest.name);
                     }
@@ -260,7 +260,7 @@ export default function RequestBuilder() {
                   <button
                     key={method}
                     onClick={() => {
-                      updateActiveRequest({ method: method });
+                      updateActiveRequestAction({ method: method });
                       setMethodDropdownOpen(false);
                     }}
                     className={`w-full text-left px-3 py-1.5 text-xs font-semibold rounded transition-standard ${method === activeRequest.method
@@ -280,7 +280,7 @@ export default function RequestBuilder() {
             <input
               type="text"
               value={activeRequest.url}
-              onChange={(e) => updateActiveRequest({ url: e.target.value })}
+              onChange={(e) => updateActiveRequestAction({ url: e.target.value })}
               className="w-full bg-transparent border-0 text-slate-200 text-xs font-mono py-1.5 focus:outline-none focus:ring-0 placeholder-slate-600"
               placeholder="{{base_url}}/endpoint"
             />
@@ -420,7 +420,7 @@ export default function RequestBuilder() {
                 </label>
                 <select
                   value={activeRequest.authType}
-                  onChange={(e) => updateActiveRequest({ authType: e.target.value as RequestItem["authType"] })}
+                  onChange={(e) => updateActiveRequestAction({ authType: e.target.value as RequestItem["authType"] })}
                   className="block w-full bg-brand-layer-2 border border-white/5 rounded-lg text-xs text-slate-300 p-2.5 focus:outline-none focus:border-brand-primary"
                 >
                   <option value="none">No Auth (Implicit parameters)</option>
@@ -436,7 +436,7 @@ export default function RequestBuilder() {
                     <input
                       type="password"
                       value={activeRequest.authValue.token || ""}
-                      onChange={(e) => updateActiveRequest({ authValue: { ...activeRequest.authValue, token: e.target.value } })}
+                      onChange={(e) => updateActiveRequestAction({ authValue: { ...activeRequest.authValue, token: e.target.value } })}
                       placeholder="eyJhY2Nlc3NfdG9rZW4iOiJsaXZlX2FlZDM5..."
                       className="block w-full pr-10 pl-3 py-2 bg-brand-layer-2 border border-white/5 rounded-lg text-xs text-slate-300 focus:outline-none focus:border-brand-primary font-mono"
                     />
@@ -456,7 +456,7 @@ export default function RequestBuilder() {
                       <input
                         type="text"
                         value={activeRequest.authValue.username || ""}
-                        onChange={(e) => updateActiveRequest({ authValue: { ...activeRequest.authValue, username: e.target.value } })}
+                        onChange={(e) => updateActiveRequestAction({ authValue: { ...activeRequest.authValue, username: e.target.value } })}
                         placeholder="api_key_id"
                         className="block w-full px-3 py-2 bg-brand-layer-2 border border-white/5 rounded-lg text-xs text-slate-300 focus:outline-none focus:border-brand-primary"
                       />
@@ -466,7 +466,7 @@ export default function RequestBuilder() {
                       <input
                         type="password"
                         value={activeRequest.authValue.password || ""}
-                        onChange={(e) => updateActiveRequest({ authValue: { ...activeRequest.authValue, password: e.target.value } })}
+                        onChange={(e) => updateActiveRequestAction({ authValue: { ...activeRequest.authValue, password: e.target.value } })}
                         placeholder="••••••••"
                         className="block w-full px-3 py-2 bg-brand-layer-2 border border-white/5 rounded-lg text-xs text-slate-300 focus:outline-none focus:border-brand-primary"
                       />
@@ -568,7 +568,7 @@ export default function RequestBuilder() {
 
                 <textarea
                   value={activeRequest.bodyJson || ""}
-                  onChange={(e) => updateActiveRequest({ bodyJson: e.target.value, bodyType: "json" })}
+                  onChange={(e) => updateActiveRequestAction({ bodyJson: e.target.value, bodyType: "json" })}
                   placeholder='{\n  "key": "value"\n}'
                   className="flex-1 bg-transparent p-3 text-xs font-mono text-brand-success focus:outline-none resize-none overflow-y-auto leading-relaxed"
                 />
@@ -589,7 +589,7 @@ export default function RequestBuilder() {
                   <input
                     type="number"
                     value={activeRequest.timeoutMs ?? 5000}
-                    onChange={(e) => updateActiveRequest({ timeoutMs: Number(e.target.value) || 5000 })}
+                    onChange={(e) => updateActiveRequestAction({ timeoutMs: Number(e.target.value) || 5000 })}
                     className="block w-full px-3 py-2 bg-brand-layer-2 border border-white/5 rounded-lg text-xs text-slate-300 focus:outline-none focus:border-brand-primary"
                   />
                 </div>

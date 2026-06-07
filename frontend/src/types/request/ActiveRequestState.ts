@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import type { RequestItem } from "./RequestItem";
 
 export interface ActiveRequestState {
@@ -15,9 +14,9 @@ export interface ActiveRequestState {
     body: string;
   } | null;
 
-  setActiveRequest: (id: string | null) => Promise<void>;
-  setActiveRequestDirectly: (req: RequestItem | null) => void;
-  setActiveCollection: (id: string | null) => void;
-  updateActiveRequest: (fields: Partial<RequestItem>) => Promise<void>;
-  executeRequest: (activeEnvironmentId: string, environments: any[]) => Promise<void>;
+  setActiveRequestAction: (id: string | null) => Promise<void>;
+  setActiveRequestDirectlyAction: (req: RequestItem | null) => void;
+  setActiveCollectionAction: (id: string | null) => void;
+  updateActiveRequestAction: (fields: Partial<RequestItem>) => Promise<void>;
+  executeRequestAction: (activeEnvironmentId: string, environments: any[]) => Promise<void>;
 }

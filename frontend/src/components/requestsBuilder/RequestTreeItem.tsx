@@ -21,13 +21,13 @@ const getMethodColor = (method: string) => {
 
 export default function RequestTreeItem({ request, onDelete }: RequestTreeItemProps) {
   const activeRequestId = useActiveRequestStore((state) => state.activeRequestId);
-  const setActiveRequest = useActiveRequestStore((state) => state.setActiveRequest);
+  const setActiveRequestAction = useActiveRequestStore((state) => state.setActiveRequestAction);
 
   const isActive = request.id === activeRequestId;
 
   return (
     <div
-      onClick={() => setActiveRequest(request.id)}
+      onClick={() => setActiveRequestAction(request.id)}
       className={`group/req flex items-center justify-between px-2.5 py-1.5 rounded text-[11px] cursor-pointer transition-standard relative ${isActive
         ? "bg-brand-primary/10 text-white font-semibold"
         : "text-slate-400 hover:text-slate-200 hover:bg-white/[0.01]"

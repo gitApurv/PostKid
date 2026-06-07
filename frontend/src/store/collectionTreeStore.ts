@@ -162,6 +162,91 @@ export const useCollectionTreeStore = create<CollectionTreeState>((set) => ({
     }
   },
 
+  addCollectionAction: async (req: CollectionRequest) => {
+    try {
+      const addCollectionRes = await api.post<ApiResponse<CollectionResponse>>("/collections", req);
+      if (addCollectionRes.data.success && addCollectionRes.data.data) {
+        const newCollection: CollectionItem = {
+          id: addCollectionRes.data.data.id,
+          name: addCollectionRes.data.data.name,
+          description: addCollectionRes.data.data.description || "",
+          folderCount: 0,
+          folders: [],
+          requests: [],
+          isLoaded: true,
+          ownerUsername: addCollectionRes.data.data.ownerUsername,
+          createdAt: addCollectionRes.data.data.createdAt,
+          updatedAt: addCollectionRes.data.data.updatedAt,
+        };
+        set((state) => ({
+          collections: [...state.collections, newCollection],
+        }));
+        return { success: true };
+      } else {
+        return { success: false, error: addCollectionRes.data.message || "Failed to add collection." };
+      }
+    } catch (error) {
+      console.error("Failed to add collection:", error);
+      let errorMessage = "Failed to add collection.";
+      if (axios.isAxiosError<ApiResponse<unknown>>(error)) {
+        errorMessage = error.response?.data?.message || error.message || errorMessage;
+      } else if (error instanceof Error) {
+        errorMessage = error.message;
+      }
+      return { success: false, error: errorMessage };
+    }
+  },
+
+  updateCollectionAction: async (id, req: CollectionRequest) => {
+    try {
+      const updateCollectionRes = await api.put<ApiResponse<CollectionResponse>>(`/collections/${id}`, req);
+      if (updateCollectionRes.data.success && updateCollectionRes.data.data) {
+        const updated = updateCollectionRes.data.data;
+        set((state) => ({
+          collections: updateCollectionInList(state.collections, id, () => ({
+            name: updated.name,
+            description: updated.description || "",
+            updatedAt: updated.updatedAt,
+          })),
+        }));
+        return { success: true };
+      } else {
+        return { success: false, error: updateCollectionRes.data.message || "Failed to update collection." };
+      }
+    } catch (error) {
+      console.error("Failed to update collection:", error);
+      let errorMessage = "Failed to update collection.";
+      if (axios.isAxiosError<ApiResponse<unknown>>(error)) {
+        errorMessage = error.response?.data?.message || error.message || errorMessage;
+      } else if (error instanceof Error) {
+        errorMessage = error.message;
+      }
+      return { success: false, error: errorMessage };
+    }
+  },
+
+  deleteCollectionAction: async (id) => {
+    try {
+      const deleteCollectionRes = await api.delete<ApiResponse<unknown>>(`/collections/${id}`);
+      if (deleteCollectionRes.data && deleteCollectionRes.data.success === false) {
+        return { success: false, error: deleteCollectionRes.data.message || "Failed to delete collection." };
+      }
+      set((state) => ({
+        collections: state.collections.filter((collection) => collection.id !== id),
+      }));
+      return { success: true };
+    } catch (error) {
+      console.error("Failed to delete collection:", error);
+      let errorMessage = "Failed to delete collection.";
+      if (axios.isAxiosError<ApiResponse<unknown>>(error)) {
+        errorMessage = error.response?.data?.message || error.message || errorMessage;
+      } else if (error instanceof Error) {
+        errorMessage = error.message;
+      }
+      return { success: false, error: errorMessage };
+    }
+  },
+
   fetchFolderDetailsAction: async (collectionId, folderId) => {
     set((state) => {
       const collections = state.collections.map((collection) => {
@@ -260,91 +345,6 @@ export const useCollectionTreeStore = create<CollectionTreeState>((set) => ({
         return { collections };
       });
       let errorMessage = "Failed to fetch folder details.";
-      if (axios.isAxiosError<ApiResponse<unknown>>(error)) {
-        errorMessage = error.response?.data?.message || error.message || errorMessage;
-      } else if (error instanceof Error) {
-        errorMessage = error.message;
-      }
-      return { success: false, error: errorMessage };
-    }
-  },
-
-  addCollectionAction: async (req: CollectionRequest) => {
-    try {
-      const addCollectionRes = await api.post<ApiResponse<CollectionResponse>>("/collections", req);
-      if (addCollectionRes.data.success && addCollectionRes.data.data) {
-        const newCollection: CollectionItem = {
-          id: addCollectionRes.data.data.id,
-          name: addCollectionRes.data.data.name,
-          description: addCollectionRes.data.data.description || "",
-          folderCount: 0,
-          folders: [],
-          requests: [],
-          isLoaded: true,
-          ownerUsername: addCollectionRes.data.data.ownerUsername,
-          createdAt: addCollectionRes.data.data.createdAt,
-          updatedAt: addCollectionRes.data.data.updatedAt,
-        };
-        set((state) => ({
-          collections: [...state.collections, newCollection],
-        }));
-        return { success: true };
-      } else {
-        return { success: false, error: addCollectionRes.data.message || "Failed to add collection." };
-      }
-    } catch (error) {
-      console.error("Failed to add collection:", error);
-      let errorMessage = "Failed to add collection.";
-      if (axios.isAxiosError<ApiResponse<unknown>>(error)) {
-        errorMessage = error.response?.data?.message || error.message || errorMessage;
-      } else if (error instanceof Error) {
-        errorMessage = error.message;
-      }
-      return { success: false, error: errorMessage };
-    }
-  },
-
-  updateCollectionAction: async (id, req: CollectionRequest) => {
-    try {
-      const updateCollectionRes = await api.put<ApiResponse<CollectionResponse>>(`/collections/${id}`, req);
-      if (updateCollectionRes.data.success && updateCollectionRes.data.data) {
-        const updated = updateCollectionRes.data.data;
-        set((state) => ({
-          collections: updateCollectionInList(state.collections, id, () => ({
-            name: updated.name,
-            description: updated.description || "",
-            updatedAt: updated.updatedAt,
-          })),
-        }));
-        return { success: true };
-      } else {
-        return { success: false, error: updateCollectionRes.data.message || "Failed to update collection." };
-      }
-    } catch (error) {
-      console.error("Failed to update collection:", error);
-      let errorMessage = "Failed to update collection.";
-      if (axios.isAxiosError<ApiResponse<unknown>>(error)) {
-        errorMessage = error.response?.data?.message || error.message || errorMessage;
-      } else if (error instanceof Error) {
-        errorMessage = error.message;
-      }
-      return { success: false, error: errorMessage };
-    }
-  },
-
-  deleteCollectionAction: async (id) => {
-    try {
-      const deleteCollectionRes = await api.delete<ApiResponse<unknown>>(`/collections/${id}`);
-      if (deleteCollectionRes.data && deleteCollectionRes.data.success === false) {
-        return { success: false, error: deleteCollectionRes.data.message || "Failed to delete collection." };
-      }
-      set((state) => ({
-        collections: state.collections.filter((collection) => collection.id !== id),
-      }));
-      return { success: true };
-    } catch (error) {
-      console.error("Failed to delete collection:", error);
-      let errorMessage = "Failed to delete collection.";
       if (axios.isAxiosError<ApiResponse<unknown>>(error)) {
         errorMessage = error.response?.data?.message || error.message || errorMessage;
       } else if (error instanceof Error) {
@@ -514,8 +514,7 @@ export const useCollectionTreeStore = create<CollectionTreeState>((set) => ({
           return { collections };
         });
 
-        // Set the newly created request as active
-        useActiveRequestStore.getState().setActiveRequestDirectly(newReq);
+        useActiveRequestStore.getState().setActiveRequestDirectlyAction(newReq);
         return { success: true };
       } else {
         return { success: false, error: addRequestRes.data.message || "Failed to add request." };
@@ -557,9 +556,8 @@ export const useCollectionTreeStore = create<CollectionTreeState>((set) => ({
         return { collections };
       });
 
-      // Clear from active requests if it was active
       if (useActiveRequestStore.getState().activeRequestId === requestId) {
-        useActiveRequestStore.getState().setActiveRequestDirectly(null);
+        useActiveRequestStore.getState().setActiveRequestDirectlyAction(null);
       }
       return { success: true };
     } catch (error) {
@@ -574,7 +572,7 @@ export const useCollectionTreeStore = create<CollectionTreeState>((set) => ({
     }
   },
 
-  syncRequestInTree: (updated) => {
+  syncRequestInTreeAction: (updated) => {
     set((state) => {
       const updateRequestInFolders = (folders: FolderItem[]): FolderItem[] => {
         return folders.map((folder) => ({

@@ -25,7 +25,7 @@ export default function CollectionSidebar() {
   const deleteRequestAction = useCollectionTreeStore((state) => state.deleteRequestAction);
 
   const activeCollectionId = useActiveRequestStore((state) => state.activeCollectionId);
-  const setActiveCollection = useActiveRequestStore((state) => state.setActiveCollection);
+  const setActiveCollectionAction = useActiveRequestStore((state) => state.setActiveCollectionAction);
 
   const [expandedCollections, setExpandedCollections] = useState<Record<string, boolean>>({});
   const [showAddModal, setShowAddModal] = useState<{ type: "collection" | "folder" | "request"; collectionId?: string; folderId?: string | null } | null>(null);
@@ -86,7 +86,7 @@ export default function CollectionSidebar() {
     if (confirm(`Are you sure you want to permanently delete collection '${name}' and all its folders/requests?`)) {
       await deleteCollectionAction(collectionId);
       if (activeCollectionId === collectionId) {
-        setActiveCollection(null);
+        setActiveCollectionAction(null);
       }
     }
   };
@@ -114,7 +114,7 @@ export default function CollectionSidebar() {
               className="flex items-center gap-1 bg-white/[0.03] hover:bg-white/[0.07] border border-white/5 px-2 py-1 rounded text-[10px] font-semibold text-slate-300 transition-standard cursor-pointer"
               title="New Collection"
             >
-              <Plus className="w-3 h-3 text-brand-primary" />
+              <Plus className="w-3 text-brand-primary" />
               New
             </button>
           </div>
@@ -140,7 +140,7 @@ export default function CollectionSidebar() {
 
                 <span
                   onClick={() => {
-                    setActiveCollection(collection.id);
+                    setActiveCollectionAction(collection.id);
                     if (!isExpanded) {
                       toggleCollection(collection.id);
                     }
