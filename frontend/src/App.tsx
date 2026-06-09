@@ -3,11 +3,8 @@ import { useAuthStore } from "./store/authStore";
 import DashboardLayout from "./layouts/DashboardLayout";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
-import RequestsBuilderPage from "./pages/RequestsBuilderPage";
-import WorkspacesPage from "./pages/WorkspacesPage";
-import EnvironmentManager from "./pages/EnvironmentManager";
+import HomePage from "./pages/HomePage";
 import HistoryPage from "./pages/HistoryPage";
-import SettingsPage from "./pages/SettingsPage";
 
 function App() {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
@@ -21,11 +18,8 @@ function App() {
 
         {/* Authenticated Routes */}
         <Route element={isAuthenticated ? <DashboardLayout /> : <Navigate to="/login" replace />}>
-          <Route path="/" element={<RequestsBuilderPage />} />
-          <Route path="/workspaces" element={<WorkspacesPage />} />
-          <Route path="/environments" element={<EnvironmentManager />} />
+          <Route path="/" element={<HomePage />} />
           <Route path="/history" element={<HistoryPage />} />
-          <Route path="/settings" element={<SettingsPage />} />
         </Route>
 
         {/* Fallback wildcard */}

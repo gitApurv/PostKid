@@ -2,14 +2,12 @@ import { useState, useEffect, useRef } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuthStore } from "../../store/authStore";
 import {
-  Terminal,
-  Layers,
-  Globe,
+  Home,
   History,
-  Settings,
   ChevronLeft,
   ChevronRight,
-  LogOut
+  LogOut,
+  Terminal
 } from "lucide-react";
 
 export default function Sidebar() {
@@ -44,11 +42,8 @@ export default function Sidebar() {
   }, [profileOpen]);
 
   const menuItems = [
-    { name: "Requests Builder", path: "/", icon: Terminal },
-    { name: "Workspaces Management", path: "/workspaces", icon: Layers },
-    { name: "Environment Manager", path: "/environments", icon: Globe },
+    { name: "Home", path: "/", icon: Home },
     { name: "Execution History", path: "/history", icon: History },
-    { name: "Preferences & Keys", path: "/settings", icon: Settings },
   ];
 
   const handleLogout = async () => {

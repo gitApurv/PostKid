@@ -1,11 +1,11 @@
 import { useActiveRequestStore } from "../store/activeRequestStore";
-import CollectionSidebar from "../components/requestsBuilder/CollectionSidebar";
-import RequestBuilder from "../components/requestsBuilder/RequestBuilder";
-import ResponseViewer from "../components/requestsBuilder/ResponseViewer";
-import CollectionDetails from "../components/requestsBuilder/CollectionDetails";
+import CollectionSidebar from "../components/home/CollectionSidebar";
+import RequestBuilder from "../components/home/RequestBuilder";
+import ResponseViewer from "../components/home/ResponseViewer";
+import CollectionDetails from "../components/home/CollectionDetails";
 import { Sparkles } from "lucide-react";
 
-export default function RequestsBuilderPage() {
+export default function HomePage() {
   const activeRequest = useActiveRequestStore((state) => state.activeRequest);
   const activeCollectionId = useActiveRequestStore((state) => state.activeCollectionId);
 

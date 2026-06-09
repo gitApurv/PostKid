@@ -105,7 +105,7 @@ export default function CollectionSidebar() {
         <div className="flex items-center justify-between">
           <span className="text-[11px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
             <FileCode className="w-3.5 h-3.5 text-brand-primary" />
-            API Collections
+            Collections
           </span>
 
           <div className="flex items-center gap-1.5">
