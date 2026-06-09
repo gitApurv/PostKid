@@ -56,7 +56,7 @@ public class EnvironmentService {
 
     @Transactional
     public EnvironmentResponse updateEnvironment(UUID id, EnvironmentRequest request, UUID ownerId) {
-        Environment environment = findEnvironmentByIdAndOwnerid(id, ownerId);
+        Environment environment = findEnvironmentByIdAndOwnerId(id, ownerId);
 
         if (!environment.getName().equals(request.getName())
                 && environmentRepository.existsByNameAndOwnerId(request.getName(), ownerId)) {
@@ -75,7 +75,7 @@ public class EnvironmentService {
 
     @Transactional
     public void deleteEnvironment(UUID id, UUID ownerId) {
-        Environment environment = findEnvironmentByIdAndOwnerid(id, ownerId);
+        Environment environment = findEnvironmentByIdAndOwnerId(id, ownerId);
 
         environmentRepository.delete(environment);
 
@@ -84,7 +84,7 @@ public class EnvironmentService {
 
     @Transactional
     public VariableResponse addVariable(UUID environmentId, VariableRequest request, UUID ownerId) {
-        Environment environment = findEnvironmentByIdAndOwnerid(environmentId, ownerId);
+        Environment environment = findEnvironmentByIdAndOwnerId(environmentId, ownerId);
 
         if (environmentVariableRepository.existsByKeyAndEnvironmentId(request.getKey(), environment.getId())) {
             throw new DuplicateResourceException(
@@ -98,7 +98,7 @@ public class EnvironmentService {
                 .environment(environment)
                 .build();
 
-        EnvironmentVariable savedVariable = environmentVariableRepository.save(variable);
+        EnvironmentVariable savedVariable = environmentVariableRepository.saveAndFlush(variable);
         log.info("Added variable with id {} to environment {} for owner {}", savedVariable.getId(), environmentId,
                 ownerId);
 
@@ -106,8 +106,28 @@ public class EnvironmentService {
     }
 
     @Transactional
+    public VariableResponse updateVariable(UUID environmentId, UUID variableId, VariableRequest request, UUID ownerId) {
+        Environment environment = findEnvironmentByIdAndOwnerId(environmentId, ownerId);
+
+        EnvironmentVariable variable = environmentVariableRepository
+                .findByIdAndEnvironmentId(variableId, environment.getId())
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Variable with id " + variableId + " not found in environment " + environmentId));
+
+        variable.setKey(request.getKey());
+        variable.setValue(request.getValue());
+        variable.setSecret(request.isSecret());
+
+        EnvironmentVariable updatedVariable = environmentVariableRepository.saveAndFlush(variable);
+        log.info("Updated variable with id {} in environment {} for owner {}", updatedVariable.getId(), environmentId,
+                ownerId);
+
+        return toVariableResponse(updatedVariable);
+    }
+
+    @Transactional
     public void deleteVariable(UUID environmentId, UUID variableId, UUID ownerId) {
-        Environment environment = findEnvironmentByIdAndOwnerid(environmentId, ownerId);
+        Environment environment = findEnvironmentByIdAndOwnerId(environmentId, ownerId);
 
         EnvironmentVariable variable = environmentVariableRepository.findByIdAndEnvironmentId(variableId,
                 environment.getId())
@@ -119,7 +139,7 @@ public class EnvironmentService {
     }
 
     @Transactional(readOnly = true)
-    private Environment findEnvironmentByIdAndOwnerid(UUID id, UUID ownerId) {
+    private Environment findEnvironmentByIdAndOwnerId(UUID id, UUID ownerId) {
         return environmentRepository.findByIdAndOwnerId(id, ownerId)
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Environment with id " + id + " not found for owner " + ownerId));

@@ -34,7 +34,8 @@ public class EnvironmentController {
     private final EnvironmentService environmentService;
 
     @PostMapping
-    public ResponseEntity<ApiResponse<EnvironmentResponse>> createEnvironment(@Valid @RequestBody EnvironmentRequest request,
+    public ResponseEntity<ApiResponse<EnvironmentResponse>> createEnvironment(
+            @Valid @RequestBody EnvironmentRequest request,
             @AuthenticationPrincipal User currentUser) {
         EnvironmentResponse response = environmentService.createEnvironment(request, currentUser.getId());
         return ResponseEntity.status(HttpStatus.CREATED)
@@ -70,6 +71,14 @@ public class EnvironmentController {
         VariableResponse response = environmentService.addVariable(id, request, currentUser.getId());
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.success("Variable created successfully", response));
+    }
+
+    @PutMapping("/{id}/variables/{varId}")
+    public ResponseEntity<ApiResponse<VariableResponse>> updateVariable(@PathVariable UUID id,
+            @PathVariable UUID varId, @Valid @RequestBody VariableRequest request,
+            @AuthenticationPrincipal User currentUser) {
+        VariableResponse response = environmentService.updateVariable(id, varId, request, currentUser.getId());
+        return ResponseEntity.ok(ApiResponse.success("Variable updated successfully", response));
     }
 
     @DeleteMapping("/{id}/variables/{varId}")
