@@ -1,4 +1,4 @@
-import { useActiveRequestStore } from "../../store/activeRequestStore";
+import { useRequestStore } from "../../store/requestStore";
 import { Trash2 } from "lucide-react";
 import type { RequestTreeItemProps } from "../../types/collection/RequestTreeItemProps";
 
@@ -20,8 +20,8 @@ const getMethodColor = (method: string) => {
 };
 
 export default function RequestTreeItem({ request, onDelete }: RequestTreeItemProps) {
-  const activeRequestId = useActiveRequestStore((state) => state.activeRequestId);
-  const setActiveRequestAction = useActiveRequestStore((state) => state.setActiveRequestAction);
+  const activeRequestId = useRequestStore((state) => state.activeRequestId);
+  const setActiveRequestAction = useRequestStore((state) => state.setActiveRequestAction);
 
   const isActive = request.id === activeRequestId;
 

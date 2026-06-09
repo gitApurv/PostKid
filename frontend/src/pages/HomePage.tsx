@@ -1,4 +1,4 @@
-import { useActiveRequestStore } from "../store/activeRequestStore";
+import { useRequestStore } from "../store/requestStore";
 import CollectionSidebar from "../components/home/CollectionSidebar";
 import RequestBuilder from "../components/home/RequestBuilder";
 import ResponseViewer from "../components/home/ResponseViewer";
@@ -6,8 +6,8 @@ import CollectionDetails from "../components/home/CollectionDetails";
 import { Sparkles } from "lucide-react";
 
 export default function HomePage() {
-  const activeRequest = useActiveRequestStore((state) => state.activeRequest);
-  const activeCollectionId = useActiveRequestStore((state) => state.activeCollectionId);
+  const activeRequest = useRequestStore((state) => state.activeRequest);
+  const activeCollectionId = useRequestStore((state) => state.activeCollectionId);
 
   return (
     <div className="flex h-full w-full overflow-hidden">

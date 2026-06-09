@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
-import { useCollectionTreeStore } from "../../store/collectionTreeStore";
-import { useActiveRequestStore } from "../../store/activeRequestStore";
+import { useCollectionStore } from "../../store/collectionStore";
+import { useRequestStore } from "../../store/requestStore";
 import type { RequestItem } from "../../types/request/RequestItem";
 import FolderTreeItem from "./FolderTreeItem";
 import RequestTreeItem from "./RequestTreeItem";
@@ -15,17 +15,17 @@ import {
 } from "lucide-react";
 
 export default function CollectionSidebar() {
-  const collections = useCollectionTreeStore((state) => state.collections);
-  const fetchCollectionsAction = useCollectionTreeStore((state) => state.fetchCollectionsAction);
-  const fetchCollectionDetailsAction = useCollectionTreeStore((state) => state.fetchCollectionDetailsAction);
-  const addCollectionAction = useCollectionTreeStore((state) => state.addCollectionAction);
-  const deleteCollectionAction = useCollectionTreeStore((state) => state.deleteCollectionAction);
-  const addFolderAction = useCollectionTreeStore((state) => state.addFolderAction);
-  const addRequestAction = useCollectionTreeStore((state) => state.addRequestAction);
-  const deleteRequestAction = useCollectionTreeStore((state) => state.deleteRequestAction);
+  const collections = useCollectionStore((state) => state.collections);
+  const fetchCollectionsAction = useCollectionStore((state) => state.fetchCollectionsAction);
+  const fetchCollectionDetailsAction = useCollectionStore((state) => state.fetchCollectionDetailsAction);
+  const addCollectionAction = useCollectionStore((state) => state.addCollectionAction);
+  const deleteCollectionAction = useCollectionStore((state) => state.deleteCollectionAction);
+  const addFolderAction = useCollectionStore((state) => state.addFolderAction);
+  const addRequestAction = useCollectionStore((state) => state.addRequestAction);
+  const deleteRequestAction = useCollectionStore((state) => state.deleteRequestAction);
 
-  const activeCollectionId = useActiveRequestStore((state) => state.activeCollectionId);
-  const setActiveCollectionAction = useActiveRequestStore((state) => state.setActiveCollectionAction);
+  const activeCollectionId = useRequestStore((state) => state.activeCollectionId);
+  const setActiveCollectionAction = useRequestStore((state) => state.setActiveCollectionAction);
 
   const [expandedCollections, setExpandedCollections] = useState<Record<string, boolean>>({});
   const [showAddModal, setShowAddModal] = useState<{ type: "collection" | "folder" | "request"; collectionId?: string; folderId?: string | null } | null>(null);

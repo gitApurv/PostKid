@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useCollectionTreeStore } from "../../store/collectionTreeStore";
+import { useCollectionStore } from "../../store/collectionStore";
 import RequestTreeItem from "./RequestTreeItem";
 import {
   Folder,
@@ -14,9 +14,9 @@ import {
 import type { FolderTreeItemProps } from "../../types/collection/FolderTreeItemProps";
 
 export default function FolderTreeItem({ folder, collectionId, level, onAddFolder, onAddRequest }: FolderTreeItemProps) {
-  const deleteRequestAction = useCollectionTreeStore((state) => state.deleteRequestAction);
-  const deleteFolderAction = useCollectionTreeStore((state) => state.deleteFolderAction);
-  const fetchFolderDetailsAction = useCollectionTreeStore((state) => state.fetchFolderDetailsAction);
+  const deleteRequestAction = useCollectionStore((state) => state.deleteRequestAction);
+  const deleteFolderAction = useCollectionStore((state) => state.deleteFolderAction);
+  const fetchFolderDetailsAction = useCollectionStore((state) => state.fetchFolderDetailsAction);
 
   const [isExpanded, setIsExpanded] = useState(false);
 

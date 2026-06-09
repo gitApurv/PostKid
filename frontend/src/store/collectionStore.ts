@@ -5,14 +5,14 @@ import type { ApiResponse } from "../types/common/ApiResponse";
 import type { CollectionItem } from "../types/collection/CollectionItem";
 import type { FolderItem } from "../types/collection/FolderItem";
 import type { RequestItem } from "../types/request/RequestItem";
-import type { CollectionTreeState } from "../types/collection/CollectionTreeState";
+import type { CollectionState } from "../types/collection/CollectionState";
 import type { CollectionResponse } from "../types/collection/CollectionResponse";
 import type { FolderResponse } from "../types/collection/FolderResponse";
 import type { RequestItemResponse } from "../types/request/RequestItemResponse";
 import type { CollectionRequest } from "../types/collection/CollectionRequest";
 import type { FolderRequest } from "../types/collection/FolderRequest";
 import type { RequestItemRequest } from "../types/request/RequestItemRequest";
-import { useActiveRequestStore } from "./activeRequestStore";
+import { useRequestStore } from "./requestStore";
 
 const updateFolderInList = (
   folders: FolderItem[],
@@ -46,7 +46,7 @@ const updateCollectionInList = (
   });
 };
 
-export const useCollectionTreeStore = create<CollectionTreeState>((set) => ({
+export const useCollectionStore = create<CollectionState>((set) => ({
   collections: [],
 
   fetchCollectionsAction: async () => {
@@ -514,7 +514,7 @@ export const useCollectionTreeStore = create<CollectionTreeState>((set) => ({
           return { collections };
         });
 
-        useActiveRequestStore.getState().setActiveRequestDirectlyAction(newReq);
+        useRequestStore.getState().setActiveRequestDirectlyAction(newReq);
         return { success: true };
       } else {
         return { success: false, error: addRequestRes.data.message || "Failed to add request." };
@@ -556,8 +556,8 @@ export const useCollectionTreeStore = create<CollectionTreeState>((set) => ({
         return { collections };
       });
 
-      if (useActiveRequestStore.getState().activeRequestId === requestId) {
-        useActiveRequestStore.getState().setActiveRequestDirectlyAction(null);
+      if (useRequestStore.getState().activeRequestId === requestId) {
+        useRequestStore.getState().setActiveRequestDirectlyAction(null);
       }
       return { success: true };
     } catch (error) {

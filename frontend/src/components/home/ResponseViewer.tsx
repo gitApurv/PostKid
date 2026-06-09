@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
-import { useActiveRequestStore } from "../../store/activeRequestStore";
+import { useRequestStore } from "../../store/requestStore";
 import {
   Search,
   Copy,
@@ -12,8 +12,8 @@ import {
 } from "lucide-react";
 
 export default function ResponseViewer() {
-  const isExecuting = useActiveRequestStore((state) => state.isExecuting);
-  const lastResponse = useActiveRequestStore((state) => state.lastResponse);
+  const isExecuting = useRequestStore((state) => state.isExecuting);
+  const lastResponse = useRequestStore((state) => state.lastResponse);
 
   const [activeTab, setActiveTab] = useState<"body" | "headers" | "preview">("body");
   const [copied, setCopied] = useState(false);

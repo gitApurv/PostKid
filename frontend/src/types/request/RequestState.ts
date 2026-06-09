@@ -1,6 +1,6 @@
 import type { RequestItem } from "./RequestItem";
 
-export interface ActiveRequestState {
+export interface RequestState {
   activeRequestId: string | null;
   activeRequest: RequestItem | null;
   activeCollectionId: string | null;

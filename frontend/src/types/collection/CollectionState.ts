@@ -4,7 +4,7 @@ import type { CollectionRequest } from "./CollectionRequest";
 import type { FolderRequest } from "./FolderRequest";
 import type { RequestItemRequest } from "../request/RequestItemRequest";
 
-export interface CollectionTreeState {
+export interface CollectionState {
   collections: CollectionItem[];
   fetchCollectionsAction: () => Promise<{ success: boolean; error?: string }>;
   fetchCollectionDetailsAction: (collectionId: string) => Promise<{ success: boolean; error?: string }>;

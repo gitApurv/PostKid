@@ -5,10 +5,10 @@ import type { ApiResponse } from "../types/common/ApiResponse";
 import type { RequestItem } from "../types/request/RequestItem";
 import type { RequestItemResponse } from "../types/request/RequestItemResponse";
 import type { ExecutionResponse } from "../types/request/ExecutionResponse";
-import { useCollectionTreeStore } from "./collectionTreeStore";
-import type { ActiveRequestState } from "../types/request/ActiveRequestState";
+import { useCollectionStore } from "./collectionStore";
+import type { RequestState } from "../types/request/RequestState";
 
-export const useActiveRequestStore = create<ActiveRequestState>((set, get) => ({
+export const useRequestStore = create<RequestState>((set, get) => ({
   activeRequestId: null,
   activeRequest: null,
   activeCollectionId: null,
@@ -123,7 +123,7 @@ export const useActiveRequestStore = create<ActiveRequestState>((set, get) => ({
     try {
       await api.put(`/requests/${updated.id}`, payload);
 
-      useCollectionTreeStore.getState().syncRequestInTreeAction(updated);
+      useCollectionStore.getState().syncRequestInTreeAction(updated);
     } catch (e) {
       console.error("Failed to save active request updates:", e);
     }
