@@ -19,26 +19,39 @@ const getMethodColor = (method: string) => {
   }
 };
 
-export default function RequestTreeItem({ request, onDelete }: RequestTreeItemProps) {
+export default function RequestTreeItem({
+  request,
+  onDelete,
+}: RequestTreeItemProps) {
   const activeRequestId = useRequestStore((state) => state.activeRequestId);
-  const setActiveRequestAction = useRequestStore((state) => state.setActiveRequestAction);
+  const setActiveRequestAction = useRequestStore(
+    (state) => state.setActiveRequestAction,
+  );
 
   const isActive = request.id === activeRequestId;
 
   return (
     <div
-      onClick={() => setActiveRequestAction(request.id)}
-      className={`group/req flex items-center justify-between px-2.5 py-1.5 rounded text-[11px] cursor-pointer transition-standard relative ${isActive
-        ? "bg-brand-primary/10 text-white font-semibold"
-        : "text-slate-400 hover:text-slate-200 hover:bg-white/[0.01]"
-        }`}
+      onClick={async () => {
+        const response = await setActiveRequestAction(request.id);
+        if (response && !response.success) {
+          alert(response.error || "Failed to load request details.");
+        }
+      }}
+      className={`group/req flex items-center justify-between px-2.5 py-1.5 rounded text-[11px] cursor-pointer transition-standard relative ${
+        isActive
+          ? "bg-brand-primary/10 text-white font-semibold"
+          : "text-slate-400 hover:text-slate-200 hover:bg-white/[0.01]"
+      }`}
     >
       {isActive && (
         <span className="absolute left-0 top-1 bottom-1 w-[2px] bg-brand-primary rounded-r" />
       )}
 
       <div className="flex items-center gap-2 truncate flex-1 pr-2">
-        <span className={`text-[8px] font-bold font-mono px-1 py-0.5 border rounded leading-none shrink-0 ${getMethodColor(request.method)}`}>
+        <span
+          className={`text-[8px] font-bold font-mono px-1 py-0.5 border rounded leading-none shrink-0 ${getMethodColor(request.method)}`}
+        >
           {request.method}
         </span>
         <span className="truncate">{request.name}</span>

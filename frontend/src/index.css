@@ -6,13 +6,13 @@
   --font-mono: "JetBrains Mono", monospace;
 
   --color-brand-bg: #060814;
-  --color-brand-layer-1: #0B0F19;
-  --color-brand-layer-2: #0F132E;
-  --color-brand-primary: #6366F1;
-  --color-brand-secondary: #8B5CF6;
-  --color-brand-success: #10B981;
-  --color-brand-warning: #F59E0B;
-  --color-brand-error: #F43F5E;
+  --color-brand-layer-1: #0b0f19;
+  --color-brand-layer-2: #0f132e;
+  --color-brand-primary: #6366f1;
+  --color-brand-secondary: #8b5cf6;
+  --color-brand-success: #10b981;
+  --color-brand-warning: #f59e0b;
+  --color-brand-error: #f43f5e;
 
   --animate-pulse-slow: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
   --animate-float: float 6s ease-in-out infinite;
@@ -20,7 +20,6 @@
 }
 
 @keyframes float {
-
   0%,
   100% {
     transform: translateY(0);
@@ -32,7 +31,6 @@
 }
 
 @keyframes shimmer {
-
   0% {
     background-position: -200% 0;
   }
@@ -78,11 +76,19 @@
 }
 
 .ambient-glow-1 {
-  background: radial-gradient(circle at 50% 50%, rgba(99, 102, 241, 0.1) 0%, rgba(0, 0, 0, 0) 70%);
+  background: radial-gradient(
+    circle at 50% 50%,
+    rgba(99, 102, 241, 0.1) 0%,
+    rgba(0, 0, 0, 0) 70%
+  );
 }
 
 .ambient-glow-2 {
-  background: radial-gradient(circle at 50% 50%, rgba(139, 92, 246, 0.08) 0%, rgba(0, 0, 0, 0) 70%);
+  background: radial-gradient(
+    circle at 50% 50%,
+    rgba(139, 92, 246, 0.08) 0%,
+    rgba(0, 0, 0, 0) 70%
+  );
 }
 
 /* Custom transitions */

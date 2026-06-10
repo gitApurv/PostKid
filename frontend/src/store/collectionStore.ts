@@ -17,7 +17,7 @@ import { useRequestStore } from "./requestStore";
 const updateFolderInList = (
   folders: FolderItem[],
   folderId: string,
-  updater: (folder: FolderItem) => Partial<FolderItem>
+  updater: (folder: FolderItem) => Partial<FolderItem>,
 ): FolderItem[] => {
   return folders.map((folder) => {
     if (folder.id === folderId) {
@@ -36,7 +36,7 @@ const updateFolderInList = (
 const updateCollectionInList = (
   collections: CollectionItem[],
   collectionId: string,
-  updater: (collection: CollectionItem) => Partial<CollectionItem>
+  updater: (collection: CollectionItem) => Partial<CollectionItem>,
 ): CollectionItem[] => {
   return collections.map((collection) => {
     if (collection.id === collectionId) {
@@ -51,30 +51,37 @@ export const useCollectionStore = create<CollectionState>((set) => ({
 
   fetchCollectionsAction: async () => {
     try {
-      const collectionsRes = await api.get<ApiResponse<CollectionResponse[]>>("/collections");
+      const collectionsRes =
+        await api.get<ApiResponse<CollectionResponse[]>>("/collections");
       if (collectionsRes.data.success && collectionsRes.data.data) {
-        const collections: CollectionItem[] = collectionsRes.data.data.map((collection) => ({
-          id: collection.id,
-          name: collection.name,
-          description: collection.description || "",
-          folderCount: collection.folderCount,
-          folders: [],
-          requests: [],
-          isLoaded: false,
-          ownerUsername: collection.ownerUsername,
-          createdAt: collection.createdAt,
-          updatedAt: collection.updatedAt,
-        }));
+        const collections: CollectionItem[] = collectionsRes.data.data.map(
+          (collection) => ({
+            id: collection.id,
+            name: collection.name,
+            description: collection.description || "",
+            folderCount: collection.folderCount,
+            folders: [],
+            requests: [],
+            isLoaded: false,
+            ownerUsername: collection.ownerUsername,
+            createdAt: collection.createdAt,
+            updatedAt: collection.updatedAt,
+          }),
+        );
         set({ collections });
         return { success: true };
       } else {
-        return { success: false, error: collectionsRes.data.message || "Failed to fetch collections." };
+        return {
+          success: false,
+          error: collectionsRes.data.message || "Failed to fetch collections.",
+        };
       }
     } catch (error) {
       console.error("Failed to fetch collections:", error);
       let errorMessage = "Failed to fetch collections.";
       if (axios.isAxiosError<ApiResponse<unknown>>(error)) {
-        errorMessage = error.response?.data?.message || error.message || errorMessage;
+        errorMessage =
+          error.response?.data?.message || error.message || errorMessage;
       } else if (error instanceof Error) {
         errorMessage = error.message;
       }
@@ -84,12 +91,20 @@ export const useCollectionStore = create<CollectionState>((set) => ({
 
   fetchCollectionDetailsAction: async (collectionId) => {
     set((state) => ({
-      collections: updateCollectionInList(state.collections, collectionId, () => ({ isLoading: true })),
+      collections: updateCollectionInList(
+        state.collections,
+        collectionId,
+        () => ({ isLoading: true }),
+      ),
     }));
 
     try {
-      const foldersRes = await api.get<ApiResponse<FolderResponse[]>>(`/collections/${collectionId}/folders`);
-      const requestsRes = await api.get<ApiResponse<RequestItemResponse[]>>(`/requests/collection/${collectionId}/root`);
+      const foldersRes = await api.get<ApiResponse<FolderResponse[]>>(
+        `/collections/${collectionId}/folders`,
+      );
+      const requestsRes = await api.get<ApiResponse<RequestItemResponse[]>>(
+        `/requests/collection/${collectionId}/root`,
+      );
 
       const folders: FolderItem[] = foldersRes.data.data.map((folder) => ({
         id: folder.id,
@@ -110,15 +125,19 @@ export const useCollectionStore = create<CollectionState>((set) => ({
           .filter(Boolean)
           .map((param) => {
             const [key, value] = param.split("=");
-            return { key, value: decodeURIComponent(value || ""), active: true };
+            return {
+              key,
+              value: decodeURIComponent(value || ""),
+              active: true,
+            };
           });
 
         const headers = request.headers
           ? Object.entries(request.headers).map(([key, value]) => ({
-            key,
-            value: value as string,
-            active: true,
-          }))
+              key,
+              value: value as string,
+              active: true,
+            }))
           : [];
 
         return {
@@ -139,22 +158,31 @@ export const useCollectionStore = create<CollectionState>((set) => ({
       });
 
       set((state) => ({
-        collections: updateCollectionInList(state.collections, collectionId, () => ({
-          folders,
-          requests,
-          isLoaded: true,
-          isLoading: false,
-        })),
+        collections: updateCollectionInList(
+          state.collections,
+          collectionId,
+          () => ({
+            folders,
+            requests,
+            isLoaded: true,
+            isLoading: false,
+          }),
+        ),
       }));
       return { success: true };
     } catch (error) {
       console.error("Failed to fetch collection details:", error);
       set((state) => ({
-        collections: updateCollectionInList(state.collections, collectionId, () => ({ isLoading: false })),
+        collections: updateCollectionInList(
+          state.collections,
+          collectionId,
+          () => ({ isLoading: false }),
+        ),
       }));
       let errorMessage = "Failed to fetch collection details.";
       if (axios.isAxiosError<ApiResponse<unknown>>(error)) {
-        errorMessage = error.response?.data?.message || error.message || errorMessage;
+        errorMessage =
+          error.response?.data?.message || error.message || errorMessage;
       } else if (error instanceof Error) {
         errorMessage = error.message;
       }
@@ -164,7 +192,10 @@ export const useCollectionStore = create<CollectionState>((set) => ({
 
   addCollectionAction: async (req: CollectionRequest) => {
     try {
-      const addCollectionRes = await api.post<ApiResponse<CollectionResponse>>("/collections", req);
+      const addCollectionRes = await api.post<ApiResponse<CollectionResponse>>(
+        "/collections",
+        req,
+      );
       if (addCollectionRes.data.success && addCollectionRes.data.data) {
         const newCollection: CollectionItem = {
           id: addCollectionRes.data.data.id,
@@ -183,13 +214,17 @@ export const useCollectionStore = create<CollectionState>((set) => ({
         }));
         return { success: true };
       } else {
-        return { success: false, error: addCollectionRes.data.message || "Failed to add collection." };
+        return {
+          success: false,
+          error: addCollectionRes.data.message || "Failed to add collection.",
+        };
       }
     } catch (error) {
       console.error("Failed to add collection:", error);
       let errorMessage = "Failed to add collection.";
       if (axios.isAxiosError<ApiResponse<unknown>>(error)) {
-        errorMessage = error.response?.data?.message || error.message || errorMessage;
+        errorMessage =
+          error.response?.data?.message || error.message || errorMessage;
       } else if (error instanceof Error) {
         errorMessage = error.message;
       }
@@ -199,7 +234,9 @@ export const useCollectionStore = create<CollectionState>((set) => ({
 
   updateCollectionAction: async (id, req: CollectionRequest) => {
     try {
-      const updateCollectionRes = await api.put<ApiResponse<CollectionResponse>>(`/collections/${id}`, req);
+      const updateCollectionRes = await api.put<
+        ApiResponse<CollectionResponse>
+      >(`/collections/${id}`, req);
       if (updateCollectionRes.data.success && updateCollectionRes.data.data) {
         const updated = updateCollectionRes.data.data;
         set((state) => ({
@@ -211,13 +248,18 @@ export const useCollectionStore = create<CollectionState>((set) => ({
         }));
         return { success: true };
       } else {
-        return { success: false, error: updateCollectionRes.data.message || "Failed to update collection." };
+        return {
+          success: false,
+          error:
+            updateCollectionRes.data.message || "Failed to update collection.",
+        };
       }
     } catch (error) {
       console.error("Failed to update collection:", error);
       let errorMessage = "Failed to update collection.";
       if (axios.isAxiosError<ApiResponse<unknown>>(error)) {
-        errorMessage = error.response?.data?.message || error.message || errorMessage;
+        errorMessage =
+          error.response?.data?.message || error.message || errorMessage;
       } else if (error instanceof Error) {
         errorMessage = error.message;
       }
@@ -227,19 +269,31 @@ export const useCollectionStore = create<CollectionState>((set) => ({
 
   deleteCollectionAction: async (id) => {
     try {
-      const deleteCollectionRes = await api.delete<ApiResponse<unknown>>(`/collections/${id}`);
-      if (deleteCollectionRes.data && deleteCollectionRes.data.success === false) {
-        return { success: false, error: deleteCollectionRes.data.message || "Failed to delete collection." };
+      const deleteCollectionRes = await api.delete<ApiResponse<unknown>>(
+        `/collections/${id}`,
+      );
+      if (
+        deleteCollectionRes.data &&
+        deleteCollectionRes.data.success === false
+      ) {
+        return {
+          success: false,
+          error:
+            deleteCollectionRes.data.message || "Failed to delete collection.",
+        };
       }
       set((state) => ({
-        collections: state.collections.filter((collection) => collection.id !== id),
+        collections: state.collections.filter(
+          (collection) => collection.id !== id,
+        ),
       }));
       return { success: true };
     } catch (error) {
       console.error("Failed to delete collection:", error);
       let errorMessage = "Failed to delete collection.";
       if (axios.isAxiosError<ApiResponse<unknown>>(error)) {
-        errorMessage = error.response?.data?.message || error.message || errorMessage;
+        errorMessage =
+          error.response?.data?.message || error.message || errorMessage;
       } else if (error instanceof Error) {
         errorMessage = error.message;
       }
@@ -253,7 +307,9 @@ export const useCollectionStore = create<CollectionState>((set) => ({
         if (collection.id === collectionId && collection.folders) {
           return {
             ...collection,
-            folders: updateFolderInList(collection.folders, folderId, () => ({ isLoading: true })),
+            folders: updateFolderInList(collection.folders, folderId, () => ({
+              isLoading: true,
+            })),
           };
         }
         return collection;
@@ -262,19 +318,25 @@ export const useCollectionStore = create<CollectionState>((set) => ({
     });
 
     try {
-      const subfoldersRes = await api.get<ApiResponse<FolderResponse[]>>(`/collections/${collectionId}/folders/${folderId}/subfolders`);
-      const requestsRes = await api.get<ApiResponse<RequestItemResponse[]>>(`/requests/collection/${collectionId}/folders/${folderId}`);
+      const subfoldersRes = await api.get<ApiResponse<FolderResponse[]>>(
+        `/collections/${collectionId}/folders/${folderId}/subfolders`,
+      );
+      const requestsRes = await api.get<ApiResponse<RequestItemResponse[]>>(
+        `/requests/collection/${collectionId}/folders/${folderId}`,
+      );
 
-      const subfolders: FolderItem[] = subfoldersRes.data.data.map((folder) => ({
-        id: folder.id,
-        name: folder.name,
-        collectionId: folder.collectionId,
-        parentFolderId: folder.parentFolderId,
-        subfolderCount: folder.subFolderCount,
-        subfolders: [],
-        requests: [],
-        isLoaded: false,
-      }));
+      const subfolders: FolderItem[] = subfoldersRes.data.data.map(
+        (folder) => ({
+          id: folder.id,
+          name: folder.name,
+          collectionId: folder.collectionId,
+          parentFolderId: folder.parentFolderId,
+          subfolderCount: folder.subFolderCount,
+          subfolders: [],
+          requests: [],
+          isLoaded: false,
+        }),
+      );
 
       const requests: RequestItem[] = requestsRes.data.data.map((request) => {
         const urlObj = request.url ? request.url.split("?") : [""];
@@ -284,15 +346,19 @@ export const useCollectionStore = create<CollectionState>((set) => ({
           .filter(Boolean)
           .map((param) => {
             const [key, value] = param.split("=");
-            return { key, value: decodeURIComponent(value || ""), active: true };
+            return {
+              key,
+              value: decodeURIComponent(value || ""),
+              active: true,
+            };
           });
 
         const headers = request.headers
           ? Object.entries(request.headers).map(([key, value]) => ({
-            key,
-            value: value as string,
-            active: true,
-          }))
+              key,
+              value: value as string,
+              active: true,
+            }))
           : [];
 
         return {
@@ -337,7 +403,9 @@ export const useCollectionStore = create<CollectionState>((set) => ({
           if (collection.id === collectionId && collection.folders) {
             return {
               ...collection,
-              folders: updateFolderInList(collection.folders, folderId, () => ({ isLoading: false })),
+              folders: updateFolderInList(collection.folders, folderId, () => ({
+                isLoading: false,
+              })),
             };
           }
           return collection;
@@ -346,7 +414,8 @@ export const useCollectionStore = create<CollectionState>((set) => ({
       });
       let errorMessage = "Failed to fetch folder details.";
       if (axios.isAxiosError<ApiResponse<unknown>>(error)) {
-        errorMessage = error.response?.data?.message || error.message || errorMessage;
+        errorMessage =
+          error.response?.data?.message || error.message || errorMessage;
       } else if (error instanceof Error) {
         errorMessage = error.message;
       }
@@ -356,7 +425,10 @@ export const useCollectionStore = create<CollectionState>((set) => ({
 
   addFolderAction: async (collectionId, req: FolderRequest) => {
     try {
-      const addFolderRes = await api.post<ApiResponse<FolderResponse>>(`/collections/${collectionId}/folders`, req);
+      const addFolderRes = await api.post<ApiResponse<FolderResponse>>(
+        `/collections/${collectionId}/folders`,
+        req,
+      );
 
       if (addFolderRes.data.success && addFolderRes.data.data) {
         const newFolder: FolderItem = {
@@ -376,10 +448,14 @@ export const useCollectionStore = create<CollectionState>((set) => ({
               if (req.parentFolderId) {
                 return {
                   ...collection,
-                  folders: updateFolderInList(collection.folders || [], req.parentFolderId, (folder) => ({
-                    subfolders: [...(folder.subfolders || []), newFolder],
-                    subfolderCount: (folder.subfolderCount || 0) + 1,
-                  })),
+                  folders: updateFolderInList(
+                    collection.folders || [],
+                    req.parentFolderId,
+                    (folder) => ({
+                      subfolders: [...(folder.subfolders || []), newFolder],
+                      subfolderCount: (folder.subfolderCount || 0) + 1,
+                    }),
+                  ),
                 };
               } else {
                 return {
@@ -395,13 +471,17 @@ export const useCollectionStore = create<CollectionState>((set) => ({
         });
         return { success: true };
       } else {
-        return { success: false, error: addFolderRes.data.message || "Failed to add folder." };
+        return {
+          success: false,
+          error: addFolderRes.data.message || "Failed to add folder.",
+        };
       }
     } catch (error) {
       console.error("Failed to add folder:", error);
       let errorMessage = "Failed to add folder.";
       if (axios.isAxiosError<ApiResponse<unknown>>(error)) {
-        errorMessage = error.response?.data?.message || error.message || errorMessage;
+        errorMessage =
+          error.response?.data?.message || error.message || errorMessage;
       } else if (error instanceof Error) {
         errorMessage = error.message;
       }
@@ -411,9 +491,14 @@ export const useCollectionStore = create<CollectionState>((set) => ({
 
   deleteFolderAction: async (collectionId, folderId) => {
     try {
-      const deleteFolderRes = await api.delete<ApiResponse<unknown>>(`/collections/${collectionId}/folders/${folderId}`);
+      const deleteFolderRes = await api.delete<ApiResponse<unknown>>(
+        `/collections/${collectionId}/folders/${folderId}`,
+      );
       if (deleteFolderRes.data && deleteFolderRes.data.success === false) {
-        return { success: false, error: deleteFolderRes.data.message || "Failed to delete folder." };
+        return {
+          success: false,
+          error: deleteFolderRes.data.message || "Failed to delete folder.",
+        };
       }
 
       set((state) => {
@@ -422,7 +507,10 @@ export const useCollectionStore = create<CollectionState>((set) => ({
             .filter((folder) => folder.id !== folderId)
             .map((folder) => {
               if (folder.subfolders && folder.subfolders.length > 0) {
-                return { ...folder, subfolders: removeFolderFromList(folder.subfolders) };
+                return {
+                  ...folder,
+                  subfolders: removeFolderFromList(folder.subfolders),
+                };
               }
               return folder;
             });
@@ -446,7 +534,8 @@ export const useCollectionStore = create<CollectionState>((set) => ({
       console.error("Failed to delete folder:", error);
       let errorMessage = "Failed to delete folder.";
       if (axios.isAxiosError<ApiResponse<unknown>>(error)) {
-        errorMessage = error.response?.data?.message || error.message || errorMessage;
+        errorMessage =
+          error.response?.data?.message || error.message || errorMessage;
       } else if (error instanceof Error) {
         errorMessage = error.message;
       }
@@ -456,10 +545,15 @@ export const useCollectionStore = create<CollectionState>((set) => ({
 
   addRequestAction: async (collectionId, folderId, req: RequestItemRequest) => {
     try {
-      const addRequestRes = await api.post<ApiResponse<RequestItemResponse>>("/requests", req);
+      const addRequestRes = await api.post<ApiResponse<RequestItemResponse>>(
+        "/requests",
+        req,
+      );
       if (addRequestRes.data.success && addRequestRes.data.data) {
         const requestResponse = addRequestRes.data.data;
-        const urlObj = requestResponse.url ? requestResponse.url.split("?") : [""];
+        const urlObj = requestResponse.url
+          ? requestResponse.url.split("?")
+          : [""];
         const paramString = urlObj[1] || "";
         const params = paramString
           .split("&")
@@ -471,10 +565,10 @@ export const useCollectionStore = create<CollectionState>((set) => ({
 
         const headers = requestResponse.headers
           ? Object.entries(requestResponse.headers).map(([key, value]) => ({
-            key,
-            value: value as string,
-            active: true,
-          }))
+              key,
+              value: value as string,
+              active: true,
+            }))
           : [];
 
         const newReq: RequestItem = {
@@ -498,9 +592,13 @@ export const useCollectionStore = create<CollectionState>((set) => ({
               if (folderId) {
                 return {
                   ...collection,
-                  folders: updateFolderInList(collection.folders || [], folderId, (folder) => ({
-                    requests: [...(folder.requests || []), newReq],
-                  })),
+                  folders: updateFolderInList(
+                    collection.folders || [],
+                    folderId,
+                    (folder) => ({
+                      requests: [...(folder.requests || []), newReq],
+                    }),
+                  ),
                 };
               } else {
                 return {
@@ -517,13 +615,17 @@ export const useCollectionStore = create<CollectionState>((set) => ({
         useRequestStore.getState().setActiveRequestDirectlyAction(newReq);
         return { success: true };
       } else {
-        return { success: false, error: addRequestRes.data.message || "Failed to add request." };
+        return {
+          success: false,
+          error: addRequestRes.data.message || "Failed to add request.",
+        };
       }
     } catch (error) {
       console.error("Failed to add request:", error);
       let errorMessage = "Failed to add request.";
       if (axios.isAxiosError<ApiResponse<unknown>>(error)) {
-        errorMessage = error.response?.data?.message || error.message || errorMessage;
+        errorMessage =
+          error.response?.data?.message || error.message || errorMessage;
       } else if (error instanceof Error) {
         errorMessage = error.message;
       }
@@ -533,24 +635,39 @@ export const useCollectionStore = create<CollectionState>((set) => ({
 
   deleteRequestAction: async (requestId) => {
     try {
-      const deleteRequestRes = await api.delete<ApiResponse<unknown>>(`/requests/${requestId}`);
+      const deleteRequestRes = await api.delete<ApiResponse<unknown>>(
+        `/requests/${requestId}`,
+      );
       if (deleteRequestRes.data && deleteRequestRes.data.success === false) {
-        return { success: false, error: deleteRequestRes.data.message || "Failed to delete request." };
+        return {
+          success: false,
+          error: deleteRequestRes.data.message || "Failed to delete request.",
+        };
       }
 
       set((state) => {
-        const removeRequestFromFolders = (folders: FolderItem[]): FolderItem[] => {
+        const removeRequestFromFolders = (
+          folders: FolderItem[],
+        ): FolderItem[] => {
           return folders.map((folder) => ({
             ...folder,
-            requests: (folder.requests || []).filter((request) => request.id !== requestId),
-            subfolders: folder.subfolders ? removeRequestFromFolders(folder.subfolders) : [],
+            requests: (folder.requests || []).filter(
+              (request) => request.id !== requestId,
+            ),
+            subfolders: folder.subfolders
+              ? removeRequestFromFolders(folder.subfolders)
+              : [],
           }));
         };
 
         const collections = state.collections.map((collection) => ({
           ...collection,
-          requests: (collection.requests || []).filter((request) => request.id !== requestId),
-          folders: collection.folders ? removeRequestFromFolders(collection.folders) : [],
+          requests: (collection.requests || []).filter(
+            (request) => request.id !== requestId,
+          ),
+          folders: collection.folders
+            ? removeRequestFromFolders(collection.folders)
+            : [],
         }));
 
         return { collections };
@@ -564,7 +681,8 @@ export const useCollectionStore = create<CollectionState>((set) => ({
       console.error("Failed to delete request:", error);
       let errorMessage = "Failed to delete request.";
       if (axios.isAxiosError<ApiResponse<unknown>>(error)) {
-        errorMessage = error.response?.data?.message || error.message || errorMessage;
+        errorMessage =
+          error.response?.data?.message || error.message || errorMessage;
       } else if (error instanceof Error) {
         errorMessage = error.message;
       }
@@ -577,16 +695,25 @@ export const useCollectionStore = create<CollectionState>((set) => ({
       const updateRequestInFolders = (folders: FolderItem[]): FolderItem[] => {
         return folders.map((folder) => ({
           ...folder,
-          requests: (folder.requests || []).map((request) => (request.id === updated.id ? updated : request)),
-          subfolders: folder.subfolders ? updateRequestInFolders(folder.subfolders) : [],
+          requests: (folder.requests || []).map((request) =>
+            request.id === updated.id ? updated : request,
+          ),
+          subfolders: folder.subfolders
+            ? updateRequestInFolders(folder.subfolders)
+            : [],
         }));
       };
       const collections = state.collections.map((collection) => ({
         ...collection,
-        requests: (collection.requests || []).map((request) => (request.id === updated.id ? updated : request)),
-        folders: collection.folders ? updateRequestInFolders(collection.folders) : [],
+        requests: (collection.requests || []).map((request) =>
+          request.id === updated.id ? updated : request,
+        ),
+        folders: collection.folders
+          ? updateRequestInFolders(collection.folders)
+          : [],
       }));
       return { collections };
     });
+    return { success: true };
   },
 }));

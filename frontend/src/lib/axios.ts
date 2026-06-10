@@ -3,7 +3,8 @@ import type { ApiResponse } from "../types/common/ApiResponse";
 import type { AuthResponse } from "../types/auth/AuthResponse";
 import type { TokenRefreshRequest } from "../types/auth/TokenRefreshRequest";
 
-const baseURL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1";
+const baseURL =
+  import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api/v1";
 
 const api = axios.create({
   baseURL,
@@ -36,10 +37,14 @@ api.interceptors.response.use(
         try {
           // Send request to refresh token endpoint
           const payload: TokenRefreshRequest = { refreshToken };
-          const response = await axios.post<ApiResponse<AuthResponse>>(`${baseURL}/auth/refresh`, payload);
+          const response = await axios.post<ApiResponse<AuthResponse>>(
+            `${baseURL}/auth/refresh`,
+            payload,
+          );
 
           if (response.data.success && response.data.data) {
-            const { accessToken, refreshToken: newRefreshToken } = response.data.data;
+            const { accessToken, refreshToken: newRefreshToken } =
+              response.data.data;
 
             // Store new tokens
             localStorage.setItem("accessToken", accessToken);
@@ -50,7 +55,10 @@ api.interceptors.response.use(
             return api(originalRequest);
           }
         } catch (refreshError) {
-          console.error("Session expired or refresh token invalid:", refreshError);
+          console.error(
+            "Session expired or refresh token invalid:",
+            refreshError,
+          );
 
           // Clear credentials and force redirect to login
           localStorage.removeItem("accessToken");
@@ -62,7 +70,7 @@ api.interceptors.response.use(
     }
 
     return Promise.reject(error);
-  }
+  },
 );
 
 export default api;

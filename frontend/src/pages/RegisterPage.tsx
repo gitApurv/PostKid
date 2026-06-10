@@ -83,8 +83,12 @@ export default function RegisterPage() {
           {/* Top card accent line */}
           <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-brand-primary via-brand-secondary to-pink-500 opacity-80" />
 
-          <h2 className="text-xl font-display font-semibold text-white mb-1.5">Create account</h2>
-          <p className="text-xs text-slate-400 mb-6">Join global engineering teams managing REST variables.</p>
+          <h2 className="text-xl font-display font-semibold text-white mb-1.5">
+            Create account
+          </h2>
+          <p className="text-xs text-slate-400 mb-6">
+            Join global engineering teams managing REST variables.
+          </p>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             {error && (
@@ -169,7 +173,9 @@ export default function RegisterPage() {
                     className={`fill-transparent transition-all duration-500 ease-out ${getStrengthColor()}`}
                     strokeWidth="3"
                     strokeDasharray={2 * Math.PI * 15}
-                    strokeDashoffset={2 * Math.PI * 15 - (strength / 100) * 2 * Math.PI * 15}
+                    strokeDashoffset={
+                      2 * Math.PI * 15 - (strength / 100) * 2 * Math.PI * 15
+                    }
                   />
                 </svg>
                 <div className="absolute text-[8px] font-bold text-slate-300 font-display">
@@ -182,25 +188,33 @@ export default function RegisterPage() {
             {password.length > 0 && (
               <div className="grid grid-cols-2 gap-1 px-1.5 py-1.5 bg-brand-layer-2/30 rounded border border-white/5 text-[10px] text-slate-400">
                 <div className="flex items-center gap-1.5">
-                  <span className={`w-3.5 h-3.5 rounded-full flex items-center justify-center border ${checks.length ? "bg-brand-success/10 border-brand-success text-brand-success" : "border-white/10"}`}>
+                  <span
+                    className={`w-3.5 h-3.5 rounded-full flex items-center justify-center border ${checks.length ? "bg-brand-success/10 border-brand-success text-brand-success" : "border-white/10"}`}
+                  >
                     {checks.length && <Check className="w-2.5 h-2.5" />}
                   </span>
                   Min 8 characters
                 </div>
                 <div className="flex items-center gap-1.5">
-                  <span className={`w-3.5 h-3.5 rounded-full flex items-center justify-center border ${checks.upperLower ? "bg-brand-success/10 border-brand-success text-brand-success" : "border-white/10"}`}>
+                  <span
+                    className={`w-3.5 h-3.5 rounded-full flex items-center justify-center border ${checks.upperLower ? "bg-brand-success/10 border-brand-success text-brand-success" : "border-white/10"}`}
+                  >
                     {checks.upperLower && <Check className="w-2.5 h-2.5" />}
                   </span>
                   Upper & Lower letters
                 </div>
                 <div className="flex items-center gap-1.5">
-                  <span className={`w-3.5 h-3.5 rounded-full flex items-center justify-center border ${checks.number ? "bg-brand-success/10 border-brand-success text-brand-success" : "border-white/10"}`}>
+                  <span
+                    className={`w-3.5 h-3.5 rounded-full flex items-center justify-center border ${checks.number ? "bg-brand-success/10 border-brand-success text-brand-success" : "border-white/10"}`}
+                  >
                     {checks.number && <Check className="w-2.5 h-2.5" />}
                   </span>
                   Contains numbers
                 </div>
                 <div className="flex items-center gap-1.5">
-                  <span className={`w-3.5 h-3.5 rounded-full flex items-center justify-center border ${checks.special ? "bg-brand-success/10 border-brand-success text-brand-success" : "border-white/10"}`}>
+                  <span
+                    className={`w-3.5 h-3.5 rounded-full flex items-center justify-center border ${checks.special ? "bg-brand-success/10 border-brand-success text-brand-success" : "border-white/10"}`}
+                  >
                     {checks.special && <Check className="w-2.5 h-2.5" />}
                   </span>
                   Special character
@@ -253,7 +267,10 @@ export default function RegisterPage() {
         {/* Footer Link */}
         <p className="mt-8 text-center text-xs text-slate-500">
           Already have a developer account?{" "}
-          <Link to="/login" className="text-brand-primary hover:text-brand-secondary transition-standard font-medium">
+          <Link
+            to="/login"
+            className="text-brand-primary hover:text-brand-secondary transition-standard font-medium"
+          >
             Sign In
           </Link>
         </p>

@@ -14,9 +14,26 @@ export interface RequestState {
     body: string;
   } | null;
 
-  setActiveRequestAction: (id: string | null) => Promise<void>;
-  setActiveRequestDirectlyAction: (req: RequestItem | null) => void;
-  setActiveCollectionAction: (id: string | null) => void;
-  updateActiveRequestAction: (fields: Partial<RequestItem>) => Promise<void>;
-  executeRequestAction: (activeEnvironmentId: string, environments: any[]) => Promise<void>;
+  setActiveRequestAction: (
+    id: string | null,
+  ) => Promise<{ success: boolean; error?: string }>;
+
+  setActiveRequestDirectlyAction: (req: RequestItem | null) => {
+    success: boolean;
+    error?: string;
+  };
+
+  setActiveCollectionAction: (id: string | null) => {
+    success: boolean;
+    error?: string;
+  };
+
+  updateActiveRequestAction: (
+    fields: Partial<RequestItem>,
+  ) => Promise<{ success: boolean; error?: string }>;
+
+  executeRequestAction: (
+    activeEnvironmentId: string,
+    environments: any[],
+  ) => Promise<{ success: boolean; error?: string }>;
 }

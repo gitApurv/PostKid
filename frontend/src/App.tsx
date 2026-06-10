@@ -13,11 +13,29 @@ function App() {
     <BrowserRouter>
       <Routes>
         {/* Unauthenticated Routes */}
-        <Route path="/login" element={!isAuthenticated ? <LoginPage /> : <Navigate to="/" replace />} />
-        <Route path="/register" element={!isAuthenticated ? <RegisterPage /> : <Navigate to="/" replace />} />
+        <Route
+          path="/login"
+          element={
+            !isAuthenticated ? <LoginPage /> : <Navigate to="/" replace />
+          }
+        />
+        <Route
+          path="/register"
+          element={
+            !isAuthenticated ? <RegisterPage /> : <Navigate to="/" replace />
+          }
+        />
 
         {/* Authenticated Routes */}
-        <Route element={isAuthenticated ? <DashboardLayout /> : <Navigate to="/login" replace />}>
+        <Route
+          element={
+            isAuthenticated ? (
+              <DashboardLayout />
+            ) : (
+              <Navigate to="/login" replace />
+            )
+          }
+        >
           <Route path="/" element={<HomePage />} />
           <Route path="/history" element={<HistoryPage />} />
         </Route>

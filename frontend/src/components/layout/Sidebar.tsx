@@ -7,7 +7,7 @@ import {
   ChevronLeft,
   ChevronRight,
   LogOut,
-  Terminal
+  Terminal,
 } from "lucide-react";
 
 export default function Sidebar() {
@@ -25,7 +25,10 @@ export default function Sidebar() {
     if (!profileOpen) return;
 
     const handleClickOutside = (e: MouseEvent) => {
-      if (profileRef.current && !profileRef.current.contains(e.target as Node)) {
+      if (
+        profileRef.current &&
+        !profileRef.current.contains(e.target as Node)
+      ) {
         setProfileOpen(false);
       }
     };
@@ -47,19 +50,29 @@ export default function Sidebar() {
   ];
 
   const handleLogout = async () => {
-    await logoutAction();
+    const response = await logoutAction();
+    if (response && !response.success) {
+      alert(
+        response.error ||
+          "Failed to log out correctly from server, but local session cleared.",
+      );
+    }
     navigate("/login");
   };
 
   return (
     <aside
-      className={`glass-panel border-r border-white/5 bg-[#0B0F19]/90 relative flex flex-col justify-between z-30 transition-all duration-300 ease-in-out ${sidebarExpanded ? "w-64" : "w-18"
-        }`}
+      className={`glass-panel border-r border-white/5 bg-[#0B0F19]/90 relative flex flex-col justify-between z-30 transition-all duration-300 ease-in-out ${
+        sidebarExpanded ? "w-64" : "w-18"
+      }`}
     >
       <div>
         {/* Header Branding */}
         <div className="h-14 flex items-center justify-between px-4 border-b border-white/5">
-          <Link to="/" className="flex items-center gap-2.5 overflow-hidden group">
+          <Link
+            to="/"
+            className="flex items-center gap-2.5 overflow-hidden group"
+          >
             <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-brand-primary to-brand-secondary flex items-center justify-center shadow-[0_0_15px_rgba(99,102,241,0.2)] shrink-0">
               <Terminal className="w-4 h-4 text-white" />
             </div>
@@ -90,10 +103,11 @@ export default function Sidebar() {
               <Link
                 key={index}
                 to={item.path}
-                className={`flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-sm transition-all duration-200 group relative ${isActive
-                  ? "bg-brand-primary/10 text-white font-medium shadow-[inset_0_0_12px_rgba(99,102,241,0.06)]"
-                  : "text-slate-400 hover:text-slate-200 hover:bg-white/[0.02]"
-                  }`}
+                className={`flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-sm transition-all duration-200 group relative ${
+                  isActive
+                    ? "bg-brand-primary/10 text-white font-medium shadow-[inset_0_0_12px_rgba(99,102,241,0.06)]"
+                    : "text-slate-400 hover:text-slate-200 hover:bg-white/[0.02]"
+                }`}
               >
                 {/* Vertical sliding neon highlight on left */}
                 {isActive && (
@@ -101,8 +115,9 @@ export default function Sidebar() {
                 )}
 
                 <Icon
-                  className={`w-4 h-4 shrink-0 transition-standard group-hover:scale-110 ${isActive ? "text-brand-primary" : ""
-                    }`}
+                  className={`w-4 h-4 shrink-0 transition-standard group-hover:scale-110 ${
+                    isActive ? "text-brand-primary" : ""
+                  }`}
                 />
 
                 {sidebarExpanded ? (
@@ -133,27 +148,38 @@ export default function Sidebar() {
         <div className="relative" ref={profileRef}>
           <button
             onClick={() => setProfileOpen(!profileOpen)}
-            className={`flex items-center gap-3 w-full p-2 hover:bg-white/5 rounded-lg transition-standard ${sidebarExpanded ? "justify-start" : "justify-center"
-              }`}
+            className={`flex items-center gap-3 w-full p-2 hover:bg-white/5 rounded-lg transition-standard ${
+              sidebarExpanded ? "justify-start" : "justify-center"
+            }`}
           >
             <div className="w-7 h-7 rounded-full bg-indigo-500/20 border border-brand-primary/30 flex items-center justify-center overflow-hidden text-xs">
               {currentUser?.avatar && currentUser.avatar.startsWith("http") ? (
-                <img src={currentUser.avatar} alt={currentUser.name} className="w-full h-full object-cover" />
+                <img
+                  src={currentUser.avatar}
+                  alt={currentUser.name}
+                  className="w-full h-full object-cover"
+                />
               ) : (
                 currentUser?.avatar || "🐐"
               )}
             </div>
             {sidebarExpanded && (
               <div className="text-left flex-1 min-w-0">
-                <p className="text-xs font-semibold text-slate-200 truncate">{currentUser?.name || "Developer"}</p>
-                <p className="text-[10px] text-slate-500 truncate">{currentUser?.email || "dev@postkid.com"}</p>
+                <p className="text-xs font-semibold text-slate-200 truncate">
+                  {currentUser?.name || "Developer"}
+                </p>
+                <p className="text-[10px] text-slate-500 truncate">
+                  {currentUser?.email || "dev@postkid.com"}
+                </p>
               </div>
             )}
           </button>
 
           {profileOpen && (
             <div className="absolute bottom-12 left-2 w-48 bg-brand-layer-2 border border-white/10 rounded-lg shadow-2xl p-1.5 z-50 animate-float">
-              <div className="px-2.5 py-1.5 text-[10px] text-slate-500 border-b border-white/5">Account session</div>
+              <div className="px-2.5 py-1.5 text-[10px] text-slate-500 border-b border-white/5">
+                Account session
+              </div>
               <button
                 onClick={handleLogout}
                 className="w-full flex items-center gap-2 px-2.5 py-2 text-xs text-brand-error hover:bg-brand-error/10 rounded-md transition-standard cursor-pointer mt-1"

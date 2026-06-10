@@ -9,14 +9,26 @@ import {
   Trash2,
   FolderPlus,
   FilePlus,
-  RefreshCw
+  RefreshCw,
 } from "lucide-react";
 import type { FolderTreeItemProps } from "../../types/collection/FolderTreeItemProps";
 
-export default function FolderTreeItem({ folder, collectionId, level, onAddFolder, onAddRequest }: FolderTreeItemProps) {
-  const deleteRequestAction = useCollectionStore((state) => state.deleteRequestAction);
-  const deleteFolderAction = useCollectionStore((state) => state.deleteFolderAction);
-  const fetchFolderDetailsAction = useCollectionStore((state) => state.fetchFolderDetailsAction);
+export default function FolderTreeItem({
+  folder,
+  collectionId,
+  level,
+  onAddFolder,
+  onAddRequest,
+}: FolderTreeItemProps) {
+  const deleteRequestAction = useCollectionStore(
+    (state) => state.deleteRequestAction,
+  );
+  const deleteFolderAction = useCollectionStore(
+    (state) => state.deleteFolderAction,
+  );
+  const fetchFolderDetailsAction = useCollectionStore(
+    (state) => state.fetchFolderDetailsAction,
+  );
 
   const [isExpanded, setIsExpanded] = useState(false);
 
@@ -25,20 +37,37 @@ export default function FolderTreeItem({ folder, collectionId, level, onAddFolde
     const nextState = !isExpanded;
     setIsExpanded(nextState);
     if (nextState && !folder.isLoaded && !folder.isLoading) {
-      await fetchFolderDetailsAction(collectionId, folder.id);
+      const response = await fetchFolderDetailsAction(collectionId, folder.id);
+      if (response && !response.success) {
+        alert(response.error || "Failed to fetch folder details.");
+      }
     }
   };
 
   const handleDeleteFolder = async (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (confirm(`Are you sure you want to permanently delete folder '${folder.name}' and all its contents?`)) {
-      await deleteFolderAction(collectionId, folder.id);
+    if (
+      confirm(
+        `Are you sure you want to permanently delete folder '${folder.name}' and all its contents?`,
+      )
+    ) {
+      const response = await deleteFolderAction(collectionId, folder.id);
+      if (response && !response.success) {
+        alert(response.error || "Failed to delete folder.");
+      }
     }
   };
 
   const handleDeleteRequest = async (reqId: string, name: string) => {
-    if (confirm(`Are you sure you want to permanently delete API request '${name}'?`)) {
-      await deleteRequestAction(reqId);
+    if (
+      confirm(
+        `Are you sure you want to permanently delete API request '${name}'?`,
+      )
+    ) {
+      const response = await deleteRequestAction(reqId);
+      if (response && !response.success) {
+        alert(response.error || "Failed to delete request.");
+      }
     }
   };
 
@@ -64,7 +93,9 @@ export default function FolderTreeItem({ folder, collectionId, level, onAddFolde
           <Folder className="w-3.5 h-3.5 text-slate-500 shrink-0" />
         )}
 
-        <span className="text-xs font-medium truncate flex-1">{folder.name}</span>
+        <span className="text-xs font-medium truncate flex-1">
+          {folder.name}
+        </span>
 
         {folder.isLoading && (
           <RefreshCw className="w-3 h-3 text-slate-500 animate-spin shrink-0 mr-1" />
@@ -109,32 +140,38 @@ export default function FolderTreeItem({ folder, collectionId, level, onAddFolde
       {isExpanded && (
         <div className="space-y-1">
           {/* Subfolders */}
-          {folder.subfolders && folder.subfolders.map((subFolder) => (
-            <FolderTreeItem
-              key={subFolder.id}
-              folder={subFolder}
-              collectionId={collectionId}
-              level={level + 1}
-              onAddFolder={onAddFolder}
-              onAddRequest={onAddRequest}
-            />
-          ))}
-
-          {/* Requests */}
-          <div style={{ paddingLeft: `${(level + 1) * 12 + 16}px` }} className="space-y-0.5">
-            {folder.requests && folder.requests.map((request) => (
-              <RequestTreeItem
-                key={request.id}
-                request={request}
-                onDelete={handleDeleteRequest}
+          {folder.subfolders &&
+            folder.subfolders.map((subFolder) => (
+              <FolderTreeItem
+                key={subFolder.id}
+                folder={subFolder}
+                collectionId={collectionId}
+                level={level + 1}
+                onAddFolder={onAddFolder}
+                onAddRequest={onAddRequest}
               />
             ))}
 
-            {(!folder.subfolders || folder.subfolders.length === 0) && (!folder.requests || folder.requests.length === 0) && (
-              <div className="text-[10px] text-slate-600 italic py-1 pl-4">
-                Empty suite
-              </div>
-            )}
+          {/* Requests */}
+          <div
+            style={{ paddingLeft: `${(level + 1) * 12 + 16}px` }}
+            className="space-y-0.5"
+          >
+            {folder.requests &&
+              folder.requests.map((request) => (
+                <RequestTreeItem
+                  key={request.id}
+                  request={request}
+                  onDelete={handleDeleteRequest}
+                />
+              ))}
+
+            {(!folder.subfolders || folder.subfolders.length === 0) &&
+              (!folder.requests || folder.requests.length === 0) && (
+                <div className="text-[10px] text-slate-600 italic py-1 pl-4">
+                  Empty suite
+                </div>
+              )}
           </div>
         </div>
       )}

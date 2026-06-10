@@ -18,12 +18,14 @@ export const useRequestStore = create<RequestState>((set, get) => ({
   setActiveRequestAction: async (id) => {
     if (!id) {
       set({ activeRequestId: null, activeRequest: null, lastResponse: null });
-      return;
+      return { success: true };
     }
 
     try {
       set({ lastResponse: null, activeCollectionId: null });
-      const requestRes = await api.get<ApiResponse<RequestItemResponse>>(`/requests/${id}`);
+      const requestRes = await api.get<ApiResponse<RequestItemResponse>>(
+        `/requests/${id}`,
+      );
       if (requestRes.data.success && requestRes.data.data) {
         const response = requestRes.data.data;
         const urlObj = response.url ? response.url.split("?") : [""];
@@ -33,15 +35,19 @@ export const useRequestStore = create<RequestState>((set, get) => ({
           .filter(Boolean)
           .map((param) => {
             const [key, value] = param.split("=");
-            return { key, value: decodeURIComponent(value || ""), active: true };
+            return {
+              key,
+              value: decodeURIComponent(value || ""),
+              active: true,
+            };
           });
 
         const headers = response.headers
           ? Object.entries(response.headers).map(([key, value]) => ({
-            key,
-            value: value as string,
-            active: true,
-          }))
+              key,
+              value: value as string,
+              active: true,
+            }))
           : [];
 
         const req: RequestItem = {
@@ -59,10 +65,27 @@ export const useRequestStore = create<RequestState>((set, get) => ({
           collectionId: response.collectionId,
           timeoutMs: response.timeoutMs || 5000,
         };
-        set({ activeRequestId: id, activeRequest: req, activeCollectionId: null });
+        set({
+          activeRequestId: id,
+          activeRequest: req,
+          activeCollectionId: null,
+        });
+        return { success: true };
+      } else {
+        return {
+          success: false,
+          error: requestRes.data.message || "Failed to load request details.",
+        };
       }
     } catch (e) {
       console.error("Failed to set active request:", e);
+      let errorMessage = "Failed to load request details.";
+      if (axios.isAxiosError(e)) {
+        errorMessage = e.response?.data?.message || e.message || errorMessage;
+      } else if (e instanceof Error) {
+        errorMessage = e.message;
+      }
+      return { success: false, error: errorMessage };
     }
   },
 
@@ -73,6 +96,7 @@ export const useRequestStore = create<RequestState>((set, get) => ({
       activeCollectionId: null,
       lastResponse: null,
     });
+    return { success: true };
   },
 
   setActiveCollectionAction: (id) => {
@@ -82,11 +106,13 @@ export const useRequestStore = create<RequestState>((set, get) => ({
       activeRequest: null,
       lastResponse: null,
     });
+    return { success: true };
   },
 
   updateActiveRequestAction: async (fields) => {
     const active = get().activeRequest;
-    if (!active) return;
+    if (!active)
+      return { success: false, error: "No active request to update" };
 
     const updated = { ...active, ...fields };
     set({ activeRequest: updated });
@@ -124,23 +150,36 @@ export const useRequestStore = create<RequestState>((set, get) => ({
       await api.put(`/requests/${updated.id}`, payload);
 
       useCollectionStore.getState().syncRequestInTreeAction(updated);
+      return { success: true };
     } catch (e) {
       console.error("Failed to save active request updates:", e);
+      let errorMessage = "Failed to update request details.";
+      if (axios.isAxiosError(e)) {
+        errorMessage = e.response?.data?.message || e.message || errorMessage;
+      } else if (e instanceof Error) {
+        errorMessage = e.message;
+      }
+      return { success: false, error: errorMessage };
     }
   },
 
   executeRequestAction: async (activeEnvironmentId, environments) => {
     const req = get().activeRequest;
-    if (!req) return;
+    if (!req) return { success: false, error: "No active request to execute" };
 
     set({ isExecuting: true });
 
-    const activeEnv = environments.find((environment: any) => environment.id === activeEnvironmentId);
+    const activeEnv = environments.find(
+      (environment: any) => environment.id === activeEnvironmentId,
+    );
     let resolvedUrl = req.url;
     if (activeEnv) {
       activeEnv.variables.forEach((variable: any) => {
         if (variable.key) {
-          resolvedUrl = resolvedUrl.replaceAll(`{{${variable.key}}}`, variable.value);
+          resolvedUrl = resolvedUrl.replaceAll(
+            `{{${variable.key}}}`,
+            variable.value,
+          );
         }
       });
     }
@@ -160,26 +199,34 @@ export const useRequestStore = create<RequestState>((set, get) => ({
       }
     });
 
-    const timeoutSeconds = Math.max(1, Math.round((req.timeoutMs || 5000) / 1000));
+    const timeoutSeconds = Math.max(
+      1,
+      Math.round((req.timeoutMs || 5000) / 1000),
+    );
 
     try {
-      const requestExecuteRes = await api.post<ApiResponse<ExecutionResponse>>("/requests/execute", {
-        url: resolvedUrl,
-        method: req.method,
-        headers: headersMap,
-        body: req.bodyJson || "",
-        authType: req.authType,
-        authValue: req.authValue,
-        timeoutSeconds: timeoutSeconds,
-      });
+      const requestExecuteRes = await api.post<ApiResponse<ExecutionResponse>>(
+        "/requests/execute",
+        {
+          url: resolvedUrl,
+          method: req.method,
+          headers: headersMap,
+          body: req.bodyJson || "",
+          authType: req.authType,
+          authValue: req.authValue,
+          timeoutSeconds: timeoutSeconds,
+        },
+      );
 
       if (requestExecuteRes.data.success && requestExecuteRes.data.data) {
         const responseData = requestExecuteRes.data.data;
         const headersRecord: Record<string, string> = {};
         if (responseData.responseHeaders) {
-          Object.entries(responseData.responseHeaders).forEach(([key, value]) => {
-            headersRecord[key] = value as string;
-          });
+          Object.entries(responseData.responseHeaders).forEach(
+            ([key, value]) => {
+              headersRecord[key] = value as string;
+            },
+          );
         }
 
         set({
@@ -193,6 +240,22 @@ export const useRequestStore = create<RequestState>((set, get) => ({
             body: responseData.responseBody || "",
           },
         });
+        return { success: true };
+      } else {
+        const errorMessage =
+          requestExecuteRes.data.message || "Execution failed";
+        set({
+          isExecuting: false,
+          lastResponse: {
+            status: 500,
+            statusText: "Error",
+            latency: 0,
+            size: "0 B",
+            headers: {},
+            body: errorMessage,
+          },
+        });
+        return { success: false, error: errorMessage };
       }
     } catch (error) {
       console.error("Execution failed:", error);
@@ -215,6 +278,7 @@ export const useRequestStore = create<RequestState>((set, get) => ({
           body,
         },
       });
+      return { success: false, error: body };
     }
   },
 }));

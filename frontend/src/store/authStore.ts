@@ -22,7 +22,10 @@ export const useAuthStore = create<AuthState>((set) => ({
 
   loginAction: async (req) => {
     try {
-      const response = await api.post<ApiResponse<AuthResponse>>("/auth/login", req);
+      const response = await api.post<ApiResponse<AuthResponse>>(
+        "/auth/login",
+        req,
+      );
       if (response.data.success && response.data.data) {
         const authData = response.data.data;
         localStorage.setItem("accessToken", authData.accessToken);
@@ -30,7 +33,11 @@ export const useAuthStore = create<AuthState>((set) => ({
 
         const hash = md5(authData.email.trim().toLowerCase());
         const avatarUrl = `https://www.gravatar.com/avatar/${hash}?d=identicon`;
-        const userObj = { name: authData.username, email: authData.email, avatar: avatarUrl };
+        const userObj = {
+          name: authData.username,
+          email: authData.email,
+          avatar: avatarUrl,
+        };
         localStorage.setItem("currentUser", JSON.stringify(userObj));
 
         set({
@@ -39,7 +46,10 @@ export const useAuthStore = create<AuthState>((set) => ({
         });
         return { success: true };
       } else {
-        return { success: false, error: response.data.message || "Login failed." };
+        return {
+          success: false,
+          error: response.data.message || "Login failed.",
+        };
       }
     } catch (err: unknown) {
       console.error("Login error: ", err);
@@ -55,7 +65,10 @@ export const useAuthStore = create<AuthState>((set) => ({
 
   registerAction: async (req) => {
     try {
-      const response = await api.post<ApiResponse<AuthResponse>>("/auth/register", req);
+      const response = await api.post<ApiResponse<AuthResponse>>(
+        "/auth/register",
+        req,
+      );
       if (response.data.success && response.data.data) {
         const authData = response.data.data;
         localStorage.setItem("accessToken", authData.accessToken);
@@ -63,7 +76,11 @@ export const useAuthStore = create<AuthState>((set) => ({
 
         const hash = md5(authData.email.trim().toLowerCase());
         const avatarUrl = `https://www.gravatar.com/avatar/${hash}?d=identicon`;
-        const userObj = { name: authData.username, email: authData.email, avatar: avatarUrl };
+        const userObj = {
+          name: authData.username,
+          email: authData.email,
+          avatar: avatarUrl,
+        };
         localStorage.setItem("currentUser", JSON.stringify(userObj));
 
         set({
@@ -72,7 +89,10 @@ export const useAuthStore = create<AuthState>((set) => ({
         });
         return { success: true };
       } else {
-        return { success: false, error: response.data.message || "Registration failed." };
+        return {
+          success: false,
+          error: response.data.message || "Registration failed.",
+        };
       }
     } catch (err: unknown) {
       console.error("Registration error: ", err);
@@ -87,15 +107,24 @@ export const useAuthStore = create<AuthState>((set) => ({
   },
 
   logoutAction: async () => {
+    let success = true;
+    let error: string | undefined;
     try {
       await api.post("/auth/logout");
     } catch (e) {
       console.error("Logout API failed:", e);
+      success = false;
+      if (axios.isAxiosError(e)) {
+        error = e.response?.data?.message || e.message;
+      } else if (e instanceof Error) {
+        error = e.message;
+      }
     } finally {
       localStorage.removeItem("accessToken");
       localStorage.removeItem("refreshToken");
       localStorage.removeItem("currentUser");
       set({ isAuthenticated: false, currentUser: null });
     }
+    return { success, error };
   },
 }));

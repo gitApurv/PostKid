@@ -51,8 +51,12 @@ export default function LoginPage() {
           {/* Top card accent line */}
           <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-brand-primary via-brand-secondary to-pink-500 opacity-80" />
 
-          <h2 className="text-xl font-display font-semibold text-white mb-1.5">Welcome back</h2>
-          <p className="text-xs text-slate-400 mb-8">Enter your credentials to enter the API workspace.</p>
+          <h2 className="text-xl font-display font-semibold text-white mb-1.5">
+            Welcome back
+          </h2>
+          <p className="text-xs text-slate-400 mb-8">
+            Enter your credentials to enter the API workspace.
+          </p>
 
           <form onSubmit={handleSubmit} className="space-y-6">
             {error && (
@@ -103,7 +107,11 @@ export default function LoginPage() {
                 onClick={() => setShowPassword(!showPassword)}
                 className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-200 transition-standard"
               >
-                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                {showPassword ? (
+                  <EyeOff className="h-4 w-4" />
+                ) : (
+                  <Eye className="h-4 w-4" />
+                )}
               </button>
             </div>
 
@@ -128,7 +136,10 @@ export default function LoginPage() {
         {/* Footer Link */}
         <p className="mt-8 text-center text-xs text-slate-500">
           New to PostKid?{" "}
-          <Link to="/register" className="text-brand-primary hover:text-brand-secondary transition-standard font-medium">
+          <Link
+            to="/register"
+            className="text-brand-primary hover:text-brand-secondary transition-standard font-medium"
+          >
             Create a Developer Account
           </Link>
         </p>
