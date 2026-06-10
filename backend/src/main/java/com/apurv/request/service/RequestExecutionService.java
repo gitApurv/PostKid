@@ -154,7 +154,7 @@ public class RequestExecutionService {
                 try {
                         new URI(url).toURL();
                 } catch (Exception e) {
-                        throw new IllegalArgumentException("Invalid URL: " + url);
+                        throw new IllegalArgumentException("Invalid URL");
                 }
 
         }

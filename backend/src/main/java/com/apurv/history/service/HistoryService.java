@@ -62,9 +62,9 @@ public class HistoryService {
     @Transactional(readOnly = true)
     public HistoryResponse getHistory(String id, User currentUser) {
         RequestHistory history = historyRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("History entry not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("History entry not found"));
         if (!history.getUserId().equals(currentUser.getId())) {
-            throw new ResourceNotFoundException("History entry not found with id: " + id);
+            throw new ResourceNotFoundException("History entry not found");
         }
         return toHistoryResponse(history);
     }
@@ -72,9 +72,9 @@ public class HistoryService {
     @Transactional
     public void deleteHistoryEntry(String id, User currentUser) {
         RequestHistory history = historyRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("History entry not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("History entry not found"));
         if (!history.getUserId().equals(currentUser.getId())) {
-            throw new ResourceNotFoundException("History entry not found with id: " + id);
+            throw new ResourceNotFoundException("History entry not found");
         }
 
         historyRepository.delete(history);

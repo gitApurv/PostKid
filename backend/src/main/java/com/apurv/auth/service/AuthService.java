@@ -95,12 +95,12 @@ public class AuthService {
         String requestRefreshToken = request.getRefreshToken();
 
         RefreshToken token = refreshTokenRepository.findByToken(requestRefreshToken)
-                .orElseThrow(() -> new TokenRefreshException(requestRefreshToken, "Refresh token is not in database!"));
+                .orElseThrow(() -> new TokenRefreshException(requestRefreshToken, "Refresh token not found"));
 
         if (token.isExpired()) {
             refreshTokenRepository.delete(token);
             throw new TokenRefreshException(requestRefreshToken,
-                    "Refresh token was expired. Please make a new login request");
+                    "Refresh token expired. Please log in again");
         }
 
         User user = token.getUser();

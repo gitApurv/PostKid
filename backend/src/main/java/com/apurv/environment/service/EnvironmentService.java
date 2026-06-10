@@ -32,7 +32,7 @@ public class EnvironmentService {
     public EnvironmentResponse createEnvironment(EnvironmentRequest request, UUID ownerId) {
         if (environmentRepository.existsByNameAndOwnerId(request.getName(), ownerId)) {
             throw new DuplicateResourceException(
-                    "Environment with name " + request.getName() + " already exists for owner " + ownerId);
+                    "Environment with this name already exists");
         }
 
         Environment environment = Environment.builder()
@@ -61,7 +61,7 @@ public class EnvironmentService {
         if (!environment.getName().equals(request.getName())
                 && environmentRepository.existsByNameAndOwnerId(request.getName(), ownerId)) {
             throw new DuplicateResourceException(
-                    "Environment with name " + request.getName() + " already exists for owner " + ownerId);
+                    "Environment with this name already exists");
         }
 
         environment.setName(request.getName());
@@ -88,7 +88,7 @@ public class EnvironmentService {
 
         if (environmentVariableRepository.existsByKeyAndEnvironmentId(request.getKey(), environment.getId())) {
             throw new DuplicateResourceException(
-                    "Variable with key " + request.getKey() + " already exists in environment " + environmentId);
+                    "Variable with this key already exists in the environment");
         }
 
         EnvironmentVariable variable = EnvironmentVariable.builder()
@@ -111,7 +111,7 @@ public class EnvironmentService {
         EnvironmentVariable variable = environmentVariableRepository
                 .findByIdAndEnvironmentId(variableId, environment.getId())
                 .orElseThrow(() -> new ResourceNotFoundException(
-                        "Variable with id " + variableId + " not found in environment " + environmentId));
+                        "Variable not found"));
 
         variable.setKey(request.getKey());
         variable.setValue(request.getValue());
@@ -130,7 +130,7 @@ public class EnvironmentService {
         EnvironmentVariable variable = environmentVariableRepository.findByIdAndEnvironmentId(variableId,
                 environment.getId())
                 .orElseThrow(() -> new ResourceNotFoundException(
-                        "Variable with id " + variableId + " not found in environment " + environmentId));
+                        "Variable not found"));
 
         environmentVariableRepository.delete(variable);
         log.info("Deleted variable with id {} from environment {} for owner {}", variableId, environmentId, ownerId);
@@ -140,7 +140,7 @@ public class EnvironmentService {
     private Environment findEnvironmentByIdAndOwnerId(UUID id, UUID ownerId) {
         return environmentRepository.findByIdAndOwnerId(id, ownerId)
                 .orElseThrow(() -> new ResourceNotFoundException(
-                        "Environment with id " + id + " not found for owner " + ownerId));
+                        "Environment not found"));
     }
 
     private EnvironmentResponse toEnvironmentResponse(Environment environment) {
