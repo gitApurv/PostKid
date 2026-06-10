@@ -33,10 +33,6 @@ public class EnvironmentVariable {
     @Column(columnDefinition = "TEXT")
     private String value;
 
-    @Column(name = "is_secret", nullable = false)
-    @Builder.Default
-    private boolean secret = false;
-
     @ManyToOne
     @JoinColumn(name = "environment_id", nullable = false, updatable = false)
     private Environment environment;

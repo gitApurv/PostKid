@@ -94,7 +94,6 @@ public class EnvironmentService {
         EnvironmentVariable variable = EnvironmentVariable.builder()
                 .key(request.getKey())
                 .value(request.getValue())
-                .secret(request.isSecret())
                 .environment(environment)
                 .build();
 
@@ -116,7 +115,6 @@ public class EnvironmentService {
 
         variable.setKey(request.getKey());
         variable.setValue(request.getValue());
-        variable.setSecret(request.isSecret());
 
         EnvironmentVariable updatedVariable = environmentVariableRepository.saveAndFlush(variable);
         log.info("Updated variable with id {} in environment {} for owner {}", updatedVariable.getId(), environmentId,
@@ -164,8 +162,7 @@ public class EnvironmentService {
         return VariableResponse.builder()
                 .id(variable.getId())
                 .key(variable.getKey())
-                .value(variable.isSecret() ? "******" : variable.getValue())
-                .secret(variable.isSecret())
+                .value(variable.getValue())
                 .build();
     }
 }
