@@ -32,13 +32,6 @@ public class HistoryController {
         return ResponseEntity.ok(ApiResponse.success("User history fetched successfully", response));
     }
 
-    @GetMapping("{id}")
-    public ResponseEntity<ApiResponse<HistoryResponse>> getHistoryById(@PathVariable String id,
-            @AuthenticationPrincipal User currentUser) {
-        HistoryResponse response = historyService.getHistory(id, currentUser);
-        return ResponseEntity.ok(ApiResponse.success("History fetched successfully", response));
-    }
-
     @DeleteMapping("{id}")
     public ResponseEntity<ApiResponse<Void>> deleteHistoryEntry(@PathVariable String id,
             @AuthenticationPrincipal User currentUser) {

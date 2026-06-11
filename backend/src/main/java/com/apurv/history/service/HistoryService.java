@@ -1,5 +1,6 @@
 package com.apurv.history.service;
 
+import java.time.Instant;
 import java.util.UUID;
 
 import org.springframework.data.domain.Page;
@@ -45,6 +46,7 @@ public class HistoryService {
                 .durationMs(response.getDurationMs())
                 .success(response.isSuccess())
                 .errorMessage(response.getErrorMessage())
+                .executedAt(Instant.now())
                 .build();
 
         historyRepository.save(requestHistory);
@@ -57,16 +59,6 @@ public class HistoryService {
         Pageable pageable = PageRequest.of(page, size);
         return historyRepository.findByUserIdOrderByExecutedAtDesc(currentUser.getId(), pageable)
                 .map(this::toHistoryResponse);
-    }
-
-    @Transactional(readOnly = true)
-    public HistoryResponse getHistory(String id, User currentUser) {
-        RequestHistory history = historyRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("History entry not found"));
-        if (!history.getUserId().equals(currentUser.getId())) {
-            throw new ResourceNotFoundException("History entry not found");
-        }
-        return toHistoryResponse(history);
     }
 
     @Transactional
