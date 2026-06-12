@@ -1,22 +1,39 @@
 import { useEffect, useState } from "react";
 import { useHistoryStore } from "../store/historyStore";
 import type { HistoryItem } from "../types/history/HistoryItem";
-import { History, Trash2 } from "lucide-react";
+import { History, Trash2, Loader2, AlertCircle } from "lucide-react";
 import HistoryList from "../components/history/HistoryList";
 import ClearHistoryModal from "../components/history/ClearHistoryModal";
 import HistoryInspectorModal from "../components/history/HistoryInspectorModal";
 
 export default function HistoryPage() {
   const histories = useHistoryStore((state) => state.histories);
-  const fetchHistoriesAction = useHistoryStore((state) => state.fetchHistoriesAction);
+  const fetchHistoriesAction = useHistoryStore(
+    (state) => state.fetchHistoriesAction,
+  );
 
-  useEffect(() => {
-    fetchHistoriesAction();
-  }, [fetchHistoriesAction]);
-
-  // States
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const [inspectItem, setInspectItem] = useState<HistoryItem | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    let active = true;
+    const loadHistory = async () => {
+      setIsLoading(true);
+      setError(null);
+      const res = await fetchHistoriesAction();
+      if (!active) return;
+      if (!res.success) {
+        setError(res.error || "Failed to fetch history.");
+      }
+      setIsLoading(false);
+    };
+    loadHistory();
+    return () => {
+      active = false;
+    };
+  }, [fetchHistoriesAction]);
 
   return (
     <div className="space-y-6 font-sans relative p-6 h-full overflow-y-auto">
@@ -28,8 +45,7 @@ export default function HistoryPage() {
             Timeline Execution History
           </h1>
           <p className="text-xs text-slate-400">
-            Timeline log auditing previously dispatched API request
-            parameters.
+            Timeline log auditing previously dispatched API request parameters.
           </p>
         </div>
 
@@ -44,11 +60,41 @@ export default function HistoryPage() {
         )}
       </div>
 
-      {/* Axis timeline grid */}
-      <HistoryList
-        items={histories}
-        onInspect={(item) => setInspectItem(item)}
-      />
+      {/* Axis timeline grid / Loader / Error */}
+      {isLoading ? (
+        <div className="flex flex-col items-center justify-center py-12 text-slate-500 gap-2">
+          <Loader2 className="w-8 h-8 animate-spin text-brand-primary" />
+          <p className="text-xs">Loading execution history...</p>
+        </div>
+      ) : error ? (
+        <div className="text-center py-12 glass-panel rounded-xl text-brand-error max-w-xl mx-auto flex flex-col items-center justify-center gap-3">
+          <AlertCircle className="w-8 h-8 animate-pulse text-brand-error" />
+          <div className="space-y-1">
+            <p className="text-xs font-semibold">Error Loading History</p>
+            <p className="text-[11px] text-slate-400">{error}</p>
+          </div>
+          <button
+            onClick={() => {
+              setError(null);
+              setIsLoading(true);
+              fetchHistoriesAction().then((res) => {
+                if (!res.success) {
+                  setError(res.error || "Failed to fetch history.");
+                }
+                setIsLoading(false);
+              });
+            }}
+            className="px-3 py-1.5 bg-brand-primary/10 hover:bg-brand-primary border border-brand-primary/20 hover:border-brand-primary text-brand-primary hover:text-white rounded-lg text-xs font-semibold cursor-pointer transition-standard"
+          >
+            Retry
+          </button>
+        </div>
+      ) : (
+        <HistoryList
+          items={histories}
+          onInspect={(item) => setInspectItem(item)}
+        />
+      )}
 
       {/* Prune confirmation modal */}
       <ClearHistoryModal

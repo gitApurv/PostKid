@@ -1,11 +1,16 @@
+import { useState, useEffect } from "react";
 import { useHistoryStore } from "../../store/historyStore";
-import type { HistoryItem } from "../../types/history/HistoryItem";
-import { X, Trash2, Clock, Globe, ArrowDownToLine, ArrowUpFromLine, Info } from "lucide-react";
-
-interface HistoryInspectorModalProps {
-  item: HistoryItem | null;
-  onClose: () => void;
-}
+import type { HistoryInspectorModalProps } from "../../types/history/HistoryInspectorModalProps";
+import {
+  X,
+  Trash2,
+  Clock,
+  Globe,
+  ArrowDownToLine,
+  ArrowUpFromLine,
+  Info,
+  Loader2,
+} from "lucide-react";
 
 export default function HistoryInspectorModal({
   item,
@@ -14,6 +19,14 @@ export default function HistoryInspectorModal({
   const deleteHistoryAction = useHistoryStore(
     (state) => state.deleteHistoryAction,
   );
+
+  const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    setError(null);
+    setIsLoading(false);
+  }, [item]);
 
   const getMethodColor = (method: string) => {
     switch (method) {
@@ -48,9 +61,16 @@ export default function HistoryInspectorModal({
   };
 
   const handleDelete = async () => {
-    if (!item) return;
-    await deleteHistoryAction(item.id);
-    onClose();
+    if (!item || isLoading) return;
+    setIsLoading(true);
+    setError(null);
+    const res = await deleteHistoryAction(item.id);
+    if (res.success) {
+      onClose();
+    } else {
+      setError(res.error || "Failed to delete history item.");
+      setIsLoading(false);
+    }
   };
 
   if (!item) return null;
@@ -82,23 +102,32 @@ export default function HistoryInspectorModal({
 
         {/* Scrollable body */}
         <div className="flex-1 overflow-y-auto p-5 space-y-5 text-xs">
-
           {/* Summary row */}
           <div className="grid grid-cols-3 gap-3 p-3 bg-white/[0.01] border border-white/5 rounded-lg font-mono">
             <div>
-              <p className="text-[10px] text-slate-500 uppercase font-bold mb-1">Method</p>
-              <span className={`text-[9px] font-bold px-2 py-0.5 border rounded-full ${getMethodColor(item.method)}`}>
+              <p className="text-[10px] text-slate-500 uppercase font-bold mb-1">
+                Method
+              </p>
+              <span
+                className={`text-[9px] font-bold px-2 py-0.5 border rounded-full ${getMethodColor(item.method)}`}
+              >
                 {item.method}
               </span>
             </div>
             <div>
-              <p className="text-[10px] text-slate-500 uppercase font-bold mb-1">Status</p>
-              <span className={`text-[9px] font-bold px-2 py-0.5 border rounded-full ${getStatusColor(item.statusCode)}`}>
+              <p className="text-[10px] text-slate-500 uppercase font-bold mb-1">
+                Status
+              </p>
+              <span
+                className={`text-[9px] font-bold px-2 py-0.5 border rounded-full ${getStatusColor(item.statusCode)}`}
+              >
                 {item.statusCode}
               </span>
             </div>
             <div>
-              <p className="text-[10px] text-slate-500 uppercase font-bold mb-1">Duration</p>
+              <p className="text-[10px] text-slate-500 uppercase font-bold mb-1">
+                Duration
+              </p>
               <p className="text-slate-300 flex items-center gap-1">
                 <Clock className="w-3 h-3 text-brand-primary" />
                 {item.durationMs} ms
@@ -118,7 +147,9 @@ export default function HistoryInspectorModal({
 
           {/* Executed At */}
           <div className="space-y-1">
-            <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Executed At</p>
+            <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">
+              Executed At
+            </p>
             <div className="p-3 bg-brand-layer-2 border border-white/5 rounded-lg font-mono text-[10px] text-slate-300">
               {item.executedAt}
             </div>
@@ -150,7 +181,8 @@ export default function HistoryInspectorModal({
           {/* Response section */}
           <div className="space-y-3">
             <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider flex items-center gap-1.5">
-              <ArrowDownToLine className="w-3 h-3 text-brand-primary" /> Response
+              <ArrowDownToLine className="w-3 h-3 text-brand-primary" />{" "}
+              Response
             </p>
 
             <div className="space-y-1">
@@ -171,7 +203,9 @@ export default function HistoryInspectorModal({
 
             {item.errorMessage && (
               <div className="space-y-1">
-                <p className="text-[10px] text-brand-error uppercase font-bold">Error</p>
+                <p className="text-[10px] text-brand-error uppercase font-bold">
+                  Error
+                </p>
                 <div className="p-3 bg-brand-error/5 border border-brand-error/20 rounded-lg font-mono text-[10px] text-brand-error select-all">
                   {item.errorMessage}
                 </div>
@@ -187,9 +221,14 @@ export default function HistoryInspectorModal({
 
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1">
-                <p className="text-[10px] text-slate-500 uppercase">Auth Type</p>
+                <p className="text-[10px] text-slate-500 uppercase">
+                  Auth Type
+                </p>
                 <div className="p-2 bg-brand-layer-2 border border-white/5 rounded-lg font-mono text-[10px] text-slate-400">
-                  {(!item.authType || item.authType.toLowerCase() === "none") ? "None" : (item.authType.charAt(0).toUpperCase() + item.authType.slice(1))}
+                  {!item.authType || item.authType.toLowerCase() === "none"
+                    ? "None"
+                    : item.authType.charAt(0).toUpperCase() +
+                      item.authType.slice(1)}
                 </div>
               </div>
               <div className="space-y-1">
@@ -202,31 +241,52 @@ export default function HistoryInspectorModal({
 
             <div className="space-y-1">
               <p className="text-[10px] text-slate-500 uppercase">Success</p>
-              <div className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-[10px] font-bold font-mono border ${item.success ? "text-brand-success bg-brand-success/5 border-brand-success/20" : "text-brand-error bg-brand-error/5 border-brand-error/20"}`}>
-                <span className={`w-1.5 h-1.5 rounded-full ${item.success ? "bg-brand-success" : "bg-brand-error"}`} />
+              <div
+                className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-[10px] font-bold font-mono border ${item.success ? "text-brand-success bg-brand-success/5 border-brand-success/20" : "text-brand-error bg-brand-error/5 border-brand-error/20"}`}
+              >
+                <span
+                  className={`w-1.5 h-1.5 rounded-full ${item.success ? "bg-brand-success" : "bg-brand-error"}`}
+                />
                 {item.success ? "true" : "false"}
               </div>
             </div>
 
-            {item.authType && item.authType.toLowerCase() !== "none" && item.authValue && Object.keys(item.authValue).length > 0 && (
-              <div className="space-y-1">
-                <p className="text-[10px] text-slate-500 uppercase">Auth Value</p>
-                <pre className="p-3 bg-brand-layer-2 border border-white/5 rounded-lg font-mono text-[10px] text-slate-300 whitespace-pre-wrap break-all select-all overflow-auto max-h-32">
-                  {JSON.stringify(item.authValue, null, 2)}
-                </pre>
-              </div>
-            )}
+            {item.authType &&
+              item.authType.toLowerCase() !== "none" &&
+              item.authValue &&
+              Object.keys(item.authValue).length > 0 && (
+                <div className="space-y-1">
+                  <p className="text-[10px] text-slate-500 uppercase">
+                    Auth Value
+                  </p>
+                  <pre className="p-3 bg-brand-layer-2 border border-white/5 rounded-lg font-mono text-[10px] text-slate-300 whitespace-pre-wrap break-all select-all overflow-auto max-h-32">
+                    {JSON.stringify(item.authValue, null, 2)}
+                  </pre>
+                </div>
+              )}
           </div>
         </div>
 
         {/* Footer actions */}
-        <div className="p-5 border-t border-white/5 flex gap-2 shrink-0 justify-end">
+        <div className="p-5 border-t border-white/5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 shrink-0">
+          <div>
+            {error && (
+              <span className="text-[11px] text-brand-error font-medium">
+                {error}
+              </span>
+            )}
+          </div>
           <button
             onClick={handleDelete}
-            className="px-4 py-1.5 bg-brand-error/10 hover:bg-brand-error border border-brand-error/20 hover:border-brand-error text-brand-error hover:text-white font-semibold rounded-lg transition-standard text-xs cursor-pointer flex items-center gap-1.5"
+            disabled={isLoading}
+            className="px-4 py-1.5 bg-brand-error/10 hover:bg-brand-error border border-brand-error/20 hover:border-brand-error text-brand-error hover:text-white font-semibold rounded-lg transition-standard text-xs cursor-pointer flex items-center justify-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <Trash2 className="w-3.5 h-3.5" />
-            Delete
+            {isLoading ? (
+              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+            ) : (
+              <Trash2 className="w-3.5 h-3.5" />
+            )}
+            {isLoading ? "Deleting..." : "Delete"}
           </button>
         </div>
       </div>

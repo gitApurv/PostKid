@@ -2,16 +2,12 @@ import { useState, useEffect } from "react";
 import { useEnvironmentStore } from "../../store/environmentStore";
 import { FolderPlus, Loader2 } from "lucide-react";
 import type { EnvironmentColor } from "../../types/environment/EnvironmentColor";
-
-interface CreateEnvironmentModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-}
+import type { ModalProps } from "../../types/common/ModalProps";
 
 export default function CreateEnvironmentModal({
   isOpen,
   onClose,
-}: CreateEnvironmentModalProps) {
+}: ModalProps) {
   const addEnvironmentAction = useEnvironmentStore(
     (state) => state.addEnvironmentAction,
   );

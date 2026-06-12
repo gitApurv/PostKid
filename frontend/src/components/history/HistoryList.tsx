@@ -1,16 +1,15 @@
+import { useState } from "react";
 import { useHistoryStore } from "../../store/historyStore";
-import type { HistoryItem } from "../../types/history/HistoryItem";
-import { Calendar, Trash2, Info } from "lucide-react";
-
-interface HistoryListProps {
-  items: HistoryItem[];
-  onInspect: (item: HistoryItem) => void;
-}
+import type { HistoryListProps } from "../../types/history/HistoryListProps";
+import { Calendar, Trash2, Info, Loader2 } from "lucide-react";
 
 export default function HistoryList({ items, onInspect }: HistoryListProps) {
   const deleteHistoryAction = useHistoryStore(
     (state) => state.deleteHistoryAction,
   );
+
+  const [deletingIds, setDeletingIds] = useState<Record<string, boolean>>({});
+  const [error, setError] = useState<string | null>(null);
 
   const getMethodColor = (method: string) => {
     switch (method) {
@@ -69,10 +68,34 @@ export default function HistoryList({ items, onInspect }: HistoryListProps) {
     return `${(bytes / 1024).toFixed(2)} KB`;
   };
 
+  const handleDelete = async (e: React.MouseEvent, id: string) => {
+    e.stopPropagation();
+    if (deletingIds[id]) return;
+    setDeletingIds((prev) => ({ ...prev, [id]: true }));
+    setError(null);
+    const response = await deleteHistoryAction(id);
+    if (!response.success) {
+      setError(response.error || "Failed to delete history item.");
+      setDeletingIds((prev) => ({ ...prev, [id]: false }));
+    }
+  };
+
   return (
     <div className="relative pl-8 sm:pl-12 py-4">
       {/* Central glowing vertical timeline rail axis line */}
       <div className="absolute left-[15px] sm:left-[23px] top-0 bottom-0 w-[2px] bg-gradient-to-b from-brand-primary/30 via-slate-800 to-transparent shadow-[0_0_10px_rgba(99,102,241,0.08)]" />
+
+      {error && (
+        <div className="mb-6 text-[11px] text-brand-error bg-brand-error/5 border border-brand-error/20 rounded-lg p-2.5 max-w-xl mx-auto md:mx-2 flex justify-between items-center">
+          <span>{error}</span>
+          <button
+            onClick={() => setError(null)}
+            className="text-[10px] text-slate-500 hover:text-slate-300 font-bold px-1.5 py-0.5 hover:bg-white/5 rounded"
+          >
+            Clear
+          </button>
+        </div>
+      )}
 
       {items.map((item) => (
         <div
@@ -135,11 +158,16 @@ export default function HistoryList({ items, onInspect }: HistoryListProps) {
               {/* Actions group */}
               <div className="flex items-center gap-2">
                 <button
-                  onClick={(e) => { e.stopPropagation(); deleteHistoryAction(item.id); }}
-                  className="p-2 bg-white/[0.02] hover:bg-brand-error/15 border border-white/5 hover:border-brand-error/20 text-slate-500 hover:text-brand-error rounded-lg transition-standard cursor-pointer"
+                  onClick={(e) => handleDelete(e, item.id)}
+                  disabled={deletingIds[item.id]}
+                  className="p-2 bg-white/[0.02] hover:bg-brand-error/15 border border-white/5 hover:border-brand-error/20 text-slate-500 hover:text-brand-error rounded-lg transition-standard cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
                   title="Delete entry"
                 >
-                  <Trash2 className="w-3.5 h-3.5" />
+                  {deletingIds[item.id] ? (
+                    <Loader2 className="w-3.5 h-3.5 animate-spin text-brand-error" />
+                  ) : (
+                    <Trash2 className="w-3.5 h-3.5" />
+                  )}
                 </button>
               </div>
             </div>

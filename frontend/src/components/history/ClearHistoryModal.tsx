@@ -1,19 +1,34 @@
+import { useState, useEffect } from "react";
 import { useHistoryStore } from "../../store/historyStore";
-import { AlertTriangle } from "lucide-react";
+import { AlertTriangle, Loader2 } from "lucide-react";
+import type { ModalProps } from "../../types/common/ModalProps";
 
-interface ClearHistoryModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-}
+export default function ClearHistoryModal({ isOpen, onClose }: ModalProps) {
+  const clearHistoryAction = useHistoryStore(
+    (state) => state.clearHistoryAction,
+  );
 
-export default function ClearHistoryModal({
-  isOpen,
-  onClose,
-}: ClearHistoryModalProps) {
-  const clearHistoryAction = useHistoryStore((state) => state.clearHistoryAction);
+  const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    if (isOpen) {
+      setError(null);
+      setIsLoading(false);
+    }
+  }, [isOpen]);
 
   const handleClear = async () => {
-    await clearHistoryAction();
+    if (isLoading) return;
+    setIsLoading(true);
+    setError(null);
+    const response = await clearHistoryAction();
+    if (!response.success) {
+      setError(response.error || "Failed to clear history.");
+      setIsLoading(false);
+      return;
+    }
+    setIsLoading(false);
     onClose();
   };
 
@@ -29,27 +44,36 @@ export default function ClearHistoryModal({
         </div>
 
         <h3 className="text-sm font-bold font-display text-white uppercase tracking-wider mb-2">
-          Prune Timelines Audits?
+          Prune History?
         </h3>
         <p className="text-xs text-slate-400 mb-6 leading-relaxed">
           This action deletes all locally cached dispatch variables and latency
           sparks. This operation is permanent.
         </p>
 
+        {error && (
+          <div className="text-[11px] text-brand-error bg-brand-error/5 border border-brand-error/20 rounded-lg p-2.5 mb-4 text-center">
+            {error}
+          </div>
+        )}
+
         <div className="flex gap-3 justify-center">
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 hover:bg-white/5 rounded-lg text-xs font-semibold text-slate-400 cursor-pointer"
+            disabled={isLoading}
+            className="px-4 py-2 hover:bg-white/5 rounded-lg text-xs font-semibold text-slate-400 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Cancel
           </button>
           <button
             type="button"
             onClick={handleClear}
-            className="px-4 py-2 bg-brand-error hover:bg-brand-error/90 text-white rounded-lg text-xs font-semibold cursor-pointer"
+            disabled={isLoading}
+            className="px-4 py-2 bg-brand-error hover:bg-brand-error/90 text-white rounded-lg text-xs font-semibold cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5"
           >
-            Prune History
+            {isLoading && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+            {isLoading ? "Pruning..." : "Prune History"}
           </button>
         </div>
       </div>
