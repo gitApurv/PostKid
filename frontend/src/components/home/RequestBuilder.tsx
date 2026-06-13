@@ -16,6 +16,7 @@ import {
   RefreshCw,
   Trash2,
   Edit3,
+  Plus,
 } from "lucide-react";
 
 export default function RequestBuilder() {
@@ -291,33 +292,36 @@ export default function RequestBuilder() {
             {/* Environment Switcher */}
             <div className="flex items-center gap-1.5 bg-brand-layer-2 border border-white/5 rounded-lg px-2 py-1 text-[10px] font-semibold text-slate-300">
               <span
-                className={`w-2 h-2 rounded-full shrink-0 animate-pulse ${
-                  activeEnvironment?.color === "EMERALD"
-                    ? "bg-brand-success shadow-[0_0_6px_#10B981]"
-                    : activeEnvironment?.color === "AMBER"
-                      ? "bg-brand-warning shadow-[0_0_6px_#F59E0B]"
-                      : activeEnvironment?.color === "BLUE"
-                        ? "bg-blue-500 shadow-[0_0_6px_#3B82F6]"
-                        : activeEnvironment?.color === "ROSE"
-                          ? "bg-rose-500 shadow-[0_0_6px_#F43F5E]"
-                          : "bg-slate-400 shadow-[0_0_6px_#94A3B8]"
-                }`}
+                className={`w-2 h-2 rounded-full shrink-0 animate-pulse ${activeEnvironment?.color === "EMERALD"
+                  ? "bg-brand-success shadow-[0_0_6px_#10B981]"
+                  : activeEnvironment?.color === "AMBER"
+                    ? "bg-brand-warning shadow-[0_0_6px_#F59E0B]"
+                    : activeEnvironment?.color === "BLUE"
+                      ? "bg-blue-500 shadow-[0_0_6px_#3B82F6]"
+                      : activeEnvironment?.color === "ROSE"
+                        ? "bg-rose-500 shadow-[0_0_6px_#F43F5E]"
+                        : "bg-slate-400 shadow-[0_0_6px_#94A3B8]"
+                  }`}
               />
-              <select
-                value={activeEnvironmentId}
-                onChange={(e) => setActiveEnvironment(e.target.value)}
-                className="bg-transparent border-none text-[10px] font-semibold text-slate-300 focus:outline-none focus:ring-0 cursor-pointer pr-1"
-              >
-                {environments.map((env) => (
-                  <option
-                    key={env.id}
-                    value={env.id}
-                    className="bg-brand-layer-2 text-slate-300"
-                  >
-                    {env.name}
-                  </option>
-                ))}
-              </select>
+              {activeEnvironment != null ? (
+                <select
+                  value={activeEnvironmentId}
+                  onChange={(e) => setActiveEnvironment(e.target.value)}
+                  className="bg-transparent border-none text-[10px] font-semibold text-slate-300 focus:outline-none focus:ring-0 cursor-pointer pr-1"
+                >
+                  {environments.map((environment) => (
+                    <option
+                      key={environment.id}
+                      value={environment.id}
+                      className="bg-brand-layer-2 text-slate-300"
+                    >
+                      {environment.name}
+                    </option>
+                  ))}
+                </select>
+              ) : (
+                <div className="text-slate-500" />
+              )}
             </div>
 
             <button
@@ -353,11 +357,10 @@ export default function RequestBuilder() {
                         handleUpdateRequest({ method: method });
                         setMethodDropdownOpen(false);
                       }}
-                      className={`w-full text-left px-3 py-1.5 text-xs font-semibold rounded transition-standard ${
-                        method === activeRequest.method
-                          ? "bg-brand-primary/10 text-white"
-                          : "text-slate-400 hover:text-slate-200 hover:bg-white/[0.02]"
-                      }`}
+                      className={`w-full text-left px-3 py-1.5 text-xs font-semibold rounded transition-standard ${method === activeRequest.method
+                        ? "bg-brand-primary/10 text-white"
+                        : "text-slate-400 hover:text-slate-200 hover:bg-white/[0.02]"
+                        }`}
                     >
                       {method}
                     </button>
@@ -430,11 +433,10 @@ export default function RequestBuilder() {
                 <button
                   key={tab}
                   onClick={() => setActiveTab(tab)}
-                  className={`px-4 py-2 border-b-2 capitalize transition-standard cursor-pointer ${
-                    isActive
-                      ? "border-brand-primary text-white bg-brand-primary/[0.01]"
-                      : "border-transparent text-slate-400 hover:text-slate-200"
-                  }`}
+                  className={`px-4 py-2 border-b-2 capitalize transition-standard cursor-pointer ${isActive
+                    ? "border-brand-primary text-white bg-brand-primary/[0.01]"
+                    : "border-transparent text-slate-400 hover:text-slate-200"
+                    }`}
                 >
                   {tab}
                 </button>
@@ -799,6 +801,6 @@ export default function RequestBuilder() {
           )}
         </div>
       </div>
-    </div>
+    </div >
   );
 }
