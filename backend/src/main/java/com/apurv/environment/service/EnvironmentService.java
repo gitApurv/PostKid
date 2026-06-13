@@ -5,6 +5,8 @@ import java.util.UUID;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 
 import com.apurv.common.exception.DuplicateResourceException;
 import com.apurv.common.exception.ResourceNotFoundException;
@@ -25,144 +27,155 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class EnvironmentService {
 
-    private final EnvironmentRepository environmentRepository;
-    private final EnvironmentVariableRepository environmentVariableRepository;
+        private final EnvironmentRepository environmentRepository;
+        private final EnvironmentVariableRepository environmentVariableRepository;
 
-    @Transactional
-    public EnvironmentResponse createEnvironment(EnvironmentRequest request, UUID ownerId) {
-        if (environmentRepository.existsByNameAndOwnerId(request.getName(), ownerId)) {
-            throw new DuplicateResourceException(
-                    "Environment with this name already exists");
+        @Transactional
+        @CacheEvict(value = "environments", key = "#ownerId.toString()")
+        public EnvironmentResponse createEnvironment(EnvironmentRequest request, UUID ownerId) {
+                if (environmentRepository.existsByNameAndOwnerId(request.getName(), ownerId)) {
+                        throw new DuplicateResourceException(
+                                        "Environment with this name already exists");
+                }
+
+                Environment environment = Environment.builder()
+                                .name(request.getName())
+                                .environmentColor(request.getEnvironmentColor())
+                                .ownerId(ownerId)
+                                .build();
+
+                Environment savedEnvironment = environmentRepository.saveAndFlush(environment);
+                log.info("Created environment with id {} for owner {}", savedEnvironment.getId(), ownerId);
+                return toEnvironmentResponse(savedEnvironment);
         }
 
-        Environment environment = Environment.builder()
-                .name(request.getName())
-                .environmentColor(request.getEnvironmentColor())
-                .ownerId(ownerId)
-                .build();
-
-        Environment savedEnvironment = environmentRepository.saveAndFlush(environment);
-        log.info("Created environment with id {} for owner {}", savedEnvironment.getId(), ownerId);
-        return toEnvironmentResponse(savedEnvironment);
-    }
-
-    @Transactional(readOnly = true)
-    public List<EnvironmentResponse> getAllEnvironments(UUID ownerId) {
-        return environmentRepository.findByOwnerId(ownerId)
-                .stream()
-                .map(this::toEnvironmentResponse)
-                .toList();
-    }
-
-    @Transactional
-    public EnvironmentResponse updateEnvironment(UUID id, EnvironmentRequest request, UUID ownerId) {
-        Environment environment = findEnvironmentByIdAndOwnerId(id, ownerId);
-
-        if (!environment.getName().equals(request.getName())
-                && environmentRepository.existsByNameAndOwnerId(request.getName(), ownerId)) {
-            throw new DuplicateResourceException(
-                    "Environment with this name already exists");
+        @Transactional(readOnly = true)
+        @Cacheable(value = "environments", key = "#ownerId.toString()")
+        public List<EnvironmentResponse> getAllEnvironments(UUID ownerId) {
+                return environmentRepository.findByOwnerId(ownerId)
+                                .stream()
+                                .map(this::toEnvironmentResponse)
+                                .toList();
         }
 
-        environment.setName(request.getName());
-        environment.setEnvironmentColor(request.getEnvironmentColor());
+        @Transactional
+        @CacheEvict(value = "environments", key = "#ownerId.toString()")
+        public EnvironmentResponse updateEnvironment(UUID id, EnvironmentRequest request, UUID ownerId) {
+                Environment environment = findEnvironmentByIdAndOwnerId(id, ownerId);
 
-        Environment updatedEnvironment = environmentRepository.saveAndFlush(environment);
-        log.info("Updated environment with id {} for owner {}", updatedEnvironment.getId(), ownerId);
+                if (!environment.getName().equals(request.getName())
+                                && environmentRepository.existsByNameAndOwnerId(request.getName(), ownerId)) {
+                        throw new DuplicateResourceException(
+                                        "Environment with this name already exists");
+                }
 
-        return toEnvironmentResponse(updatedEnvironment);
-    }
+                environment.setName(request.getName());
+                environment.setEnvironmentColor(request.getEnvironmentColor());
 
-    @Transactional
-    public void deleteEnvironment(UUID id, UUID ownerId) {
-        Environment environment = findEnvironmentByIdAndOwnerId(id, ownerId);
+                Environment updatedEnvironment = environmentRepository.saveAndFlush(environment);
+                log.info("Updated environment with id {} for owner {}", updatedEnvironment.getId(), ownerId);
 
-        environmentRepository.delete(environment);
-
-        log.info("Deleted environment with id {} for owner {}", id, ownerId);
-    }
-
-    @Transactional
-    public VariableResponse addVariable(UUID environmentId, VariableRequest request, UUID ownerId) {
-        Environment environment = findEnvironmentByIdAndOwnerId(environmentId, ownerId);
-
-        if (environmentVariableRepository.existsByKeyAndEnvironmentId(request.getKey(), environment.getId())) {
-            throw new DuplicateResourceException(
-                    "Variable with this key already exists in the environment");
+                return toEnvironmentResponse(updatedEnvironment);
         }
 
-        EnvironmentVariable variable = EnvironmentVariable.builder()
-                .key(request.getKey())
-                .value(request.getValue())
-                .environment(environment)
-                .build();
+        @Transactional
+        @CacheEvict(value = "environments", key = "#ownerId.toString()")
+        public void deleteEnvironment(UUID id, UUID ownerId) {
+                Environment environment = findEnvironmentByIdAndOwnerId(id, ownerId);
 
-        EnvironmentVariable savedVariable = environmentVariableRepository.saveAndFlush(variable);
-        log.info("Added variable with id {} to environment {} for owner {}", savedVariable.getId(), environmentId,
-                ownerId);
+                environmentRepository.delete(environment);
 
-        return toVariableResponse(savedVariable);
-    }
+                log.info("Deleted environment with id {} for owner {}", id, ownerId);
+        }
 
-    @Transactional
-    public VariableResponse updateVariable(UUID environmentId, UUID variableId, VariableRequest request, UUID ownerId) {
-        Environment environment = findEnvironmentByIdAndOwnerId(environmentId, ownerId);
+        @Transactional
+        @CacheEvict(value = "environments", key = "#ownerId.toString()")
+        public VariableResponse addVariable(UUID environmentId, VariableRequest request, UUID ownerId) {
+                Environment environment = findEnvironmentByIdAndOwnerId(environmentId, ownerId);
 
-        EnvironmentVariable variable = environmentVariableRepository
-                .findByIdAndEnvironmentId(variableId, environment.getId())
-                .orElseThrow(() -> new ResourceNotFoundException(
-                        "Variable not found"));
+                if (environmentVariableRepository.existsByKeyAndEnvironmentId(request.getKey(), environment.getId())) {
+                        throw new DuplicateResourceException(
+                                        "Variable with this key already exists in the environment");
+                }
 
-        variable.setKey(request.getKey());
-        variable.setValue(request.getValue());
+                EnvironmentVariable variable = EnvironmentVariable.builder()
+                                .key(request.getKey())
+                                .value(request.getValue())
+                                .environment(environment)
+                                .build();
 
-        EnvironmentVariable updatedVariable = environmentVariableRepository.saveAndFlush(variable);
-        log.info("Updated variable with id {} in environment {} for owner {}", updatedVariable.getId(), environmentId,
-                ownerId);
+                EnvironmentVariable savedVariable = environmentVariableRepository.saveAndFlush(variable);
+                log.info("Added variable with id {} to environment {} for owner {}", savedVariable.getId(),
+                                environmentId,
+                                ownerId);
 
-        return toVariableResponse(updatedVariable);
-    }
+                return toVariableResponse(savedVariable);
+        }
 
-    @Transactional
-    public void deleteVariable(UUID environmentId, UUID variableId, UUID ownerId) {
-        Environment environment = findEnvironmentByIdAndOwnerId(environmentId, ownerId);
+        @Transactional
+        @CacheEvict(value = "environments", key = "#ownerId.toString()")
+        public VariableResponse updateVariable(UUID environmentId, UUID variableId, VariableRequest request,
+                        UUID ownerId) {
+                Environment environment = findEnvironmentByIdAndOwnerId(environmentId, ownerId);
 
-        EnvironmentVariable variable = environmentVariableRepository.findByIdAndEnvironmentId(variableId,
-                environment.getId())
-                .orElseThrow(() -> new ResourceNotFoundException(
-                        "Variable not found"));
+                EnvironmentVariable variable = environmentVariableRepository
+                                .findByIdAndEnvironmentId(variableId, environment.getId())
+                                .orElseThrow(() -> new ResourceNotFoundException(
+                                                "Variable not found"));
 
-        environmentVariableRepository.delete(variable);
-        log.info("Deleted variable with id {} from environment {} for owner {}", variableId, environmentId, ownerId);
-    }
+                variable.setKey(request.getKey());
+                variable.setValue(request.getValue());
 
-    @Transactional(readOnly = true)
-    private Environment findEnvironmentByIdAndOwnerId(UUID id, UUID ownerId) {
-        return environmentRepository.findByIdAndOwnerId(id, ownerId)
-                .orElseThrow(() -> new ResourceNotFoundException(
-                        "Environment not found"));
-    }
+                EnvironmentVariable updatedVariable = environmentVariableRepository.saveAndFlush(variable);
+                log.info("Updated variable with id {} in environment {} for owner {}", updatedVariable.getId(),
+                                environmentId,
+                                ownerId);
 
-    private EnvironmentResponse toEnvironmentResponse(Environment environment) {
-        return EnvironmentResponse.builder()
-                .id(environment.getId())
-                .name(environment.getName())
-                .environmentColor(environment.getEnvironmentColor())
-                .ownerId(environment.getOwnerId())
-                .variables(environment.getVariables()
-                        .stream()
-                        .map(this::toVariableResponse)
-                        .toList())
-                .createdAt(environment.getCreatedAt())
-                .updatedAt(environment.getUpdatedAt())
-                .build();
-    }
+                return toVariableResponse(updatedVariable);
+        }
 
-    private VariableResponse toVariableResponse(EnvironmentVariable variable) {
-        return VariableResponse.builder()
-                .id(variable.getId())
-                .key(variable.getKey())
-                .value(variable.getValue())
-                .build();
-    }
+        @Transactional
+        @CacheEvict(value = "environments", key = "#ownerId.toString()")
+        public void deleteVariable(UUID environmentId, UUID variableId, UUID ownerId) {
+                Environment environment = findEnvironmentByIdAndOwnerId(environmentId, ownerId);
+
+                EnvironmentVariable variable = environmentVariableRepository.findByIdAndEnvironmentId(variableId,
+                                environment.getId())
+                                .orElseThrow(() -> new ResourceNotFoundException(
+                                                "Variable not found"));
+
+                environmentVariableRepository.delete(variable);
+                log.info("Deleted variable with id {} from environment {} for owner {}", variableId, environmentId,
+                                ownerId);
+        }
+
+        @Transactional(readOnly = true)
+        private Environment findEnvironmentByIdAndOwnerId(UUID id, UUID ownerId) {
+                return environmentRepository.findByIdAndOwnerId(id, ownerId)
+                                .orElseThrow(() -> new ResourceNotFoundException(
+                                                "Environment not found"));
+        }
+
+        private EnvironmentResponse toEnvironmentResponse(Environment environment) {
+                return EnvironmentResponse.builder()
+                                .id(environment.getId())
+                                .name(environment.getName())
+                                .environmentColor(environment.getEnvironmentColor())
+                                .ownerId(environment.getOwnerId())
+                                .variables(environment.getVariables()
+                                                .stream()
+                                                .map(this::toVariableResponse)
+                                                .toList())
+                                .createdAt(environment.getCreatedAt())
+                                .updatedAt(environment.getUpdatedAt())
+                                .build();
+        }
+
+        private VariableResponse toVariableResponse(EnvironmentVariable variable) {
+                return VariableResponse.builder()
+                                .id(variable.getId())
+                                .key(variable.getKey())
+                                .value(variable.getValue())
+                                .build();
+        }
 }

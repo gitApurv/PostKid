@@ -49,13 +49,6 @@ public class CollectionController {
         return ResponseEntity.ok(ApiResponse.success("Collections fetched successfully", collections));
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<ApiResponse<CollectionResponse>> getCollectionById(@PathVariable UUID id,
-            @AuthenticationPrincipal User currentUser) {
-        CollectionResponse collection = collectionService.getCollectionById(id, currentUser);
-        return ResponseEntity.ok(ApiResponse.success("Collection fetched successfully", collection));
-    }
-
     @PutMapping("/{id}")
     public ResponseEntity<ApiResponse<CollectionResponse>> updateCollection(@PathVariable UUID id,
             @Valid @RequestBody CollectionRequest request,

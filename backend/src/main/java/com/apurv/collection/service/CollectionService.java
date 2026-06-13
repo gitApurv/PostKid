@@ -19,6 +19,9 @@ import com.apurv.request.repository.RequestItemRepository;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -33,6 +36,7 @@ public class CollectionService {
     private final RequestItemRepository requestItemRepository;
 
     @Transactional
+    @CacheEvict(value = "collections", key = "#currentUser.id.toString()")
     public CollectionResponse createCollection(CollectionRequest request, User currentUser) {
         if (collectionRepository.existsByNameAndOwner(request.getName(), currentUser)) {
             throw new DuplicateResourceException("Collection with this name already exists");
@@ -50,6 +54,7 @@ public class CollectionService {
     }
 
     @Transactional(readOnly = true)
+    @Cacheable(value = "collections", key = "#currentUser.id.toString()")
     public List<CollectionResponse> getAllCollections(User currentUser) {
         return collectionRepository.findByOwner(currentUser)
                 .stream()
@@ -57,13 +62,10 @@ public class CollectionService {
                 .toList();
     }
 
-    @Transactional(readOnly = true)
-    public CollectionResponse getCollectionById(UUID id, User currentUser) {
-        Collection collection = findCollectionByIdAndOwner(id, currentUser);
-        return toCollectionResponse(collection);
-    }
-
     @Transactional
+    @Caching(evict = {
+            @CacheEvict(value = "collections", key = "#currentUser.id.toString()")
+    })
     public CollectionResponse updateCollection(UUID id, CollectionRequest request, User currentUser) {
         Collection collection = findCollectionByIdAndOwner(id, currentUser);
 
@@ -82,6 +84,9 @@ public class CollectionService {
     }
 
     @Transactional
+    @Caching(evict = {
+            @CacheEvict(value = "collections", key = "#currentUser.id.toString()")
+    })
     public void deleteCollection(UUID id, User currentUser) {
         Collection collection = findCollectionByIdAndOwner(id, currentUser);
 
