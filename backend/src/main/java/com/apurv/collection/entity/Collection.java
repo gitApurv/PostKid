@@ -45,6 +45,9 @@ public class Collection {
 
     private String description;
 
+    @Column(name = "workspace_id")
+    private UUID workspaceId;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "owner_id", nullable = false)
     private User owner;

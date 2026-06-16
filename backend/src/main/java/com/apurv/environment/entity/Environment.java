@@ -44,6 +44,9 @@ public class Environment {
     @Column(name = "owner_id", nullable = false, updatable = false)
     private UUID ownerId;
 
+    @Column(name = "workspace_id")
+    private UUID workspaceId;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     @Builder.Default
