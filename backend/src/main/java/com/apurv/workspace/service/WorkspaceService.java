@@ -95,6 +95,8 @@ public class WorkspaceService {
 
         workspaceAuthorizationService.requireRole(id, currentUser.getId(), Role.OWNER);
 
+        workspaceMemberRepository.deleteByWorkspaceId(id);
+
         workspaceRepository.delete(workspace);
 
         log.info("Workspace with id {} deleted by user {}", id, currentUser.getId());

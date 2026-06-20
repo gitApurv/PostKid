@@ -21,4 +21,6 @@ public interface WorkspaceMemberRepository
 
     void deleteByWorkspaceIdAndUserId(UUID workspaceId, UUID userId);
 
+    void deleteByWorkspaceId(UUID workspaceId);
+
 }
