@@ -37,7 +37,10 @@ public class WorkspaceController {
     public ResponseEntity<ApiResponse<WorkspaceResponse>> createWorkspace(
             @Valid @RequestBody WorkspaceRequest request,
             @AuthenticationPrincipal User currentUser) {
-        WorkspaceResponse response = workspaceService.createWorkspace(request, currentUser);
+
+        WorkspaceResponse response = workspaceService.createWorkspace(
+                request,
+                currentUser);
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.success("Workspace created", response));
     }
@@ -45,59 +48,82 @@ public class WorkspaceController {
     @GetMapping
     public ResponseEntity<ApiResponse<List<WorkspaceResponse>>> getAllWorkspaces(
             @AuthenticationPrincipal User currentUser) {
-        List<WorkspaceResponse> response = workspaceService.getAllWorkspaces(currentUser);
+
+        List<WorkspaceResponse> response = workspaceService.getAllWorkspaces(
+                currentUser);
         return ResponseEntity.ok(ApiResponse.success("Workspaces fetched", response));
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("/{workspaceId}")
     public ResponseEntity<ApiResponse<WorkspaceResponse>> getWorkspaceById(
-            @PathVariable UUID id,
+            @PathVariable UUID workspaceId,
             @AuthenticationPrincipal User currentUser) {
-        WorkspaceResponse response = workspaceService.getWorkspaceById(id, currentUser);
+
+        WorkspaceResponse response = workspaceService.getWorkspaceById(
+                workspaceId,
+                currentUser);
         return ResponseEntity.ok(ApiResponse.success("Workspace fetched", response));
     }
 
-    @PutMapping("/{id}")
+    @PutMapping("/{workspaceId}")
     public ResponseEntity<ApiResponse<WorkspaceResponse>> updateWorkspace(
-            @PathVariable UUID id,
+            @PathVariable UUID workspaceId,
             @Valid @RequestBody WorkspaceRequest request,
             @AuthenticationPrincipal User currentUser) {
-        WorkspaceResponse response = workspaceService.updateWorkspace(id, request, currentUser);
+
+        WorkspaceResponse response = workspaceService.updateWorkspace(
+                workspaceId,
+                request,
+                currentUser);
         return ResponseEntity.ok(ApiResponse.success("Workspace updated", response));
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/{workspaceId}")
     public ResponseEntity<ApiResponse<Void>> deleteWorkspace(
-            @PathVariable UUID id,
+            @PathVariable UUID workspaceId,
             @AuthenticationPrincipal User currentUser) {
-        workspaceService.deleteWorkspace(id, currentUser);
+
+        workspaceService.deleteWorkspace(
+                workspaceId,
+                currentUser);
         return ResponseEntity.ok(ApiResponse.success("Workspace deleted", null));
     }
 
-    @PostMapping("/{id}/members")
+    @PostMapping("/{workspaceId}/members")
     public ResponseEntity<ApiResponse<MemberResponse>> inviteMember(
-            @PathVariable UUID id,
+            @PathVariable UUID workspaceId,
             @Valid @RequestBody InviteMemberRequest request,
             @AuthenticationPrincipal User currentUser) {
-        MemberResponse response = workspaceService.inviteMember(id, request, currentUser);
+
+        MemberResponse response = workspaceService.inviteMember(
+                workspaceId,
+                request,
+                currentUser);
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.success("Member invited", response));
     }
 
-    @DeleteMapping("/{id}/members/{userId}")
+    @DeleteMapping("/{workspaceId}/members/{userId}")
     public ResponseEntity<ApiResponse<Void>> removeMember(
-            @PathVariable UUID id,
+            @PathVariable UUID workspaceId,
             @PathVariable UUID userId,
             @AuthenticationPrincipal User currentUser) {
-        workspaceService.removeMember(id, userId, currentUser);
+
+        workspaceService.removeMember(
+                workspaceId,
+                userId,
+                currentUser);
         return ResponseEntity.ok(ApiResponse.success("Member removed", null));
     }
 
-    @GetMapping("/{id}/members")
+    @GetMapping("/{workspaceId}/members")
     public ResponseEntity<ApiResponse<List<MemberResponse>>> getMembers(
-            @PathVariable UUID id,
+            @PathVariable UUID workspaceId,
             @AuthenticationPrincipal User currentUser) {
-        List<MemberResponse> response = workspaceService.getMembers(id, currentUser);
+
+        List<MemberResponse> response = workspaceService.getMembers(
+                workspaceId,
+                currentUser);
         return ResponseEntity.ok(ApiResponse.success("Members fetched", response));
     }
 }

@@ -17,6 +17,8 @@ public interface WorkspaceMemberRepository
 
     public List<WorkspaceMember> findAllByWorkspaceId(UUID workspaceId);
 
+    public int countByWorkspaceId(UUID workspaceId);
+
     public boolean existsByWorkspaceIdAndUserId(UUID workspaceId, UUID userId);
 
     void deleteByWorkspaceIdAndUserId(UUID workspaceId, UUID userId);

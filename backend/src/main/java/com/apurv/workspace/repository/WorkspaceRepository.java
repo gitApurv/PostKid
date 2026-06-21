@@ -17,4 +17,5 @@ public interface WorkspaceRepository extends JpaRepository<Workspace, UUID> {
 
     @Query("SELECT workspace FROM Workspace workspace JOIN WorkspaceMember workspaceMember ON workspaceMember.workspace = workspace WHERE workspaceMember.user.id = :userId")
     public List<Workspace> findAllByMembersId(@Param("userId") UUID memberId);
+
 }
