@@ -11,10 +11,11 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.apurv.auth.dto.AuthResponse;
 import com.apurv.auth.dto.LoginRequest;
+import com.apurv.auth.dto.LogoutRequest;
 import com.apurv.auth.dto.RegisterRequest;
 import com.apurv.auth.dto.TokenRefreshRequest;
 import com.apurv.auth.entity.RefreshToken;
-import com.apurv.auth.entity.Role;
+import com.apurv.auth.entity.SystemRole;
 import com.apurv.auth.entity.User;
 import com.apurv.auth.repository.RefreshTokenRepository;
 import com.apurv.auth.repository.UserRepository;
@@ -46,6 +47,7 @@ public class AuthService {
 
     @Transactional
     public AuthResponse register(RegisterRequest request) {
+
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new DuplicateResourceException("Email already in use");
         }
@@ -55,43 +57,54 @@ public class AuthService {
         }
 
         User user = User.builder()
-                .email(request.getEmail())
                 .username(request.getUsername())
-                .password(passwordEncoder.encode(request.getPassword())).role(Role.MEMBER)
+                .email(request.getEmail())
+                .password(passwordEncoder.encode(request.getPassword()))
+                .role(SystemRole.USER)
                 .build();
 
         userRepository.save(user);
-        log.info("New user registered: {}", user.getEmail());
+
+        log.info("New user registered with email {} and username: {}", user.getEmail(), user.getUsername());
+
         return buildAuthResponse(user);
     }
 
     @Transactional
     public AuthResponse login(LoginRequest request) {
+
         authenticationManager
                 .authenticate(new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword()));
 
         User user = userRepository.findByUsername(request.getUsername())
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
-        log.info("User logged in: {}", user.getUsername());
+        log.info("User logged in with email {} and username: {}", user.getEmail(), user.getUsername());
+
         return buildAuthResponse(user);
     }
 
     @Transactional
-    public void logout(String authHeader, User currentUser) {
+    public void logout(String authHeader, LogoutRequest request, User currentUser) {
+
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
             String token = authHeader.substring(7);
             long expirationTime = jwtService.getExpirationMs(token);
+
             if (expirationTime > 0) {
                 tokenBlacklistService.blacklistToken(token, expirationTime);
             }
-            refreshTokenRepository.deleteByUser(currentUser);
-            log.info("User logged out: {}", currentUser.getUsername());
+
+            refreshTokenRepository.findByToken(request.getRefreshToken()).ifPresent(refreshTokenRepository::delete);
+
+            log.info("User logged out with email {} and username: {}", currentUser.getEmail(),
+                    currentUser.getUsername());
         }
     }
 
     @Transactional
     public AuthResponse refreshToken(TokenRefreshRequest request) {
+
         String requestRefreshToken = request.getRefreshToken();
 
         RefreshToken token = refreshTokenRepository.findByToken(requestRefreshToken)
@@ -106,27 +119,13 @@ public class AuthService {
         User user = token.getUser();
         AuthResponse response = buildAuthResponse(user);
 
-        log.info("Access token refreshed for user: {}", user.getUsername());
+        log.info("Access token refreshed for user with email {} and username: {}", user.getEmail(), user.getUsername());
 
         return response;
     }
 
-    @Transactional
-    private String saveRefreshToken(User user) {
-        refreshTokenRepository.deleteByUser(user);
-        refreshTokenRepository.flush();
-
-        RefreshToken refreshToken = RefreshToken.builder()
-                .user(user)
-                .token(jwtService.generateRefreshToken(user))
-                .expiresAt(Instant.now().plusSeconds(refreshTokenExpiration / 1000))
-                .build();
-
-        refreshTokenRepository.save(refreshToken);
-        return refreshToken.getToken();
-    }
-
     private AuthResponse buildAuthResponse(User user) {
+
         String accessToken = jwtService.generateToken(user);
         String refreshToken = saveRefreshToken(user);
 
@@ -139,4 +138,18 @@ public class AuthService {
                 .expiresIn(jwtExpiration / 1000)
                 .build();
     }
+
+    private String saveRefreshToken(User user) {
+
+        RefreshToken refreshToken = RefreshToken.builder()
+                .user(user)
+                .token(jwtService.generateRefreshToken(user))
+                .expiresAt(Instant.now().plusSeconds(refreshTokenExpiration / 1000))
+                .build();
+
+        refreshTokenRepository.save(refreshToken);
+
+        return refreshToken.getToken();
+    }
+
 }

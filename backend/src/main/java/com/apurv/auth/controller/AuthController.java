@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 
 import com.apurv.auth.dto.AuthResponse;
 import com.apurv.auth.dto.LoginRequest;
+import com.apurv.auth.dto.LogoutRequest;
 import com.apurv.auth.dto.RegisterRequest;
 import com.apurv.auth.dto.TokenRefreshRequest;
 import com.apurv.auth.entity.User;
@@ -30,27 +31,36 @@ public class AuthController {
 
     @PostMapping("/register")
     public ResponseEntity<ApiResponse<AuthResponse>> register(@Valid @RequestBody RegisterRequest request) {
+
         AuthResponse authResponse = authService.register(request);
+
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.success("User registered successfully", authResponse));
     }
 
     @PostMapping("/login")
     public ResponseEntity<ApiResponse<AuthResponse>> login(@Valid @RequestBody LoginRequest request) {
+
         AuthResponse authResponse = authService.login(request);
+
         return ResponseEntity.ok(ApiResponse.success("Login successful", authResponse));
     }
 
     @PostMapping("/refresh")
     public ResponseEntity<ApiResponse<AuthResponse>> refresh(@Valid @RequestBody TokenRefreshRequest request) {
+
         AuthResponse authResponse = authService.refreshToken(request);
+
         return ResponseEntity.ok(ApiResponse.success("Token refreshed successfully", authResponse));
     }
 
     @PostMapping("/logout")
     public ResponseEntity<ApiResponse<Void>> logout(@RequestHeader("Authorization") String authHeader,
+            @Valid @RequestBody LogoutRequest request,
             @AuthenticationPrincipal User currentUser) {
-        authService.logout(authHeader, currentUser);
+
+        authService.logout(authHeader, request, currentUser);
+
         return ResponseEntity.ok(ApiResponse.success("Logout successful", null));
     }
 }

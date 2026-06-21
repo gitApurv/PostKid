@@ -20,4 +20,5 @@ public class TokenBlacklistService {
     public boolean isTokenBlacklisted(String token) {
         return redisTemplate.hasKey("Blacklisted: " + token);
     }
+
 }
