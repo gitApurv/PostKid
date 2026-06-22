@@ -21,4 +21,8 @@ public interface FolderRepository extends JpaRepository<Folder, UUID> {
 
     void deleteByCollection(Collection collection);
 
+    int countByCollection(Collection collection);
+
+    int countByParentFolder(Folder parentFolder);
+
 }

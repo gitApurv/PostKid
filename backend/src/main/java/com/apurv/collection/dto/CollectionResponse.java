@@ -15,11 +15,11 @@ import lombok.NoArgsConstructor;
 public class CollectionResponse {
 
     private UUID id;
+    private UUID workspaceId;
     private String name;
     private String description;
-    private UUID ownerId;
-    private String ownerUsername;
     private int folderCount;
     private Instant createdAt;
     private Instant updatedAt;
+
 }

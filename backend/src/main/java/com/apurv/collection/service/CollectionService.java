@@ -5,17 +5,16 @@ import java.util.UUID;
 
 import com.apurv.auth.entity.User;
 import com.apurv.collection.dto.CollectionRequest;
-import com.apurv.collection.dto.FolderRequest;
-import com.apurv.collection.dto.FolderResponse;
 import com.apurv.collection.dto.CollectionResponse;
 import com.apurv.collection.entity.Collection;
-import com.apurv.collection.entity.Folder;
 import com.apurv.common.exception.DuplicateResourceException;
 import com.apurv.common.exception.ResourceNotFoundException;
+import com.apurv.workspace.entity.Workspace;
+import com.apurv.workspace.entity.WorkspaceRole;
+import com.apurv.workspace.repository.WorkspaceRepository;
+import com.apurv.workspace.service.WorkspaceAuthorizationService;
 import com.apurv.collection.repository.CollectionRepository;
 import com.apurv.collection.repository.FolderRepository;
-import com.apurv.request.entity.RequestItem;
-import com.apurv.request.repository.RequestItemRepository;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -33,30 +32,40 @@ public class CollectionService {
 
     private final CollectionRepository collectionRepository;
     private final FolderRepository folderRepository;
-    private final RequestItemRepository requestItemRepository;
+    private final WorkspaceRepository workspaceRepository;
+    private final WorkspaceAuthorizationService workspaceAuthorizationService;
 
     @Transactional
     @CacheEvict(value = "collections", key = "#currentUser.id.toString()")
-    public CollectionResponse createCollection(CollectionRequest request, User currentUser) {
-        if (collectionRepository.existsByNameAndOwner(request.getName(), currentUser)) {
-            throw new DuplicateResourceException("Collection with this name already exists");
+    public CollectionResponse createCollection(UUID workspaceId, CollectionRequest request, User currentUser) {
+        Workspace workspace = findWorkspaceById(workspaceId, "Workspace not found");
+
+        workspaceAuthorizationService.requireRole(workspaceId, currentUser.getId(), WorkspaceRole.ADMIN);
+
+        if (collectionRepository.existsByNameAndWorkspace(request.getName(), workspace)) {
+            throw new DuplicateResourceException("Collection with this name already exists in the workspace");
         }
 
         Collection collection = Collection.builder()
                 .name(request.getName())
                 .description(request.getDescription())
-                .owner(currentUser)
+                .workspace(workspace)
                 .build();
-
         Collection savedCollection = collectionRepository.saveAndFlush(collection);
-        log.info("Created new collection with ID: {} for user: {}", savedCollection.getId(), currentUser.getUsername());
+
+        log.info("Created new collection with ID: {} in workspace: {}", savedCollection.getId(), workspace.getId());
         return toCollectionResponse(savedCollection);
     }
 
     @Transactional(readOnly = true)
     @Cacheable(value = "collections", key = "#currentUser.id.toString()")
-    public List<CollectionResponse> getAllCollections(User currentUser) {
-        return collectionRepository.findByOwner(currentUser)
+    public List<CollectionResponse> getAllCollections(UUID workspaceId, User currentUser) {
+        Workspace workspace = findWorkspaceById(workspaceId, "Workspace not found");
+
+        workspaceAuthorizationService.requireRole(workspaceId, currentUser.getId(), WorkspaceRole.ADMIN,
+                WorkspaceRole.MEMBER, WorkspaceRole.VIEWER);
+
+        return collectionRepository.findByWorkspace(workspace)
                 .stream()
                 .map(this::toCollectionResponse)
                 .toList();
@@ -66,20 +75,24 @@ public class CollectionService {
     @Caching(evict = {
             @CacheEvict(value = "collections", key = "#currentUser.id.toString()")
     })
-    public CollectionResponse updateCollection(UUID id, CollectionRequest request, User currentUser) {
-        Collection collection = findCollectionByIdAndOwner(id, currentUser);
+    public CollectionResponse updateCollection(UUID workspaceId, UUID collectionId, CollectionRequest request,
+            User currentUser) {
+        Workspace workspace = findWorkspaceById(workspaceId, "Workspace not found");
+
+        workspaceAuthorizationService.requireRole(workspaceId, currentUser.getId(), WorkspaceRole.ADMIN);
+
+        Collection collection = findCollectionByIdAndWorkspace(collectionId, workspace, "Collection not found");
 
         if (!collection.getName().equals(request.getName())
-                && collectionRepository.existsByNameAndOwner(request.getName(), currentUser)) {
-            throw new DuplicateResourceException("Collection with this name already exists");
+                && collectionRepository.existsByNameAndWorkspace(request.getName(), workspace)) {
+            throw new DuplicateResourceException("Collection with this name already exists in the workspace");
         }
 
         collection.setName(request.getName());
         collection.setDescription(request.getDescription());
-
         Collection updatedCollection = collectionRepository.saveAndFlush(collection);
-        log.info("Updated collection with ID: {} for user: {}", updatedCollection.getId(), currentUser.getUsername());
 
+        log.info("Updated collection with ID: {} in workspace: {}", updatedCollection.getId(), workspace.getId());
         return toCollectionResponse(updatedCollection);
     }
 
@@ -87,113 +100,39 @@ public class CollectionService {
     @Caching(evict = {
             @CacheEvict(value = "collections", key = "#currentUser.id.toString()")
     })
-    public void deleteCollection(UUID id, User currentUser) {
-        Collection collection = findCollectionByIdAndOwner(id, currentUser);
+    public void deleteCollection(UUID workspaceId, UUID collectionId, User currentUser) {
+        Workspace workspace = findWorkspaceById(workspaceId, "Workspace not found");
 
-        List<RequestItem> requests = requestItemRepository.findByCollection(collection);
-        requestItemRepository.deleteAll(requests);
+        workspaceAuthorizationService.requireRole(workspaceId, currentUser.getId(), WorkspaceRole.ADMIN);
 
+        Collection collection = findCollectionByIdAndWorkspace(collectionId, workspace, "Collection not found");
         collectionRepository.delete(collection);
 
-        log.info("Deleted collection with ID: {} for user: {}", collection.getId(), currentUser.getUsername());
-    }
-
-    @Transactional
-    public FolderResponse createFolder(UUID collectionId, FolderRequest request, User currentUser) {
-        Collection collection = findCollectionByIdAndOwner(collectionId, currentUser);
-
-        Folder parent = null;
-        if (request.getParentFolderId() != null) {
-            parent = findFolderByIdAndCollection(request.getParentFolderId(), collection, "Parent folder not found");
-        }
-
-        Folder folder = Folder.builder()
-                .name(request.getName())
-                .collection(collection)
-                .parentFolder(parent)
-                .build();
-
-        Folder savedFolder = folderRepository.saveAndFlush(folder);
-        log.info("Created new folder with ID: {} in collection ID: {} for user: {}", savedFolder.getId(),
-                collection.getId(), currentUser.getUsername());
-        return toFolderResponse(savedFolder);
+        log.info("Deleted collection with ID: {} in workspace: {}", collection.getId(), workspace.getId());
     }
 
     @Transactional(readOnly = true)
-    public List<FolderResponse> getParentFolders(UUID collectionId, User currentUser) {
-        Collection collection = findCollectionByIdAndOwner(collectionId, currentUser);
-
-        return folderRepository.findByCollectionAndParentFolderIsNull(collection)
-                .stream()
-                .map(this::toFolderResponse)
-                .toList();
-    }
-
-    @Transactional(readOnly = true)
-    public List<FolderResponse> getSubFolders(UUID collectionId, UUID folderId, User currentUser) {
-        Collection collection = findCollectionByIdAndOwner(collectionId, currentUser);
-        Folder folder = findFolderByIdAndCollection(folderId, collection, "Folder not found");
-
-        return folderRepository.findByParentFolder(folder)
-                .stream()
-                .map(this::toFolderResponse)
-                .toList();
-    }
-
-    @Transactional
-    public void deleteFolder(UUID collectionId, UUID folderId, User currentUser) {
-        Collection collection = findCollectionByIdAndOwner(collectionId, currentUser);
-        Folder folder = findFolderByIdAndCollection(folderId, collection, "Folder not found");
-
-        deleteRequestsInFolderRecursive(folder);
-
-        folderRepository.delete(folder);
-        log.info("Deleted folder with ID: {} in collection ID: {} for user: {}", folder.getId(),
-                collection.getId(), currentUser.getUsername());
-    }
-
-    private void deleteRequestsInFolderRecursive(Folder folder) {
-        List<RequestItem> requests = requestItemRepository.findByFolder(folder);
-        requestItemRepository.deleteAll(requests);
-
-        for (Folder subfolder : folder.getSubFolders()) {
-            deleteRequestsInFolderRecursive(subfolder);
-        }
-    }
-
-    @Transactional(readOnly = true)
-    private Folder findFolderByIdAndCollection(UUID folderId, Collection collection, String errorMessage) {
-        return folderRepository.findByIdAndCollection(folderId, collection)
+    public Workspace findWorkspaceById(UUID workspaceId, String errorMessage) {
+        return workspaceRepository.findById(workspaceId)
                 .orElseThrow(() -> new ResourceNotFoundException(errorMessage));
     }
 
     @Transactional(readOnly = true)
-    private Collection findCollectionByIdAndOwner(UUID id, User currentUser) {
-        return collectionRepository.findByIdAndOwner(id, currentUser)
-                .orElseThrow(() -> new ResourceNotFoundException("Collection not found"));
+    public Collection findCollectionByIdAndWorkspace(UUID collectionId, Workspace workspace, String errorMessage) {
+        return collectionRepository.findByIdAndWorkspace(collectionId, workspace)
+                .orElseThrow(() -> new ResourceNotFoundException(errorMessage));
     }
 
     private CollectionResponse toCollectionResponse(Collection collection) {
         return CollectionResponse.builder()
                 .id(collection.getId())
+                .workspaceId(collection.getWorkspace().getId())
                 .name(collection.getName())
                 .description(collection.getDescription())
-                .ownerId(collection.getOwner().getId())
-                .ownerUsername(collection.getOwner().getUsername())
-                .folderCount(collection.getFolders().size())
+                .folderCount(folderRepository.countByCollection(collection))
                 .createdAt(collection.getCreatedAt())
                 .updatedAt(collection.getUpdatedAt())
                 .build();
     }
 
-    private FolderResponse toFolderResponse(Folder savedFolder) {
-        return FolderResponse.builder()
-                .id(savedFolder.getId())
-                .name(savedFolder.getName())
-                .collectionId(savedFolder.getCollection().getId())
-                .parentFolderId(savedFolder.getParentFolder() != null ? savedFolder.getParentFolder().getId() : null)
-                .subFolderCount(savedFolder.getSubFolders().size())
-                .createdAt(savedFolder.getCreatedAt())
-                .build();
-    }
 }
