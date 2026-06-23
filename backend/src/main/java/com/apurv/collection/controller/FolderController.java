@@ -46,6 +46,24 @@ public class FolderController {
                                 .body(ApiResponse.success("Folder created successfully", response));
         }
 
+        @PostMapping("/{parentFolderId}/subfolders")
+        public ResponseEntity<ApiResponse<FolderResponse>> createSubFolder(
+                        @PathVariable UUID workspaceId,
+                        @PathVariable UUID collectionId,
+                        @PathVariable UUID parentFolderId,
+                        @Valid @RequestBody FolderRequest request,
+                        @AuthenticationPrincipal User currentUser) {
+
+                FolderResponse response = folderService.createSubFolder(
+                                workspaceId,
+                                collectionId,
+                                parentFolderId,
+                                request,
+                                currentUser);
+                return ResponseEntity.status(HttpStatus.CREATED)
+                                .body(ApiResponse.success("Subfolder created successfully", response));
+        }
+
         @GetMapping()
         public ResponseEntity<ApiResponse<List<FolderResponse>>> getParentFolders(
                         @PathVariable UUID workspaceId,

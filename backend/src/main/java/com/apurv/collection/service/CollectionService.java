@@ -112,21 +112,20 @@ public class CollectionService {
     }
 
     @Transactional(readOnly = true)
-    public Workspace findWorkspaceById(UUID workspaceId, String errorMessage) {
+    protected Workspace findWorkspaceById(UUID workspaceId, String errorMessage) {
         return workspaceRepository.findById(workspaceId)
                 .orElseThrow(() -> new ResourceNotFoundException(errorMessage));
     }
 
     @Transactional(readOnly = true)
-    public Collection findCollectionByIdAndWorkspace(UUID collectionId, Workspace workspace, String errorMessage) {
+    protected Collection findCollectionByIdAndWorkspace(UUID collectionId, Workspace workspace, String errorMessage) {
         return collectionRepository.findByIdAndWorkspace(collectionId, workspace)
                 .orElseThrow(() -> new ResourceNotFoundException(errorMessage));
     }
 
-    private CollectionResponse toCollectionResponse(Collection collection) {
+    protected CollectionResponse toCollectionResponse(Collection collection) {
         return CollectionResponse.builder()
                 .id(collection.getId())
-                .workspaceId(collection.getWorkspace().getId())
                 .name(collection.getName())
                 .description(collection.getDescription())
                 .folderCount(folderRepository.countByCollection(collection))

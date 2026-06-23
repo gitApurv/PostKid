@@ -25,105 +25,125 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class FolderService {
 
-    private final CollectionService collectionService;
-    private final FolderRepository folderRepository;
-    private final WorkspaceAuthorizationService workspaceAuthorizationService;
+        private final CollectionService collectionService;
+        private final FolderRepository folderRepository;
+        private final WorkspaceAuthorizationService workspaceAuthorizationService;
 
-    @Transactional
-    public FolderResponse createFolder(UUID workspaceId, UUID collectionId, FolderRequest request, User currentUser) {
-        Workspace workspace = findWorkspaceById(workspaceId, "Workspace not found");
+        @Transactional
+        public FolderResponse createFolder(UUID workspaceId, UUID collectionId, FolderRequest request,
+                        User currentUser) {
+                Workspace workspace = findWorkspaceById(workspaceId, "Workspace not found");
 
-        workspaceAuthorizationService.requireRole(workspaceId, currentUser.getId(), WorkspaceRole.ADMIN);
+                workspaceAuthorizationService.requireRole(workspaceId, currentUser.getId(), WorkspaceRole.ADMIN);
 
-        Collection collection = findCollectionByIdAndWorkspace(collectionId, workspace, "Collection not found");
+                Collection collection = findCollectionByIdAndWorkspace(collectionId, workspace, "Collection not found");
 
-        Folder parent = null;
-        if (request.getParentFolderId() != null) {
-            parent = findFolderByIdAndCollection(request.getParentFolderId(), collection, "Parent folder not found");
+                Folder folder = Folder.builder()
+                                .collection(collection)
+                                .name(request.getName())
+                                .parentFolder(null)
+                                .build();
+                Folder savedFolder = folderRepository.saveAndFlush(folder);
+
+                log.info("Created new root folder with ID: {} in collection ID: {}", savedFolder.getId(),
+                                collection.getId());
+                return toFolderResponse(savedFolder);
         }
 
-        Folder folder = Folder.builder()
-                .collection(collection)
-                .name(request.getName())
-                .parentFolder(parent)
-                .build();
-        Folder savedFolder = folderRepository.saveAndFlush(folder);
+        @Transactional
+        public FolderResponse createSubFolder(UUID workspaceId, UUID collectionId, UUID parentFolderId,
+                        FolderRequest request, User currentUser) {
+                Workspace workspace = findWorkspaceById(workspaceId, "Workspace not found");
 
-        log.info("Created new folder with ID: {} in collection ID: {}", savedFolder.getId(),
-                collection.getId());
-        return toFolderResponse(savedFolder);
-    }
+                workspaceAuthorizationService.requireRole(workspaceId, currentUser.getId(), WorkspaceRole.ADMIN);
 
-    @Transactional(readOnly = true)
-    public List<FolderResponse> getParentFolders(UUID workspaceId, UUID collectionId, User currentUser) {
-        Workspace workspace = findWorkspaceById(workspaceId, "Workspace not found");
+                Collection collection = findCollectionByIdAndWorkspace(collectionId, workspace, "Collection not found");
 
-        workspaceAuthorizationService.requireRole(workspaceId, currentUser.getId(), WorkspaceRole.ADMIN,
-                WorkspaceRole.MEMBER, WorkspaceRole.VIEWER);
+                Folder parent = findFolderByIdAndCollection(parentFolderId, collection, "Parent folder not found");
 
-        Collection collection = findCollectionByIdAndWorkspace(collectionId, workspace, "Collection not found");
+                Folder folder = Folder.builder()
+                                .collection(collection)
+                                .name(request.getName())
+                                .parentFolder(parent)
+                                .build();
+                Folder savedFolder = folderRepository.saveAndFlush(folder);
 
-        return folderRepository.findByCollectionAndParentFolderIsNull(collection)
-                .stream()
-                .map(this::toFolderResponse)
-                .toList();
-    }
+                log.info("Created new subfolder with ID: {} under parent folder ID: {} in collection ID: {}",
+                                savedFolder.getId(), parent.getId(), collection.getId());
+                return toFolderResponse(savedFolder);
+        }
 
-    @Transactional(readOnly = true)
-    public List<FolderResponse> getSubFolders(UUID workspaceId, UUID collectionId, UUID folderId, User currentUser) {
-        Workspace workspace = findWorkspaceById(workspaceId, "Workspace not found");
+        @Transactional(readOnly = true)
+        public List<FolderResponse> getParentFolders(UUID workspaceId, UUID collectionId, User currentUser) {
+                Workspace workspace = findWorkspaceById(workspaceId, "Workspace not found");
 
-        workspaceAuthorizationService.requireRole(workspaceId, currentUser.getId(), WorkspaceRole.ADMIN,
-                WorkspaceRole.MEMBER, WorkspaceRole.VIEWER);
+                workspaceAuthorizationService.requireRole(workspaceId, currentUser.getId(), WorkspaceRole.ADMIN,
+                                WorkspaceRole.MEMBER, WorkspaceRole.VIEWER);
 
-        Collection collection = findCollectionByIdAndWorkspace(collectionId, workspace, "Collection not found");
-        Folder folder = findFolderByIdAndCollection(folderId, collection, "Folder not found");
+                Collection collection = findCollectionByIdAndWorkspace(collectionId, workspace, "Collection not found");
 
-        return folderRepository.findByParentFolder(folder)
-                .stream()
-                .map(this::toFolderResponse)
-                .toList();
-    }
+                return folderRepository.findByCollectionAndParentFolderIsNull(collection)
+                                .stream()
+                                .map(this::toFolderResponse)
+                                .toList();
+        }
 
-    @Transactional
-    public void deleteFolder(UUID workspaceId, UUID collectionId, UUID folderId, User currentUser) {
-        Workspace workspace = findWorkspaceById(workspaceId, "Workspace not found");
+        @Transactional(readOnly = true)
+        public List<FolderResponse> getSubFolders(UUID workspaceId, UUID collectionId, UUID folderId,
+                        User currentUser) {
+                Workspace workspace = findWorkspaceById(workspaceId, "Workspace not found");
 
-        workspaceAuthorizationService.requireRole(workspaceId, currentUser.getId(), WorkspaceRole.ADMIN);
+                workspaceAuthorizationService.requireRole(workspaceId, currentUser.getId(), WorkspaceRole.ADMIN,
+                                WorkspaceRole.MEMBER, WorkspaceRole.VIEWER);
 
-        Collection collection = findCollectionByIdAndWorkspace(collectionId, workspace, "Collection not found");
-        Folder folder = findFolderByIdAndCollection(folderId, collection, "Folder not found");
+                Collection collection = findCollectionByIdAndWorkspace(collectionId, workspace, "Collection not found");
 
-        folderRepository.delete(folder);
-        log.info("Deleted folder with ID: {} in collection ID: {}", folder.getId(),
-                collection.getId());
-    }
+                Folder folder = findFolderByIdAndCollection(folderId, collection, "Folder not found");
 
-    @Transactional(readOnly = true)
-    private Workspace findWorkspaceById(UUID workspaceId, String errorMessage) {
-        return collectionService.findWorkspaceById(workspaceId, errorMessage);
-    }
+                return folderRepository.findByParentFolder(folder)
+                                .stream()
+                                .map(this::toFolderResponse)
+                                .toList();
+        }
 
-    @Transactional(readOnly = true)
-    private Collection findCollectionByIdAndWorkspace(UUID collectionId, Workspace workspace, String errorMessage) {
-        return collectionService.findCollectionByIdAndWorkspace(collectionId, workspace, errorMessage);
-    }
+        @Transactional
+        public void deleteFolder(UUID workspaceId, UUID collectionId, UUID folderId, User currentUser) {
+                Workspace workspace = findWorkspaceById(workspaceId, "Workspace not found");
 
-    @Transactional(readOnly = true)
-    private Folder findFolderByIdAndCollection(UUID folderId, Collection collection, String errorMessage) {
-        return folderRepository.findByIdAndCollection(folderId, collection)
-                .orElseThrow(() -> new ResourceNotFoundException(errorMessage));
-    }
+                workspaceAuthorizationService.requireRole(workspaceId, currentUser.getId(), WorkspaceRole.ADMIN);
 
-    private FolderResponse toFolderResponse(Folder savedFolder) {
-        return FolderResponse.builder()
-                .id(savedFolder.getId())
-                .name(savedFolder.getName())
-                .collectionId(savedFolder.getCollection().getId())
-                .parentFolderId(savedFolder.getParentFolder() != null ? savedFolder.getParentFolder().getId() : null)
-                .subFolderCount(folderRepository.countByParentFolder(savedFolder))
-                .createdAt(savedFolder.getCreatedAt())
-                .build();
-    }
+                Collection collection = findCollectionByIdAndWorkspace(collectionId, workspace, "Collection not found");
+                Folder folder = findFolderByIdAndCollection(folderId, collection, "Folder not found");
+
+                folderRepository.delete(folder);
+                log.info("Deleted folder with ID: {} in collection ID: {}", folder.getId(),
+                                collection.getId());
+        }
+
+        @Transactional(readOnly = true)
+        protected Workspace findWorkspaceById(UUID workspaceId, String errorMessage) {
+                return collectionService.findWorkspaceById(workspaceId, errorMessage);
+        }
+
+        @Transactional(readOnly = true)
+        protected Collection findCollectionByIdAndWorkspace(UUID collectionId, Workspace workspace,
+                        String errorMessage) {
+                return collectionService.findCollectionByIdAndWorkspace(collectionId, workspace, errorMessage);
+        }
+
+        @Transactional(readOnly = true)
+        protected Folder findFolderByIdAndCollection(UUID folderId, Collection collection, String errorMessage) {
+                return folderRepository.findByIdAndCollection(folderId, collection)
+                                .orElseThrow(() -> new ResourceNotFoundException(errorMessage));
+        }
+
+        protected FolderResponse toFolderResponse(Folder savedFolder) {
+                return FolderResponse.builder()
+                                .id(savedFolder.getId())
+                                .name(savedFolder.getName())
+                                .subFolderCount(folderRepository.countByParentFolder(savedFolder))
+                                .createdAt(savedFolder.getCreatedAt())
+                                .build();
+        }
 
 }
