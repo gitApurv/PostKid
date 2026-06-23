@@ -12,4 +12,5 @@ public class VariableRequest {
 
     @NotNull(message = "Value must not be null")
     private String value;
+
 }

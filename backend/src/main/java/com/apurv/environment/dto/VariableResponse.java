@@ -16,4 +16,5 @@ public class VariableResponse {
     private UUID id;
     private String key;
     private String value;
+
 }

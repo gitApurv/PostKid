@@ -5,8 +5,7 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.UUID;
 
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
+import com.apurv.collection.entity.Collection;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -17,7 +16,11 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 import lombok.AllArgsConstructor;
@@ -26,8 +29,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name = "environments", uniqueConstraints = @UniqueConstraint(name = "uq_environment_name_owner", columnNames = {
-        "name", "owner_id" }))
+@Table(name = "environments", uniqueConstraints = @UniqueConstraint(name = "uq_environment_name_collection", columnNames = {
+        "name", "collection_id" }))
 @Data
 @Builder
 @NoArgsConstructor
@@ -38,17 +41,15 @@ public class Environment {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @Column(nullable = false, length = 100)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "collection_id", nullable = false, updatable = false)
+    private Collection collection;
+
+    @Column(name = "name", nullable = false, length = 100)
     private String name;
 
-    @Column(name = "owner_id", nullable = false, updatable = false)
-    private UUID ownerId;
-
-    @Column(name = "workspace_id")
-    private UUID workspaceId;
-
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(name = "environment_color", nullable = false)
     @Builder.Default
     private EnvironmentColor environmentColor = EnvironmentColor.GREY;
 
@@ -56,10 +57,20 @@ public class Environment {
     @Builder.Default
     private List<EnvironmentVariable> variables = new ArrayList<>();
 
-    @CreationTimestamp
-    @Column(nullable = false, updatable = false)
+    @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 
-    @UpdateTimestamp
+    @Column(name = "updated_at", nullable = false)
     private Instant updatedAt;
+
+    @PrePersist
+    protected void prePersist() {
+        createdAt = Instant.now();
+        updatedAt = Instant.now();
+    }
+
+    @PreUpdate
+    protected void preUpdate() {
+        updatedAt = Instant.now();
+    }
 }

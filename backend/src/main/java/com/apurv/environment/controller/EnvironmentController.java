@@ -19,15 +19,13 @@ import com.apurv.auth.entity.User;
 import com.apurv.common.dto.ApiResponse;
 import com.apurv.environment.dto.EnvironmentRequest;
 import com.apurv.environment.dto.EnvironmentResponse;
-import com.apurv.environment.dto.VariableRequest;
-import com.apurv.environment.dto.VariableResponse;
 import com.apurv.environment.service.EnvironmentService;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController
-@RequestMapping("/api/v1/environments")
+@RequestMapping("/api/v1/workspace/{workspaceId}/collections/{collectionId}/environments")
 @RequiredArgsConstructor
 public class EnvironmentController {
 
@@ -35,56 +33,51 @@ public class EnvironmentController {
 
     @PostMapping
     public ResponseEntity<ApiResponse<EnvironmentResponse>> createEnvironment(
+            @PathVariable UUID workspaceId,
+            @PathVariable UUID collectionId,
             @Valid @RequestBody EnvironmentRequest request,
             @AuthenticationPrincipal User currentUser) {
-        EnvironmentResponse response = environmentService.createEnvironment(request, currentUser.getId());
+
+        EnvironmentResponse response = environmentService.createEnvironment(workspaceId, collectionId, request,
+                currentUser);
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.success("Environment created successfully", response));
     }
 
     @GetMapping
     public ResponseEntity<ApiResponse<List<EnvironmentResponse>>> getAllEnvironments(
+            @PathVariable UUID workspaceId,
+            @PathVariable UUID collectionId,
             @AuthenticationPrincipal User currentUser) {
-        List<EnvironmentResponse> response = environmentService.getAllEnvironments(currentUser.getId());
+
+        List<EnvironmentResponse> response = environmentService.getAllEnvironments(workspaceId, collectionId,
+                currentUser);
         return ResponseEntity.ok(ApiResponse.success("Environments fetched successfully", response));
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<ApiResponse<EnvironmentResponse>> updateEnvironment(@PathVariable UUID id,
+    @PutMapping("/{environmentId}")
+    public ResponseEntity<ApiResponse<EnvironmentResponse>> updateEnvironment(
+            @PathVariable UUID workspaceId,
+            @PathVariable UUID collectionId,
+            @PathVariable UUID environmentId,
             @Valid @RequestBody EnvironmentRequest request,
             @AuthenticationPrincipal User currentUser) {
-        EnvironmentResponse response = environmentService.updateEnvironment(id, request, currentUser.getId());
+
+        EnvironmentResponse response = environmentService.updateEnvironment(workspaceId, collectionId, environmentId,
+                request,
+                currentUser);
         return ResponseEntity.ok(ApiResponse.success("Environment updated successfully", response));
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<ApiResponse<Void>> deleteEnvironment(@PathVariable UUID id,
+    @DeleteMapping("/{environmentId}")
+    public ResponseEntity<ApiResponse<Void>> deleteEnvironment(
+            @PathVariable UUID workspaceId,
+            @PathVariable UUID collectionId,
+            @PathVariable UUID environmentId,
             @AuthenticationPrincipal User currentUser) {
-        environmentService.deleteEnvironment(id, currentUser.getId());
+
+        environmentService.deleteEnvironment(workspaceId, collectionId, environmentId, currentUser);
         return ResponseEntity.ok(ApiResponse.success("Environment deleted successfully", null));
     }
 
-    @PostMapping("/{id}/variables")
-    public ResponseEntity<ApiResponse<VariableResponse>> addVariable(@PathVariable UUID id,
-            @Valid @RequestBody VariableRequest request,
-            @AuthenticationPrincipal User currentUser) {
-        VariableResponse response = environmentService.addVariable(id, request, currentUser.getId());
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(ApiResponse.success("Variable created successfully", response));
-    }
-
-    @PutMapping("/{id}/variables/{varId}")
-    public ResponseEntity<ApiResponse<VariableResponse>> updateVariable(@PathVariable UUID id,
-            @PathVariable UUID varId, @Valid @RequestBody VariableRequest request,
-            @AuthenticationPrincipal User currentUser) {
-        VariableResponse response = environmentService.updateVariable(id, varId, request, currentUser.getId());
-        return ResponseEntity.ok(ApiResponse.success("Variable updated successfully", response));
-    }
-
-    @DeleteMapping("/{id}/variables/{varId}")
-    public ResponseEntity<ApiResponse<Void>> deleteVariable(@PathVariable UUID id, @PathVariable UUID varId,
-            @AuthenticationPrincipal User currentUser) {
-        environmentService.deleteVariable(id, varId, currentUser.getId());
-        return ResponseEntity.ok(ApiResponse.success("Variable deleted successfully", null));
-    }
 }

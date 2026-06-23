@@ -7,14 +7,16 @@ import java.util.UUID;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import com.apurv.collection.entity.Collection;
 import com.apurv.environment.entity.Environment;
 
 @Repository
 public interface EnvironmentRepository extends JpaRepository<Environment, UUID> {
 
-    List<Environment> findByOwnerId(UUID ownerId);
+    List<Environment> findByCollection(Collection collection);
 
-    Optional<Environment> findByIdAndOwnerId(UUID id, UUID ownerId);
+    Optional<Environment> findByIdAndCollection(UUID id, Collection collection);
 
-    boolean existsByNameAndOwnerId(String name, UUID ownerId);
+    boolean existsByNameAndCollection(String name, Collection collection);
+
 }

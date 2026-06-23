@@ -27,10 +27,10 @@ public class EnvironmentVariable {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @Column(nullable = false, length = 100)
+    @Column(name = "key", nullable = false, length = 100)
     private String key;
 
-    @Column(columnDefinition = "TEXT")
+    @Column(name = "value", columnDefinition = "TEXT")
     private String value;
 
     @ManyToOne

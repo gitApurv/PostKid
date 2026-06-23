@@ -1,0 +1,158 @@
+package com.apurv.environment.service;
+
+import java.util.UUID;
+
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.stereotype.Service;
+
+import com.apurv.auth.entity.User;
+import com.apurv.collection.entity.Collection;
+import com.apurv.common.exception.DuplicateResourceException;
+import com.apurv.common.exception.ResourceNotFoundException;
+import com.apurv.environment.dto.VariableRequest;
+import com.apurv.environment.dto.VariableResponse;
+import com.apurv.environment.entity.Environment;
+import com.apurv.environment.entity.EnvironmentVariable;
+import com.apurv.environment.repository.EnvironmentVariableRepository;
+import com.apurv.workspace.entity.Workspace;
+import com.apurv.workspace.entity.WorkspaceRole;
+import com.apurv.workspace.service.WorkspaceAuthorizationService;
+
+import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
+@Service
+@RequiredArgsConstructor
+@Slf4j
+public class EnvironmentVariableService {
+
+        private final EnvironmentService environmentService;
+        private final EnvironmentVariableRepository environmentVariableRepository;
+        private final WorkspaceAuthorizationService workspaceAuthorizationService;
+
+        @Transactional
+        @CacheEvict(value = "environments", key = "#currentUser.getId().toString()")
+        public VariableResponse addVariable(UUID workspaceId, UUID collectionId, UUID environmentId,
+                        VariableRequest request,
+                        User currentUser) {
+                Workspace workspace = findWorkspaceById(workspaceId, "Workspace not found");
+
+                workspaceAuthorizationService.requireRole(workspace.getId(), currentUser.getId(),
+                                WorkspaceRole.ADMIN, WorkspaceRole.MEMBER);
+
+                Collection collection = findCollectionByIdAndWorkspace(collectionId, workspace,
+                                "Collection not found");
+
+                Environment environment = findEnvironmentByIdAndCollection(environmentId, collection,
+                                "Environment not found");
+
+                if (environmentVariableRepository.existsByKeyAndEnvironment(request.getKey(), environment)) {
+                        throw new DuplicateResourceException(
+                                        "Variable with this key already exists in the environment");
+                }
+
+                EnvironmentVariable variable = EnvironmentVariable.builder()
+                                .key(request.getKey())
+                                .value(request.getValue())
+                                .environment(environment)
+                                .build();
+                EnvironmentVariable savedVariable = environmentVariableRepository.saveAndFlush(variable);
+
+                log.info("Added variable with Id: {} in Environment: {} in Collection: {} in Workspace: {}",
+                                savedVariable.getId(),
+                                environmentId,
+                                collectionId,
+                                workspaceId);
+
+                return toVariableResponse(savedVariable);
+        }
+
+        @Transactional
+        @CacheEvict(value = "environments", key = "#currentUser.getId().toString()")
+        public VariableResponse updateVariable(UUID workspaceId, UUID collectionId, UUID environmentId, UUID variableId,
+                        VariableRequest request,
+                        User currentUser) {
+                Workspace workspace = findWorkspaceById(workspaceId, "Workspace not found");
+
+                workspaceAuthorizationService.requireRole(workspace.getId(), currentUser.getId(),
+                                WorkspaceRole.ADMIN, WorkspaceRole.MEMBER);
+
+                Collection collection = findCollectionByIdAndWorkspace(collectionId, workspace,
+                                "Collection not found");
+
+                Environment environment = findEnvironmentByIdAndCollection(environmentId, collection,
+                                "Environment not found");
+
+                EnvironmentVariable variable = findVariableByIdAndEnvironment(variableId, environment,
+                                "Variable not found");
+
+                if (!variable.getKey().equals(request.getKey()) && environmentVariableRepository
+                                .existsByKeyAndEnvironment(request.getKey(), environment)) {
+                        throw new DuplicateResourceException(
+                                        "Variable with this key already exists in the environment");
+                }
+
+                variable.setKey(request.getKey());
+                variable.setValue(request.getValue());
+                EnvironmentVariable updatedVariable = environmentVariableRepository.saveAndFlush(variable);
+
+                log.info("Updated variable with Id: {} in Environment: {} in Collection: {} in Workspace: {}",
+                                updatedVariable.getId(),
+                                environmentId,
+                                collectionId,
+                                workspaceId);
+                return toVariableResponse(updatedVariable);
+        }
+
+        @Transactional
+        @CacheEvict(value = "environments", key = "#currentUser.getId().toString()")
+        public void deleteVariable(UUID workspaceId, UUID collectionId, UUID environmentId, UUID variableId,
+                        User currentUser) {
+                Workspace workspace = findWorkspaceById(workspaceId, "Workspace not found");
+
+                workspaceAuthorizationService.requireRole(workspace.getId(), currentUser.getId(),
+                                WorkspaceRole.ADMIN, WorkspaceRole.MEMBER);
+
+                Collection collection = findCollectionByIdAndWorkspace(collectionId, workspace,
+                                "Collection not found");
+
+                Environment environment = findEnvironmentByIdAndCollection(environmentId, collection,
+                                "Environment not found");
+
+                EnvironmentVariable variable = findVariableByIdAndEnvironment(variableId, environment,
+                                "Variable not found");
+
+                environmentVariableRepository.delete(variable);
+                log.info("Deleted variable with Id: {} from Environment: {} in Collection: {} in Workspace: {}",
+                                variableId,
+                                environmentId,
+                                collectionId,
+                                workspaceId);
+        }
+
+        private Workspace findWorkspaceById(UUID workspaceId, String notFoundMessage) {
+                return environmentService.findWorkspaceById(workspaceId, notFoundMessage);
+        }
+
+        private Collection findCollectionByIdAndWorkspace(UUID collectionId, Workspace workspace,
+                        String notFoundMessage) {
+                return environmentService.findCollectionByIdAndWorkspace(collectionId, workspace, notFoundMessage);
+        }
+
+        private Environment findEnvironmentByIdAndCollection(UUID environmentId, Collection collection,
+                        String notFoundMessage) {
+                return environmentService.findEnvironmentByIdAndCollection(environmentId, collection, notFoundMessage);
+        }
+
+        private EnvironmentVariable findVariableByIdAndEnvironment(UUID variableId, Environment environment,
+                        String notFoundMessage) {
+                return environmentVariableRepository.findByIdAndEnvironment(variableId, environment)
+                                .orElseThrow(() -> new ResourceNotFoundException(notFoundMessage));
+        }
+
+        public VariableResponse toVariableResponse(EnvironmentVariable variable) {
+                return environmentService.toVariableResponse(variable);
+        }
+
+}
