@@ -131,27 +131,27 @@ public class EnvironmentVariableService {
                                 workspaceId);
         }
 
-        private Workspace findWorkspaceById(UUID workspaceId, String notFoundMessage) {
+        protected Workspace findWorkspaceById(UUID workspaceId, String notFoundMessage) {
                 return environmentService.findWorkspaceById(workspaceId, notFoundMessage);
         }
 
-        private Collection findCollectionByIdAndWorkspace(UUID collectionId, Workspace workspace,
+        protected Collection findCollectionByIdAndWorkspace(UUID collectionId, Workspace workspace,
                         String notFoundMessage) {
                 return environmentService.findCollectionByIdAndWorkspace(collectionId, workspace, notFoundMessage);
         }
 
-        private Environment findEnvironmentByIdAndCollection(UUID environmentId, Collection collection,
+        protected Environment findEnvironmentByIdAndCollection(UUID environmentId, Collection collection,
                         String notFoundMessage) {
                 return environmentService.findEnvironmentByIdAndCollection(environmentId, collection, notFoundMessage);
         }
 
-        private EnvironmentVariable findVariableByIdAndEnvironment(UUID variableId, Environment environment,
+        protected EnvironmentVariable findVariableByIdAndEnvironment(UUID variableId, Environment environment,
                         String notFoundMessage) {
                 return environmentVariableRepository.findByIdAndEnvironment(variableId, environment)
                                 .orElseThrow(() -> new ResourceNotFoundException(notFoundMessage));
         }
 
-        public VariableResponse toVariableResponse(EnvironmentVariable variable) {
+        protected VariableResponse toVariableResponse(EnvironmentVariable variable) {
                 return environmentService.toVariableResponse(variable);
         }
 

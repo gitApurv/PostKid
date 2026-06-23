@@ -20,7 +20,6 @@ import lombok.NoArgsConstructor;
 public class EnvironmentResponse {
 
     private UUID id;
-    private UUID collectionId;
     private String name;
     private EnvironmentColor environmentColor;
     @Builder.Default

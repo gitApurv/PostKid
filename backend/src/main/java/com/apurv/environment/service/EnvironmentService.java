@@ -134,29 +134,28 @@ public class EnvironmentService {
         }
 
         @Transactional(readOnly = true)
-        public Workspace findWorkspaceById(UUID workspaceId, String notFoundMessage) {
+        protected Workspace findWorkspaceById(UUID workspaceId, String notFoundMessage) {
                 return workspaceRepository.findById(workspaceId)
                                 .orElseThrow(() -> new ResourceNotFoundException(notFoundMessage));
         }
 
         @Transactional(readOnly = true)
-        public Collection findCollectionByIdAndWorkspace(UUID collectionId, Workspace workspace,
+        protected Collection findCollectionByIdAndWorkspace(UUID collectionId, Workspace workspace,
                         String notFoundMessage) {
                 return collectionRepository.findByIdAndWorkspace(collectionId, workspace)
                                 .orElseThrow(() -> new ResourceNotFoundException(notFoundMessage));
         }
 
         @Transactional(readOnly = true)
-        public Environment findEnvironmentByIdAndCollection(UUID environmentId, Collection collection,
+        protected Environment findEnvironmentByIdAndCollection(UUID environmentId, Collection collection,
                         String notFoundMessage) {
                 return environmentRepository.findByIdAndCollection(environmentId, collection)
                                 .orElseThrow(() -> new ResourceNotFoundException(notFoundMessage));
         }
 
-        private EnvironmentResponse toEnvironmentResponse(Environment environment) {
+        protected EnvironmentResponse toEnvironmentResponse(Environment environment) {
                 return EnvironmentResponse.builder()
                                 .id(environment.getId())
-                                .collectionId(environment.getCollection().getId())
                                 .name(environment.getName())
                                 .environmentColor(environment.getEnvironmentColor())
                                 .variables(environmentVariableRepository.findByEnvironment(environment).stream()
@@ -166,7 +165,7 @@ public class EnvironmentService {
                                 .build();
         }
 
-        public VariableResponse toVariableResponse(EnvironmentVariable variable) {
+        protected VariableResponse toVariableResponse(EnvironmentVariable variable) {
                 return VariableResponse.builder()
                                 .id(variable.getId())
                                 .key(variable.getKey())
