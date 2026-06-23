@@ -19,6 +19,10 @@ import com.apurv.auth.entity.User;
 import com.apurv.history.service.HistoryService;
 import com.apurv.request.dto.ExecutionRequest;
 import com.apurv.request.dto.ExecutionResponse;
+import com.apurv.workspace.entity.Workspace;
+import com.apurv.workspace.entity.WorkspaceRole;
+import com.apurv.workspace.repository.WorkspaceRepository;
+import com.apurv.workspace.service.WorkspaceAuthorizationService;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -27,18 +31,32 @@ import lombok.extern.slf4j.Slf4j;
 public class RequestExecutionService {
 
         private final WebClient webClient;
+        private final WorkspaceRepository workspaceRepository;
+        private final WorkspaceAuthorizationService workspaceAuthorizationService;
         private final HistoryService historyService;
 
-        public RequestExecutionService(WebClient.Builder webClientBuilder, HistoryService historyService) {
+        public RequestExecutionService(WebClient.Builder webClientBuilder, HistoryService historyService,
+                        WorkspaceRepository workspaceRepository,
+                        WorkspaceAuthorizationService workspaceAuthorizationService) {
                 this.webClient = webClientBuilder
                                 .codecs(config -> config
                                                 .defaultCodecs()
                                                 .maxInMemorySize(10 * 1024 * 1024))
                                 .build();
                 this.historyService = historyService;
+                this.workspaceRepository = workspaceRepository;
+                this.workspaceAuthorizationService = workspaceAuthorizationService;
         }
 
-        public ExecutionResponse executeRequest(ExecutionRequest request, User currentUser, UUID requestItemId) {
+        public ExecutionResponse executeRequest(UUID workspaceId, ExecutionRequest request,
+                        User currentUser) {
+
+                Workspace workspace = workspaceRepository.findById(workspaceId)
+                                .orElseThrow(() -> new IllegalArgumentException("Workspace not found"));
+
+                workspaceAuthorizationService.requireRole(workspace.getId(), currentUser.getId(),
+                                WorkspaceRole.ADMIN, WorkspaceRole.MEMBER);
+
                 long startTime = System.currentTimeMillis();
                 ExecutionResponse response;
 
@@ -142,7 +160,7 @@ public class RequestExecutionService {
                                         .build();
                 }
 
-                historyService.saveHistory(request, response, currentUser, requestItemId);
+                historyService.saveHistory(request, response, currentUser);
                 return response;
         }
 

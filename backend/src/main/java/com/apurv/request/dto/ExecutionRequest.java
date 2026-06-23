@@ -26,5 +26,6 @@ public class ExecutionRequest {
 
     private Map<String, String> authValue = new HashMap<>();
 
-    private int timeoutSeconds = 30;
+    private int timeoutSeconds;
+
 }

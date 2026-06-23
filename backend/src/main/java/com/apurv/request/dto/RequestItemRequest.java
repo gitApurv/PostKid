@@ -2,7 +2,6 @@ package com.apurv.request.dto;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.UUID;
 
 import com.apurv.request.entity.HttpMethod;
 
@@ -31,10 +30,5 @@ public class RequestItemRequest {
     private Map<String, String> authValue = new HashMap<>();
 
     private Integer timeoutMs;
-
-    @NotNull(message = "Collection ID is required")
-    private UUID collectionId;
-
-    private UUID folderId;
 
 }

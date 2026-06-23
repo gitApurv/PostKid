@@ -22,9 +22,9 @@ public class RequestItemResponse {
     private String authType;
     private Map<String, String> authValue;
     private Integer timeoutMs;
-    private UUID collectionId;
-    private UUID folderId;
-    private UUID ownerId;
+    private String createdBy;
+    private String updatedBy;
     private Instant createdAt;
     private Instant updatedAt;
+
 }
