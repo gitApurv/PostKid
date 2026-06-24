@@ -1,7 +1,6 @@
 package com.apurv.history.service;
 
 import java.time.Instant;
-import java.util.UUID;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -28,11 +27,9 @@ public class HistoryService {
     private final RequestHistoryRepository historyRepository;
 
     @Transactional
-    public void saveHistory(ExecutionRequest request, ExecutionResponse response, User currentUser, UUID requestId) {
+    public void saveHistory(ExecutionRequest request, ExecutionResponse response, User currentUser) {
         RequestHistory requestHistory = RequestHistory.builder()
                 .userId(currentUser.getId())
-                .requestItemId(requestId)
-                .collectionId(null)
                 .method(request.getMethod().name())
                 .url(request.getUrl())
                 .requestHeaders(request.getHeaders())
@@ -50,8 +47,8 @@ public class HistoryService {
                 .build();
 
         historyRepository.save(requestHistory);
-        log.info("Saved request history for userId: {}, requestId: {}, statusCode: {}",
-                currentUser.getId(), requestId, response.getStatusCode());
+
+        log.info("Saved request history for userId: {}", currentUser.getId());
     }
 
     @Transactional(readOnly = true)
@@ -62,15 +59,15 @@ public class HistoryService {
     }
 
     @Transactional
-    public void deleteHistoryEntry(String id, User currentUser) {
-        RequestHistory history = historyRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("History entry not found"));
-        if (!history.getUserId().equals(currentUser.getId())) {
+    public void deleteHistoryEntry(String historyId, User currentUser) {
+        RequestHistory history = historyRepository.findByIdAndUser(historyId, currentUser);
+
+        if (history == null) {
             throw new ResourceNotFoundException("History entry not found");
         }
 
         historyRepository.delete(history);
-        log.info("Deleted history entry with id: {} for userId: {}", id, currentUser.getId());
+        log.info("Deleted history entry with id: {} for userId: {}", historyId, currentUser.getId());
     }
 
     @Transactional
@@ -83,8 +80,6 @@ public class HistoryService {
         return HistoryResponse.builder()
                 .id(history.getId())
                 .userId(history.getUserId())
-                .requestItemId(history.getRequestItemId())
-                .collectionId(history.getCollectionId())
                 .method(history.getMethod())
                 .url(history.getUrl())
                 .requestHeaders(history.getRequestHeaders())
@@ -101,4 +96,5 @@ public class HistoryService {
                 .executedAt(history.getExecutedAt())
                 .build();
     }
+
 }

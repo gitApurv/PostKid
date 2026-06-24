@@ -13,8 +13,6 @@ public class HistoryResponse {
 
     private String id;
     private UUID userId;
-    private UUID requestItemId;
-    private UUID collectionId;
 
     private String method;
     private String url;
@@ -32,4 +30,5 @@ public class HistoryResponse {
     private String errorMessage;
 
     private Instant executedAt;
+
 }

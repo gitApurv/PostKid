@@ -27,11 +27,6 @@ public class RequestHistory {
     @Indexed
     private UUID userId;
 
-    @Indexed
-    private UUID requestItemId;
-
-    private UUID collectionId;
-
     private String method;
     private String url;
     private Map<String, String> requestHeaders;
@@ -50,4 +45,5 @@ public class RequestHistory {
     @CreatedDate
     @Indexed
     private Instant executedAt;
+
 }

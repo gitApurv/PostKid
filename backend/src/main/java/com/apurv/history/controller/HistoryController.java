@@ -25,22 +25,28 @@ public class HistoryController {
     private final HistoryService historyService;
 
     @GetMapping
-    public ResponseEntity<ApiResponse<Page<HistoryResponse>>> getUserHistory(@RequestParam(defaultValue = "0") int page,
+    public ResponseEntity<ApiResponse<Page<HistoryResponse>>> getUserHistory(
+            @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size,
             @AuthenticationPrincipal User currentUser) {
+
         Page<HistoryResponse> response = historyService.getUserHistory(currentUser, page, size);
         return ResponseEntity.ok(ApiResponse.success("User history fetched successfully", response));
     }
 
     @DeleteMapping("{id}")
-    public ResponseEntity<ApiResponse<Void>> deleteHistoryEntry(@PathVariable String id,
+    public ResponseEntity<ApiResponse<Void>> deleteHistoryEntry(
+            @PathVariable String id,
             @AuthenticationPrincipal User currentUser) {
+
         historyService.deleteHistoryEntry(id, currentUser);
         return ResponseEntity.ok(ApiResponse.success("History entry deleted successfully", null));
     }
 
     @DeleteMapping("/clear")
-    public ResponseEntity<ApiResponse<Void>> clearUserHistory(@AuthenticationPrincipal User currentUser) {
+    public ResponseEntity<ApiResponse<Void>> clearUserHistory(
+            @AuthenticationPrincipal User currentUser) {
+
         historyService.clearUserHistory(currentUser);
         return ResponseEntity.ok(ApiResponse.success("User history cleared successfully", null));
     }
