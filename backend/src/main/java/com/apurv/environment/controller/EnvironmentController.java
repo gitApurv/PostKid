@@ -25,7 +25,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController
-@RequestMapping("/api/v1/workspace/{workspaceId}/collections/{collectionId}/environments")
+@RequestMapping("/api/v1/workspaces/{workspaceId}/collections/{collectionId}/environments")
 @RequiredArgsConstructor
 public class EnvironmentController {
 

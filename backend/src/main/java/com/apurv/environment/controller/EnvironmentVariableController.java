@@ -23,7 +23,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController
-@RequestMapping("/api/v1/workspace/{workspaceId}/collections/{collectionId}/environments/{environmentId}/variables")
+@RequestMapping("/api/v1/workspaces/{workspaceId}/collections/{collectionId}/environments/{environmentId}/variables")
 @RequiredArgsConstructor
 public class EnvironmentVariableController {
 
