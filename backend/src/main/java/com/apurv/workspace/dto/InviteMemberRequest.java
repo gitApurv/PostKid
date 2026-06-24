@@ -16,4 +16,5 @@ public class InviteMemberRequest {
 
     @NotNull(message = "Role is required")
     private WorkspaceRole role;
+
 }

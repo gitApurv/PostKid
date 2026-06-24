@@ -31,99 +31,99 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class WorkspaceController {
 
-    private final WorkspaceService workspaceService;
+        private final WorkspaceService workspaceService;
 
-    @PostMapping
-    public ResponseEntity<ApiResponse<WorkspaceResponse>> createWorkspace(
-            @Valid @RequestBody WorkspaceRequest request,
-            @AuthenticationPrincipal User currentUser) {
+        @PostMapping
+        public ResponseEntity<ApiResponse<WorkspaceResponse>> createWorkspace(
+                        @Valid @RequestBody WorkspaceRequest request,
+                        @AuthenticationPrincipal User currentUser) {
 
-        WorkspaceResponse response = workspaceService.createWorkspace(
-                request,
-                currentUser);
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(ApiResponse.success("Workspace created", response));
-    }
+                WorkspaceResponse response = workspaceService.createWorkspace(
+                                request,
+                                currentUser);
+                return ResponseEntity.status(HttpStatus.CREATED)
+                                .body(ApiResponse.success("Workspace created", response));
+        }
 
-    @GetMapping
-    public ResponseEntity<ApiResponse<List<WorkspaceResponse>>> getAllWorkspaces(
-            @AuthenticationPrincipal User currentUser) {
+        @GetMapping
+        public ResponseEntity<ApiResponse<List<WorkspaceResponse>>> getAllWorkspaces(
+                        @AuthenticationPrincipal User currentUser) {
 
-        List<WorkspaceResponse> response = workspaceService.getAllWorkspaces(
-                currentUser);
-        return ResponseEntity.ok(ApiResponse.success("Workspaces fetched", response));
-    }
+                List<WorkspaceResponse> response = workspaceService.getAllWorkspaces(
+                                currentUser);
+                return ResponseEntity.ok(ApiResponse.success("Workspaces fetched", response));
+        }
 
-    @GetMapping("/{workspaceId}")
-    public ResponseEntity<ApiResponse<WorkspaceResponse>> getWorkspaceById(
-            @PathVariable UUID workspaceId,
-            @AuthenticationPrincipal User currentUser) {
+        @GetMapping("/{workspaceId}")
+        public ResponseEntity<ApiResponse<WorkspaceResponse>> getWorkspaceById(
+                        @PathVariable UUID workspaceId,
+                        @AuthenticationPrincipal User currentUser) {
 
-        WorkspaceResponse response = workspaceService.getWorkspaceById(
-                workspaceId,
-                currentUser);
-        return ResponseEntity.ok(ApiResponse.success("Workspace fetched", response));
-    }
+                WorkspaceResponse response = workspaceService.getWorkspaceById(
+                                workspaceId,
+                                currentUser);
+                return ResponseEntity.ok(ApiResponse.success("Workspace fetched", response));
+        }
 
-    @PutMapping("/{workspaceId}")
-    public ResponseEntity<ApiResponse<WorkspaceResponse>> updateWorkspace(
-            @PathVariable UUID workspaceId,
-            @Valid @RequestBody WorkspaceRequest request,
-            @AuthenticationPrincipal User currentUser) {
+        @PutMapping("/{workspaceId}")
+        public ResponseEntity<ApiResponse<WorkspaceResponse>> updateWorkspace(
+                        @PathVariable UUID workspaceId,
+                        @Valid @RequestBody WorkspaceRequest request,
+                        @AuthenticationPrincipal User currentUser) {
 
-        WorkspaceResponse response = workspaceService.updateWorkspace(
-                workspaceId,
-                request,
-                currentUser);
-        return ResponseEntity.ok(ApiResponse.success("Workspace updated", response));
-    }
+                WorkspaceResponse response = workspaceService.updateWorkspace(
+                                workspaceId,
+                                request,
+                                currentUser);
+                return ResponseEntity.ok(ApiResponse.success("Workspace updated", response));
+        }
 
-    @DeleteMapping("/{workspaceId}")
-    public ResponseEntity<ApiResponse<Void>> deleteWorkspace(
-            @PathVariable UUID workspaceId,
-            @AuthenticationPrincipal User currentUser) {
+        @DeleteMapping("/{workspaceId}")
+        public ResponseEntity<ApiResponse<Void>> deleteWorkspace(
+                        @PathVariable UUID workspaceId,
+                        @AuthenticationPrincipal User currentUser) {
 
-        workspaceService.deleteWorkspace(
-                workspaceId,
-                currentUser);
-        return ResponseEntity.ok(ApiResponse.success("Workspace deleted", null));
-    }
+                workspaceService.deleteWorkspace(
+                                workspaceId,
+                                currentUser);
+                return ResponseEntity.ok(ApiResponse.success("Workspace deleted", null));
+        }
 
-    @PostMapping("/{workspaceId}/members")
-    public ResponseEntity<ApiResponse<MemberResponse>> inviteMember(
-            @PathVariable UUID workspaceId,
-            @Valid @RequestBody InviteMemberRequest request,
-            @AuthenticationPrincipal User currentUser) {
+        @PostMapping("/{workspaceId}/members")
+        public ResponseEntity<ApiResponse<MemberResponse>> inviteMember(
+                        @PathVariable UUID workspaceId,
+                        @Valid @RequestBody InviteMemberRequest request,
+                        @AuthenticationPrincipal User currentUser) {
 
-        MemberResponse response = workspaceService.inviteMember(
-                workspaceId,
-                request,
-                currentUser);
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(ApiResponse.success("Member invited", response));
-    }
+                MemberResponse response = workspaceService.inviteMember(
+                                workspaceId,
+                                request,
+                                currentUser);
+                return ResponseEntity.status(HttpStatus.CREATED)
+                                .body(ApiResponse.success("Member invited", response));
+        }
 
-    @DeleteMapping("/{workspaceId}/members/{userId}")
-    public ResponseEntity<ApiResponse<Void>> removeMember(
-            @PathVariable UUID workspaceId,
-            @PathVariable UUID userId,
-            @AuthenticationPrincipal User currentUser) {
+        @DeleteMapping("/{workspaceId}/members/{userId}")
+        public ResponseEntity<ApiResponse<Void>> removeMember(
+                        @PathVariable UUID workspaceId,
+                        @PathVariable UUID userId,
+                        @AuthenticationPrincipal User currentUser) {
 
-        workspaceService.removeMember(
-                workspaceId,
-                userId,
-                currentUser);
-        return ResponseEntity.ok(ApiResponse.success("Member removed", null));
-    }
+                workspaceService.removeMember(
+                                workspaceId,
+                                userId,
+                                currentUser);
+                return ResponseEntity.ok(ApiResponse.success("Member removed", null));
+        }
 
-    @GetMapping("/{workspaceId}/members")
-    public ResponseEntity<ApiResponse<List<MemberResponse>>> getMembers(
-            @PathVariable UUID workspaceId,
-            @AuthenticationPrincipal User currentUser) {
+        @GetMapping("/{workspaceId}/members")
+        public ResponseEntity<ApiResponse<List<MemberResponse>>> getMembers(
+                        @PathVariable UUID workspaceId,
+                        @AuthenticationPrincipal User currentUser) {
 
-        List<MemberResponse> response = workspaceService.getMembers(
-                workspaceId,
-                currentUser);
-        return ResponseEntity.ok(ApiResponse.success("Members fetched", response));
-    }
+                List<MemberResponse> response = workspaceService.getMembers(
+                                workspaceId,
+                                currentUser);
+                return ResponseEntity.ok(ApiResponse.success("Members fetched", response));
+        }
 }

@@ -11,19 +11,11 @@ import lombok.Data;
 public class WorkspaceResponse {
 
     private UUID id;
-
     private String name;
-
     private String description;
-
-    private UUID ownerId;
-
     private String ownerUsername;
-
     private int memberCount;
-
     private Instant createdAt;
-
     private Instant updatedAt;
 
 }

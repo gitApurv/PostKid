@@ -155,7 +155,6 @@ public class WorkspaceService {
                 .id(workspace.getId())
                 .name(workspace.getName())
                 .description(workspace.getDescription())
-                .ownerId(workspace.getOwner().getId())
                 .ownerUsername(workspace.getOwner().getUsername())
                 .memberCount(memberCount)
                 .createdAt(workspace.getCreatedAt())
