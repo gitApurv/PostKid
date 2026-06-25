@@ -62,6 +62,10 @@ public class Workspace {
     @OneToMany(mappedBy = "workspace", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<Collection> collections = new ArrayList<>();
 
+    @Column(name = "is_default", nullable = false)
+    @Builder.Default
+    private boolean isDefault = false;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 

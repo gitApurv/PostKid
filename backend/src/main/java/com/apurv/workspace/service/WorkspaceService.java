@@ -53,6 +53,24 @@ public class WorkspaceService {
         return toWorkspaceResponse(savedWorkspace, 1);
     }
 
+    public WorkspaceResponse createDefaultWorkspace(User user) {
+        Workspace workspace = new Workspace();
+        workspace.setName("My Workspace");
+        workspace.setDescription("Default workspace");
+        workspace.setOwner(user);
+        workspace.setDefault(true);
+        Workspace savedWorkspace = workspaceRepository.save(workspace);
+
+        WorkspaceMember workspaceMember = new WorkspaceMember();
+        workspaceMember.setWorkspace(savedWorkspace);
+        workspaceMember.setUser(user);
+        workspaceMember.setRole(WorkspaceRole.ADMIN);
+        workspaceMemberRepository.save(workspaceMember);
+
+        log.info("Default workspace with id {} created for user {}", savedWorkspace.getId(), user.getId());
+        return toWorkspaceResponse(savedWorkspace, 1);
+    }
+
     @Transactional(readOnly = true)
     public List<WorkspaceResponse> getAllWorkspaces(User currentUser) {
         List<Workspace> workspaces = workspaceRepository.findAllByMembersId(currentUser.getId());
@@ -89,6 +107,10 @@ public class WorkspaceService {
 
     public void deleteWorkspace(UUID workspaceId, User currentUser) {
         Workspace workspace = getWorkspace(workspaceId);
+
+        if (workspace.isDefault()) {
+            throw new IllegalArgumentException("Default workspace cannot be deleted");
+        }
 
         if (!workspace.getOwner().getId().equals(currentUser.getId())) {
             throw new AccessDeniedException("Only the workspace owner can delete the workspace");
@@ -157,6 +179,7 @@ public class WorkspaceService {
                 .description(workspace.getDescription())
                 .ownerUsername(workspace.getOwner().getUsername())
                 .memberCount(memberCount)
+                .isDefault(workspace.isDefault())
                 .createdAt(workspace.getCreatedAt())
                 .updatedAt(workspace.getUpdatedAt())
                 .build();

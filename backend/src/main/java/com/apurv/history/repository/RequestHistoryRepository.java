@@ -7,7 +7,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;
 
-import com.apurv.auth.entity.User;
 import com.apurv.history.document.RequestHistory;
 
 @Repository
@@ -15,7 +14,7 @@ public interface RequestHistoryRepository extends MongoRepository<RequestHistory
 
     Page<RequestHistory> findByUserIdOrderByExecutedAtDesc(UUID userId, Pageable page);
 
-    RequestHistory findByIdAndUser(String historyId, User user);
+    RequestHistory findByIdAndUserId(String historyId, UUID userId);
 
     void deleteByUserId(UUID userId);
 

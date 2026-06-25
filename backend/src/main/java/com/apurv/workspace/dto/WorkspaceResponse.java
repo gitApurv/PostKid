@@ -15,6 +15,7 @@ public class WorkspaceResponse {
     private String description;
     private String ownerUsername;
     private int memberCount;
+    private boolean isDefault;
     private Instant createdAt;
     private Instant updatedAt;
 

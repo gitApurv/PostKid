@@ -23,6 +23,7 @@ import com.apurv.auth.security.JwtService;
 import com.apurv.common.exception.DuplicateResourceException;
 import com.apurv.common.exception.ResourceNotFoundException;
 import com.apurv.common.exception.TokenRefreshException;
+import com.apurv.workspace.service.WorkspaceService;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -44,6 +45,7 @@ public class AuthService {
     private final RefreshTokenRepository refreshTokenRepository;
     private final AuthenticationManager authenticationManager;
     private final TokenBlacklistService tokenBlacklistService;
+    private final WorkspaceService workspaceService;
 
     @Transactional
     public AuthResponse register(RegisterRequest request) {
@@ -66,6 +68,8 @@ public class AuthService {
         userRepository.save(user);
 
         log.info("New user registered with email {} and username: {}", user.getEmail(), user.getUsername());
+
+        workspaceService.createDefaultWorkspace(user);
 
         return buildAuthResponse(user);
     }

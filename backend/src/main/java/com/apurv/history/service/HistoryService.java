@@ -60,7 +60,7 @@ public class HistoryService {
 
     @Transactional
     public void deleteHistoryEntry(String historyId, User currentUser) {
-        RequestHistory history = historyRepository.findByIdAndUser(historyId, currentUser);
+        RequestHistory history = historyRepository.findByIdAndUserId(historyId, currentUser.getId());
 
         if (history == null) {
             throw new ResourceNotFoundException("History entry not found");
