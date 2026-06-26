@@ -2,7 +2,7 @@ import { useState, useMemo, useEffect } from "react";
 import { useEnvironmentStore } from "../store/environmentStore";
 import { Trash2, FolderPlus, Edit3 } from "lucide-react";
 
-export default function VariableMatrixGrid() {
+export default function VariableMatrixGrid({ collectionId }: { collectionId: string }) {
   const environments = useEnvironmentStore((state) => state.environments);
   const activeEnvironmentId = useEnvironmentStore(
     (state) => state.activeEnvironmentId,
@@ -68,7 +68,7 @@ export default function VariableMatrixGrid() {
       return;
     }
 
-    const res = await editEnvironmentAction(activeEnv.id, {
+    const res = await editEnvironmentAction(collectionId, activeEnv.id, {
       name: trimmedName,
       environmentColor: activeEnv.color,
     });
@@ -115,14 +115,14 @@ export default function VariableMatrixGrid() {
 
     let response;
     if (isPhantomRow) {
-      response = await addVariableAction(activeEnv.id, {
+      response = await addVariableAction(collectionId, activeEnv.id, {
         key: key.trim(),
         value: value.trim(),
       });
     } else {
       const targetVar = filteredVariables[index];
       if (key !== targetVar.key || value !== targetVar.value) {
-        response = await updateVariableAction(activeEnv.id, targetVar.id, {
+        response = await updateVariableAction(collectionId, activeEnv.id, targetVar.id, {
           key: key.trim(),
           value: value.trim(),
         });
@@ -143,6 +143,7 @@ export default function VariableMatrixGrid() {
       const storeVariables = filteredVariables;
       if (index >= storeVariables.length) return;
       const res = await deleteVariableAction(
+        collectionId,
         activeEnv.id,
         storeVariables[index].id,
       );

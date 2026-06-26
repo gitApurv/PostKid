@@ -160,10 +160,10 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
   setActiveWorkspaceAction: async (workspaceId: string | null) => {
     set({ activeWorkspaceId: workspaceId });
 
-    const collectionPromise = useCollectionStore.getState().fetchCollectionsAction();
-    const environmentPromise = useEnvironmentStore.getState().fetchEnvironmentsAction();
+    // Clear environments state as they are scoped to a collection
+    useEnvironmentStore.setState({ environments: [], activeEnvironmentId: "" });
 
-    await Promise.allSettled([collectionPromise, environmentPromise]);
+    await useCollectionStore.getState().fetchCollectionsAction();
 
     return { success: true };
   },

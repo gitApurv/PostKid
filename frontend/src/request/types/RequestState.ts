@@ -14,10 +14,6 @@ export interface RequestState {
     body: string;
   } | null;
 
-  setActiveRequestAction: (
-    id: string | null,
-  ) => Promise<{ success: boolean; error?: string }>;
-
   setActiveRequestDirectlyAction: (req: RequestItem | null) => {
     success: boolean;
     error?: string;

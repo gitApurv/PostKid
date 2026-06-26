@@ -13,6 +13,7 @@ import type { CollectionRequest } from "../types/CollectionRequest";
 import type { FolderRequest } from "../types/FolderRequest";
 import type { RequestItemRequest } from "../../request/types/RequestItemRequest";
 import { useRequestStore } from "../../request/store/requestStore";
+import { useWorkspaceStore } from "../../workspace/store/workspaceStore";
 
 const updateFolderInList = (
   folders: FolderItem[],
@@ -23,15 +24,16 @@ const updateFolderInList = (
     if (folder.id === folderId) {
       return { ...folder, ...updater(folder) };
     }
-    if (folder.subfolders && folder.subfolders.length > 0) {
+    if (folder.subFolders && folder.subFolders.length > 0) {
       return {
         ...folder,
-        subfolders: updateFolderInList(folder.subfolders, folderId, updater),
+        subFolders: updateFolderInList(folder.subFolders, folderId, updater),
       };
     }
     return folder;
   });
 };
+
 
 const updateCollectionInList = (
   collections: CollectionItem[],
@@ -50,9 +52,14 @@ export const useCollectionStore = create<CollectionState>((set) => ({
   collections: [],
 
   fetchCollectionsAction: async () => {
+    const wId = useWorkspaceStore.getState().activeWorkspaceId;
+    if (!wId) {
+      set({ collections: [] });
+      return { success: true };
+    }
     try {
       const collectionsRes =
-        await api.get<ApiResponse<CollectionResponse[]>>("/collections");
+        await api.get<ApiResponse<CollectionResponse[]>>(`/workspaces/${wId}/collections`);
       if (collectionsRes.data.success && collectionsRes.data.data) {
         const collections: CollectionItem[] = collectionsRes.data.data.map(
           (collection) => ({
@@ -61,9 +68,8 @@ export const useCollectionStore = create<CollectionState>((set) => ({
             description: collection.description || "",
             folderCount: collection.folderCount,
             folders: [],
-            requests: [],
+            requestItems: [],
             isLoaded: false,
-            ownerUsername: collection.ownerUsername,
             createdAt: collection.createdAt,
             updatedAt: collection.updatedAt,
           }),
@@ -90,6 +96,10 @@ export const useCollectionStore = create<CollectionState>((set) => ({
   },
 
   fetchCollectionDetailsAction: async (collectionId) => {
+    const wId = useWorkspaceStore.getState().activeWorkspaceId;
+    if (!wId) {
+      return { success: false, error: "No active workspace selected" };
+    }
     set((state) => ({
       collections: updateCollectionInList(
         state.collections,
@@ -100,24 +110,24 @@ export const useCollectionStore = create<CollectionState>((set) => ({
 
     try {
       const foldersRes = await api.get<ApiResponse<FolderResponse[]>>(
-        `/collections/${collectionId}/folders`,
+        `/workspaces/${wId}/collections/${collectionId}/folders`,
       );
       const requestsRes = await api.get<ApiResponse<RequestItemResponse[]>>(
-        `/requests/collection/${collectionId}/root`,
+        `/workspaces/${wId}/collections/${collectionId}/requests`,
       );
 
-      const folders: FolderItem[] = foldersRes.data.data.map((folder) => ({
+      const folders: FolderItem[] = (foldersRes.data.data || []).map((folder) => ({
         id: folder.id,
         name: folder.name,
-        collectionId: folder.collectionId,
-        parentFolderId: folder.parentFolderId,
-        subfolderCount: folder.subFolderCount,
-        subfolders: [],
-        requests: [],
+        collectionId: collectionId,
+        parentFolderId: null,
+        subFolderCount: folder.subFolderCount,
+        subFolders: [],
+        requestItems: [],
         isLoaded: false,
       }));
 
-      const requests: RequestItem[] = requestsRes.data.data.map((request) => {
+      const requests: RequestItem[] = (requestsRes.data.data || []).map((request) => {
         const urlObj = request.url ? request.url.split("?") : [""];
         const paramString = urlObj[1] || "";
         const params = paramString
@@ -151,8 +161,8 @@ export const useCollectionStore = create<CollectionState>((set) => ({
           bodyJson: request.body || "",
           authType: request.authType || "none",
           authValue: request.authValue || {},
-          folderId: request.folderId,
-          collectionId: request.collectionId,
+          folderId: null,
+          collectionId: collectionId,
           timeoutMs: request.timeoutMs || 5000,
         };
       });
@@ -163,7 +173,7 @@ export const useCollectionStore = create<CollectionState>((set) => ({
           collectionId,
           () => ({
             folders,
-            requests,
+            requestItems: requests,
             isLoaded: true,
             isLoading: false,
           }),
@@ -191,9 +201,13 @@ export const useCollectionStore = create<CollectionState>((set) => ({
   },
 
   addCollectionAction: async (req: CollectionRequest) => {
+    const wId = useWorkspaceStore.getState().activeWorkspaceId;
+    if (!wId) {
+      return { success: false, error: "No active workspace selected" };
+    }
     try {
       const addCollectionRes = await api.post<ApiResponse<CollectionResponse>>(
-        "/collections",
+        `/workspaces/${wId}/collections`,
         req,
       );
       if (addCollectionRes.data.success && addCollectionRes.data.data) {
@@ -203,9 +217,8 @@ export const useCollectionStore = create<CollectionState>((set) => ({
           description: addCollectionRes.data.data.description || "",
           folderCount: 0,
           folders: [],
-          requests: [],
+          requestItems: [],
           isLoaded: true,
-          ownerUsername: addCollectionRes.data.data.ownerUsername,
           createdAt: addCollectionRes.data.data.createdAt,
           updatedAt: addCollectionRes.data.data.updatedAt,
         };
@@ -233,10 +246,14 @@ export const useCollectionStore = create<CollectionState>((set) => ({
   },
 
   updateCollectionAction: async (id, req: CollectionRequest) => {
+    const wId = useWorkspaceStore.getState().activeWorkspaceId;
+    if (!wId) {
+      return { success: false, error: "No active workspace selected" };
+    }
     try {
       const updateCollectionRes = await api.put<
         ApiResponse<CollectionResponse>
-      >(`/collections/${id}`, req);
+      >(`/workspaces/${wId}/collections/${id}`, req);
       if (updateCollectionRes.data.success && updateCollectionRes.data.data) {
         const updated = updateCollectionRes.data.data;
         set((state) => ({
@@ -268,9 +285,13 @@ export const useCollectionStore = create<CollectionState>((set) => ({
   },
 
   deleteCollectionAction: async (id) => {
+    const wId = useWorkspaceStore.getState().activeWorkspaceId;
+    if (!wId) {
+      return { success: false, error: "No active workspace selected" };
+    }
     try {
       const deleteCollectionRes = await api.delete<ApiResponse<unknown>>(
-        `/collections/${id}`,
+        `/workspaces/${wId}/collections/${id}`,
       );
       if (
         deleteCollectionRes.data &&
@@ -302,6 +323,10 @@ export const useCollectionStore = create<CollectionState>((set) => ({
   },
 
   fetchFolderDetailsAction: async (collectionId, folderId) => {
+    const wId = useWorkspaceStore.getState().activeWorkspaceId;
+    if (!wId) {
+      return { success: false, error: "No active workspace selected" };
+    }
     set((state) => {
       const collections = state.collections.map((collection) => {
         if (collection.id === collectionId && collection.folders) {
@@ -319,26 +344,26 @@ export const useCollectionStore = create<CollectionState>((set) => ({
 
     try {
       const subfoldersRes = await api.get<ApiResponse<FolderResponse[]>>(
-        `/collections/${collectionId}/folders/${folderId}/subfolders`,
+        `/workspaces/${wId}/collections/${collectionId}/folders/${folderId}/subfolders`,
       );
       const requestsRes = await api.get<ApiResponse<RequestItemResponse[]>>(
-        `/requests/collection/${collectionId}/folders/${folderId}`,
+        `/workspaces/${wId}/collections/${collectionId}/folders/${folderId}/requests`,
       );
 
-      const subfolders: FolderItem[] = subfoldersRes.data.data.map(
+      const subfolders: FolderItem[] = (subfoldersRes.data.data || []).map(
         (folder) => ({
           id: folder.id,
           name: folder.name,
-          collectionId: folder.collectionId,
-          parentFolderId: folder.parentFolderId,
-          subfolderCount: folder.subFolderCount,
-          subfolders: [],
-          requests: [],
+          collectionId: collectionId,
+          parentFolderId: folderId,
+          subFolderCount: folder.subFolderCount,
+          subFolders: [],
+          requestItems: [],
           isLoaded: false,
         }),
       );
 
-      const requests: RequestItem[] = requestsRes.data.data.map((request) => {
+      const requests: RequestItem[] = (requestsRes.data.data || []).map((request) => {
         const urlObj = request.url ? request.url.split("?") : [""];
         const paramString = urlObj[1] || "";
         const params = paramString
@@ -372,8 +397,8 @@ export const useCollectionStore = create<CollectionState>((set) => ({
           bodyJson: request.body || "",
           authType: request.authType || "none",
           authValue: request.authValue || {},
-          folderId: request.folderId,
-          collectionId: request.collectionId,
+          folderId: folderId,
+          collectionId: collectionId,
           timeoutMs: request.timeoutMs || 5000,
         };
       });
@@ -384,8 +409,8 @@ export const useCollectionStore = create<CollectionState>((set) => ({
             return {
               ...collection,
               folders: updateFolderInList(collection.folders, folderId, () => ({
-                subfolders,
-                requests,
+                subFolders: subfolders,
+                requestItems: requests,
                 isLoaded: true,
                 isLoading: false,
               })),
@@ -424,21 +449,29 @@ export const useCollectionStore = create<CollectionState>((set) => ({
   },
 
   addFolderAction: async (collectionId, req: FolderRequest) => {
+    const wId = useWorkspaceStore.getState().activeWorkspaceId;
+    if (!wId) {
+      return { success: false, error: "No active workspace selected" };
+    }
     try {
+      const url = req.parentFolderId
+        ? `/workspaces/${wId}/collections/${collectionId}/folders/${req.parentFolderId}/subfolders`
+        : `/workspaces/${wId}/collections/${collectionId}/folders`;
+
       const addFolderRes = await api.post<ApiResponse<FolderResponse>>(
-        `/collections/${collectionId}/folders`,
-        req,
+        url,
+        { name: req.name }
       );
 
       if (addFolderRes.data.success && addFolderRes.data.data) {
         const newFolder: FolderItem = {
           id: addFolderRes.data.data.id,
           name: addFolderRes.data.data.name,
-          collectionId: addFolderRes.data.data.collectionId,
-          parentFolderId: addFolderRes.data.data.parentFolderId,
-          subfolderCount: 0,
-          subfolders: [],
-          requests: [],
+          collectionId: collectionId,
+          parentFolderId: req.parentFolderId || null,
+          subFolderCount: 0,
+          subFolders: [],
+          requestItems: [],
           isLoaded: true,
         };
 
@@ -452,8 +485,8 @@ export const useCollectionStore = create<CollectionState>((set) => ({
                     collection.folders || [],
                     req.parentFolderId,
                     (folder) => ({
-                      subfolders: [...(folder.subfolders || []), newFolder],
-                      subfolderCount: (folder.subfolderCount || 0) + 1,
+                      subFolders: [...(folder.subFolders || []), newFolder],
+                      subFolderCount: (folder.subFolderCount || 0) + 1,
                     }),
                   ),
                 };
@@ -490,9 +523,13 @@ export const useCollectionStore = create<CollectionState>((set) => ({
   },
 
   deleteFolderAction: async (collectionId, folderId) => {
+    const wId = useWorkspaceStore.getState().activeWorkspaceId;
+    if (!wId) {
+      return { success: false, error: "No active workspace selected" };
+    }
     try {
       const deleteFolderRes = await api.delete<ApiResponse<unknown>>(
-        `/collections/${collectionId}/folders/${folderId}`,
+        `/workspaces/${wId}/collections/${collectionId}/folders/${folderId}`,
       );
       if (deleteFolderRes.data && deleteFolderRes.data.success === false) {
         return {
@@ -506,10 +543,10 @@ export const useCollectionStore = create<CollectionState>((set) => ({
           return list
             .filter((folder) => folder.id !== folderId)
             .map((folder) => {
-              if (folder.subfolders && folder.subfolders.length > 0) {
+              if (folder.subFolders && folder.subFolders.length > 0) {
                 return {
                   ...folder,
-                  subfolders: removeFolderFromList(folder.subfolders),
+                  subFolders: removeFolderFromList(folder.subFolders),
                 };
               }
               return folder;
@@ -544,10 +581,30 @@ export const useCollectionStore = create<CollectionState>((set) => ({
   },
 
   addRequestAction: async (collectionId, folderId, req: RequestItemRequest) => {
+    const wId = useWorkspaceStore.getState().activeWorkspaceId;
+    if (!wId) {
+      return { success: false, error: "No active workspace selected" };
+    }
     try {
+      const url = folderId
+        ? `/workspaces/${wId}/collections/${collectionId}/folders/${folderId}/requests`
+        : `/workspaces/${wId}/collections/${collectionId}/requests`;
+
+      // Extract only valid fields for backend RequestItemRequest payload
+      const payload = {
+        name: req.name,
+        method: req.method,
+        url: req.url,
+        body: req.body,
+        headers: req.headers,
+        authType: req.authType,
+        authValue: req.authValue,
+        timeoutMs: req.timeoutMs,
+      };
+
       const addRequestRes = await api.post<ApiResponse<RequestItemResponse>>(
-        "/requests",
-        req,
+        url,
+        payload,
       );
       if (addRequestRes.data.success && addRequestRes.data.data) {
         const requestResponse = addRequestRes.data.data;
@@ -582,8 +639,8 @@ export const useCollectionStore = create<CollectionState>((set) => ({
           bodyJson: requestResponse.body || "",
           authType: requestResponse.authType || "none",
           authValue: requestResponse.authValue || {},
-          folderId: requestResponse.folderId,
-          collectionId: requestResponse.collectionId,
+          folderId: folderId,
+          collectionId: collectionId,
           timeoutMs: requestResponse.timeoutMs || 5000,
         };
         set((state) => {
@@ -596,14 +653,14 @@ export const useCollectionStore = create<CollectionState>((set) => ({
                     collection.folders || [],
                     folderId,
                     (folder) => ({
-                      requests: [...(folder.requests || []), newReq],
+                      requestItems: [...(folder.requestItems || []), newReq],
                     }),
                   ),
                 };
               } else {
                 return {
                   ...collection,
-                  requests: [...(collection.requests || []), newReq],
+                  requestItems: [...(collection.requestItems || []), newReq],
                 };
               }
             }
@@ -633,11 +690,17 @@ export const useCollectionStore = create<CollectionState>((set) => ({
     }
   },
 
-  deleteRequestAction: async (requestId) => {
+  deleteRequestAction: async (collectionId, folderId, requestId) => {
+    const wId = useWorkspaceStore.getState().activeWorkspaceId;
+    if (!wId) {
+      return { success: false, error: "No active workspace selected" };
+    }
     try {
-      const deleteRequestRes = await api.delete<ApiResponse<unknown>>(
-        `/requests/${requestId}`,
-      );
+      const url = folderId
+        ? `/workspaces/${wId}/collections/${collectionId}/folders/${folderId}/requests/${requestId}`
+        : `/workspaces/${wId}/collections/${collectionId}/requests/${requestId}`;
+
+      const deleteRequestRes = await api.delete<ApiResponse<unknown>>(url);
       if (deleteRequestRes.data && deleteRequestRes.data.success === false) {
         return {
           success: false,
@@ -651,18 +714,18 @@ export const useCollectionStore = create<CollectionState>((set) => ({
         ): FolderItem[] => {
           return folders.map((folder) => ({
             ...folder,
-            requests: (folder.requests || []).filter(
+            requestItems: (folder.requestItems || []).filter(
               (request) => request.id !== requestId,
             ),
-            subfolders: folder.subfolders
-              ? removeRequestFromFolders(folder.subfolders)
+            subFolders: folder.subFolders
+              ? removeRequestFromFolders(folder.subFolders)
               : [],
           }));
         };
 
         const collections = state.collections.map((collection) => ({
           ...collection,
-          requests: (collection.requests || []).filter(
+          requestItems: (collection.requestItems || []).filter(
             (request) => request.id !== requestId,
           ),
           folders: collection.folders
@@ -695,17 +758,17 @@ export const useCollectionStore = create<CollectionState>((set) => ({
       const updateRequestInFolders = (folders: FolderItem[]): FolderItem[] => {
         return folders.map((folder) => ({
           ...folder,
-          requests: (folder.requests || []).map((request) =>
+          requestItems: (folder.requestItems || []).map((request) =>
             request.id === updated.id ? updated : request,
           ),
-          subfolders: folder.subfolders
-            ? updateRequestInFolders(folder.subfolders)
+          subFolders: folder.subFolders
+            ? updateRequestInFolders(folder.subFolders)
             : [],
         }));
       };
       const collections = state.collections.map((collection) => ({
         ...collection,
-        requests: (collection.requests || []).map((request) =>
+        requestItems: (collection.requestItems || []).map((request) =>
           request.id === updated.id ? updated : request,
         ),
         folders: collection.folders

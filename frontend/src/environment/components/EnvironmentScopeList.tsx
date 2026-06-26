@@ -4,6 +4,7 @@ import { Plus, Trash2 } from "lucide-react";
 import type { EnvironmentScopeListProps } from "../types/EnvironmentScopeListProps";
 
 export default function EnvironmentScopeList({
+  collectionId,
   onAddClick,
 }: EnvironmentScopeListProps) {
   const environments = useEnvironmentStore((state) => state.environments);
@@ -22,13 +23,13 @@ export default function EnvironmentScopeList({
 
   useEffect(() => {
     const loadEnvironments = async () => {
-      const response = await fetchEnvironments();
+      const response = await fetchEnvironments(collectionId);
       if (response && !response.success) {
         alert(response.error || "Failed to fetch environments.");
       }
     };
     loadEnvironments();
-  }, [fetchEnvironments]);
+  }, [fetchEnvironments, collectionId]);
 
   useEffect(() => {
     if (environments.length > 0 && !activeEnvironmentId) {
@@ -46,7 +47,7 @@ export default function EnvironmentScopeList({
         `Are you sure you want to permanently delete environment '${name}'?`,
       )
     ) {
-      const res = await deleteEnvironmentAction(id);
+      const res = await deleteEnvironmentAction(collectionId, id);
       if (res && !res.success) {
         alert(res.error || "Failed to delete environment.");
       }

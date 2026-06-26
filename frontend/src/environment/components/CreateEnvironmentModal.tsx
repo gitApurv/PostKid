@@ -7,7 +7,8 @@ import type { ModalProps } from "../../common/types/ModalProps";
 export default function CreateEnvironmentModal({
   isOpen,
   onClose,
-}: ModalProps) {
+  collectionId,
+}: ModalProps & { collectionId: string }) {
   const addEnvironmentAction = useEnvironmentStore(
     (state) => state.addEnvironmentAction,
   );
@@ -34,7 +35,7 @@ export default function CreateEnvironmentModal({
     setIsLoading(true);
     setError(null);
 
-    const result = await addEnvironmentAction({
+    const result = await addEnvironmentAction(collectionId, {
       name: newEnvName.trim(),
       environmentColor: selectedColor,
     });

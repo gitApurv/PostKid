@@ -5,9 +5,10 @@ export interface FolderItem {
   name: string;
   collectionId: string;
   parentFolderId?: string | null;
-  subfolderCount: number;
-  subfolders?: FolderItem[];
-  requests?: RequestItem[];
+  subFolderCount: number;
+  subFolders?: FolderItem[];
+  requestItems?: RequestItem[];
   isLoaded?: boolean;
   isLoading?: boolean;
 }
+

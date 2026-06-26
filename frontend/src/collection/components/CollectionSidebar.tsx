@@ -120,8 +120,6 @@ export default function CollectionSidebar() {
         name: newItemName,
         method: newRequestType,
         url: "{{base_url}}/endpoint",
-        collectionId,
-        folderId: folderId || null,
       });
     }
 
@@ -160,18 +158,19 @@ export default function CollectionSidebar() {
     }
   };
 
-  const handleDeleteRequest = async (reqId: string, name: string) => {
+  const handleDeleteRequest = async (collectionId: string, folderId: string | null, reqId: string, name: string) => {
     if (
       confirm(
         `Are you sure you want to permanently delete API request '${name}'?`,
       )
     ) {
-      const res = await deleteRequestAction(reqId);
+      const res = await deleteRequestAction(collectionId, folderId, reqId);
       if (res && !res.success) {
         alert(res.error || "Failed to delete request.");
       }
     }
   };
+
 
   return (
     <div className="w-64 bg-[#0B0F19] border-r border-white/5 h-full flex flex-col shrink-0 overflow-hidden relative z-30">
@@ -319,18 +318,18 @@ export default function CollectionSidebar() {
                     ))}
 
                   {/* Root requests list */}
-                  {collection.requests &&
-                    collection.requests.map((request) => (
+                  {collection.requestItems &&
+                    collection.requestItems.map((request) => (
                       <RequestTreeItem
                         key={request.id}
                         request={request}
-                        onDelete={handleDeleteRequest}
+                        onDelete={(reqId, name) => handleDeleteRequest(collection.id, null, reqId, name)}
                       />
                     ))}
 
                   {(!collection.folders || collection.folders.length === 0) &&
-                    (!collection.requests ||
-                      collection.requests.length === 0) && (
+                    (!collection.requestItems ||
+                      collection.requestItems.length === 0) && (
                       <div className="text-[10px] text-slate-600 italic py-1 pl-2">
                         Empty collection
                       </div>

@@ -24,19 +24,16 @@ export default function RequestTreeItem({
   onDelete,
 }: RequestTreeItemProps) {
   const activeRequestId = useRequestStore((state) => state.activeRequestId);
-  const setActiveRequestAction = useRequestStore(
-    (state) => state.setActiveRequestAction,
+  const setActiveRequestDirectlyAction = useRequestStore(
+    (state) => state.setActiveRequestDirectlyAction,
   );
 
   const isActive = request.id === activeRequestId;
 
   return (
     <div
-      onClick={async () => {
-        const response = await setActiveRequestAction(request.id);
-        if (response && !response.success) {
-          alert(response.error || "Failed to load request details.");
-        }
+      onClick={() => {
+        setActiveRequestDirectlyAction(request);
       }}
       className={`group/req flex items-center justify-between px-2.5 py-1.5 rounded text-[11px] cursor-pointer transition-standard relative ${
         isActive

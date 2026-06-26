@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { useRequestStore } from "../../request/store/requestStore";
 import { useCollectionStore } from "../store/collectionStore";
+import { useEnvironmentStore } from "../../environment/store/environmentStore";
+import { useWorkspaceStore } from "../../workspace/store/workspaceStore";
 import {
   Calendar,
   User,
@@ -23,6 +25,12 @@ export default function CollectionDetails() {
   const updateCollectionAction = useCollectionStore(
     (state) => state.updateCollectionAction,
   );
+  const fetchEnvironments = useEnvironmentStore(
+    (state) => state.fetchEnvironmentsAction,
+  );
+  const workspaces = useWorkspaceStore((state) => state.workspaces);
+  const activeWorkspaceId = useWorkspaceStore((state) => state.activeWorkspaceId);
+  const activeWorkspace = workspaces.find((w) => w.id === activeWorkspaceId);
 
   const collection = collections.find(
     (collection) => collection.id === activeCollectionId,
@@ -34,6 +42,12 @@ export default function CollectionDetails() {
   const [isSaving, setIsSaving] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
   const [showAddEnvModal, setShowAddEnvModal] = useState(false);
+
+  useEffect(() => {
+    if (activeCollectionId) {
+      fetchEnvironments(activeCollectionId);
+    }
+  }, [activeCollectionId, fetchEnvironments]);
 
   useEffect(() => {
     if (collection) {
@@ -181,7 +195,7 @@ export default function CollectionDetails() {
               Owner
             </p>
             <p className="text-xs font-semibold text-slate-200 mt-0.5">
-              {collection.ownerUsername || "Anonymous"}
+              {activeWorkspace?.ownerUsername || "Anonymous"}
             </p>
           </div>
         </div>
@@ -229,14 +243,15 @@ export default function CollectionDetails() {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-          <EnvironmentScopeList onAddClick={() => setShowAddEnvModal(true)} />
-          <VariableMatrixGrid />
+          <EnvironmentScopeList collectionId={activeCollectionId!} onAddClick={() => setShowAddEnvModal(true)} />
+          <VariableMatrixGrid collectionId={activeCollectionId!} />
         </div>
       </div>
 
       <CreateEnvironmentModal
         isOpen={showAddEnvModal}
         onClose={() => setShowAddEnvModal(false)}
+        collectionId={activeCollectionId!}
       />
     </div>
   );

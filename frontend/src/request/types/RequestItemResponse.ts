@@ -10,9 +10,9 @@ export interface RequestItemResponse {
   authType: "none" | "bearer" | "basic" | null;
   authValue: Record<string, string> | null;
   timeoutMs: number | null;
-  collectionId: string;
-  folderId: string | null;
-  ownerId: string;
+  createdBy: string;
+  updatedBy: string | null;
   createdAt: string;
   updatedAt: string;
 }
+

@@ -7,10 +7,10 @@ export interface CollectionItem {
   description: string;
   folderCount: number;
   folders?: FolderItem[];
-  requests?: RequestItem[];
+  requestItems?: RequestItem[];
   isLoaded?: boolean;
   isLoading?: boolean;
-  ownerUsername?: string;
   createdAt?: string;
   updatedAt?: string;
 }
+

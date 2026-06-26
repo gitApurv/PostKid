@@ -48,8 +48,11 @@ export interface CollectionState {
   ) => Promise<{ success: boolean; error?: string }>;
 
   deleteRequestAction: (
+    collectionId: string,
+    folderId: string | null,
     requestId: string,
   ) => Promise<{ success: boolean; error?: string }>;
+
 
   syncRequestInTreeAction: (updated: RequestItem) => {
     success: boolean;

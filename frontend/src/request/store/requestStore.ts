@@ -2,11 +2,11 @@ import { create } from "zustand";
 import api from "../../config/axios";
 import axios from "axios";
 import type { ApiResponse } from "../../common/types/ApiResponse";
-import type { RequestItem } from "../types/RequestItem";
-import type { RequestItemResponse } from "../types/RequestItemResponse";
 import type { ExecutionResponse } from "../types/ExecutionResponse";
 import { useCollectionStore } from "../../collection/store/collectionStore";
 import type { RequestState } from "../types/RequestState";
+import { useWorkspaceStore } from "../../workspace/store/workspaceStore";
+
 
 export const useRequestStore = create<RequestState>((set, get) => ({
   activeRequestId: null,
@@ -14,80 +14,6 @@ export const useRequestStore = create<RequestState>((set, get) => ({
   activeCollectionId: null,
   isExecuting: false,
   lastResponse: null,
-
-  setActiveRequestAction: async (id) => {
-    if (!id) {
-      set({ activeRequestId: null, activeRequest: null, lastResponse: null });
-      return { success: true };
-    }
-
-    try {
-      set({ lastResponse: null, activeCollectionId: null });
-      const requestRes = await api.get<ApiResponse<RequestItemResponse>>(
-        `/requests/${id}`,
-      );
-      if (requestRes.data.success && requestRes.data.data) {
-        const response = requestRes.data.data;
-        const urlObj = response.url ? response.url.split("?") : [""];
-        const paramString = urlObj[1] || "";
-        const params = paramString
-          .split("&")
-          .filter(Boolean)
-          .map((param) => {
-            const [key, value] = param.split("=");
-            return {
-              key,
-              value: decodeURIComponent(value || ""),
-              active: true,
-            };
-          });
-
-        const headers = response.headers
-          ? Object.entries(response.headers).map(([key, value]) => ({
-              key,
-              value: value as string,
-              active: true,
-            }))
-          : [];
-
-        const req: RequestItem = {
-          id: response.id,
-          name: response.name,
-          method: response.method,
-          url: response.url || "",
-          params,
-          headers,
-          bodyType: response.body ? "json" : "none",
-          bodyJson: response.body || "",
-          authType: response.authType || "none",
-          authValue: response.authValue || {},
-          folderId: response.folderId,
-          collectionId: response.collectionId,
-          timeoutMs: response.timeoutMs || 5000,
-        };
-        set({
-          activeRequestId: id,
-          activeRequest: req,
-          activeCollectionId: null,
-        });
-        return { success: true };
-      } else {
-        return {
-          success: false,
-          error: requestRes.data.message || "Failed to load request details.",
-        };
-      }
-    } catch (e) {
-      console.error("Failed to set active request:", e);
-      let errorMessage = "Failed to load request details.";
-      if (axios.isAxiosError(e)) {
-        errorMessage = e.response?.data?.message || e.message || errorMessage;
-      } else if (e instanceof Error) {
-        errorMessage = e.message;
-      }
-      return { success: false, error: errorMessage };
-    }
-  },
 
   setActiveRequestDirectlyAction: (req) => {
     set({
@@ -113,6 +39,11 @@ export const useRequestStore = create<RequestState>((set, get) => ({
     const active = get().activeRequest;
     if (!active)
       return { success: false, error: "No active request to update" };
+
+    const wId = useWorkspaceStore.getState().activeWorkspaceId;
+    if (!wId) {
+      return { success: false, error: "No active workspace selected" };
+    }
 
     const updated = { ...active, ...fields };
     set({ activeRequest: updated });
@@ -142,12 +73,14 @@ export const useRequestStore = create<RequestState>((set, get) => ({
       authType: updated.authType,
       authValue: updated.authValue,
       timeoutMs: updated.timeoutMs,
-      collectionId: updated.collectionId,
-      folderId: updated.folderId || undefined,
     };
 
+    const targetUrl = updated.folderId
+      ? `/workspaces/${wId}/collections/${updated.collectionId}/folders/${updated.folderId}/requests/${updated.id}`
+      : `/workspaces/${wId}/collections/${updated.collectionId}/requests/${updated.id}`;
+
     try {
-      await api.put(`/requests/${updated.id}`, payload);
+      await api.put(targetUrl, payload);
 
       useCollectionStore.getState().syncRequestInTreeAction(updated);
       return { success: true };
@@ -166,6 +99,11 @@ export const useRequestStore = create<RequestState>((set, get) => ({
   executeRequestAction: async (activeEnvironmentId, environments) => {
     const req = get().activeRequest;
     if (!req) return { success: false, error: "No active request to execute" };
+
+    const wId = useWorkspaceStore.getState().activeWorkspaceId;
+    if (!wId) {
+      return { success: false, error: "No active workspace selected" };
+    }
 
     set({ isExecuting: true });
 
@@ -204,9 +142,13 @@ export const useRequestStore = create<RequestState>((set, get) => ({
       Math.round((req.timeoutMs || 5000) / 1000),
     );
 
+    const executeUrl = req.folderId
+      ? `/workspaces/${wId}/collections/${req.collectionId}/folders/${req.folderId}/requests/execute`
+      : `/workspaces/${wId}/collections/${req.collectionId}/requests/execute`;
+
     try {
       const requestExecuteRes = await api.post<ApiResponse<ExecutionResponse>>(
-        "/requests/execute",
+        executeUrl,
         {
           url: resolvedUrl,
           method: req.method,

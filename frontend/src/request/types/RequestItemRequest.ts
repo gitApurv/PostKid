@@ -6,6 +6,8 @@ export interface RequestItemRequest {
   url: string;
   body?: string;
   headers?: Record<string, string>;
-  collectionId: string;
-  folderId?: string | null;
+  authType?: RequestItem["authType"];
+  authValue?: RequestItem["authValue"];
+  timeoutMs?: number;
 }
+

@@ -64,7 +64,7 @@ export default function FolderTreeItem({
         `Are you sure you want to permanently delete API request '${name}'?`,
       )
     ) {
-      const response = await deleteRequestAction(reqId);
+      const response = await deleteRequestAction(collectionId, folder.id, reqId);
       if (response && !response.success) {
         alert(response.error || "Failed to delete request.");
       }
@@ -140,8 +140,8 @@ export default function FolderTreeItem({
       {isExpanded && (
         <div className="space-y-1">
           {/* Subfolders */}
-          {folder.subfolders &&
-            folder.subfolders.map((subFolder) => (
+          {folder.subFolders &&
+            folder.subFolders.map((subFolder) => (
               <FolderTreeItem
                 key={subFolder.id}
                 folder={subFolder}
@@ -157,8 +157,8 @@ export default function FolderTreeItem({
             style={{ paddingLeft: `${(level + 1) * 12 + 16}px` }}
             className="space-y-0.5"
           >
-            {folder.requests &&
-              folder.requests.map((request) => (
+            {folder.requestItems &&
+              folder.requestItems.map((request) => (
                 <RequestTreeItem
                   key={request.id}
                   request={request}
@@ -166,8 +166,8 @@ export default function FolderTreeItem({
                 />
               ))}
 
-            {(!folder.subfolders || folder.subfolders.length === 0) &&
-              (!folder.requests || folder.requests.length === 0) && (
+            {(!folder.subFolders || folder.subFolders.length === 0) &&
+              (!folder.requestItems || folder.requestItems.length === 0) && (
                 <div className="text-[10px] text-slate-600 italic py-1 pl-4">
                   Empty suite
                 </div>
