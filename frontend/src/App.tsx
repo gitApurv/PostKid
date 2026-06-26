@@ -1,10 +1,10 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { useAuthStore } from "./store/authStore";
-import DashboardLayout from "./layouts/DashboardLayout";
-import LoginPage from "./pages/LoginPage";
-import RegisterPage from "./pages/RegisterPage";
-import HomePage from "./pages/HomePage";
-import HistoryPage from "./pages/HistoryPage";
+import { useAuthStore } from "./auth/store/authStore";
+import DashboardLayout from "./common/layouts/DashboardLayout";
+import LoginPage from "./auth/pages/LoginPage";
+import RegisterPage from "./auth/pages/RegisterPage";
+import HomePage from "./common/pages/HomePage";
+import HistoryPage from "./history/pages/HistoryPage";
 
 function App() {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
