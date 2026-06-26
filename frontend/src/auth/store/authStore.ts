@@ -110,7 +110,8 @@ export const useAuthStore = create<AuthState>((set) => ({
     let success = true;
     let error: string | undefined;
     try {
-      await api.post("/auth/logout");
+      const refreshToken = localStorage.getItem("refreshToken") || "";
+      await api.post("/auth/logout", { refreshToken });
     } catch (e) {
       console.error("Logout API failed:", e);
       success = false;

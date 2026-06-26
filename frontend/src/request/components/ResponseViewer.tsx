@@ -1,7 +1,6 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { useRequestStore } from "../store/requestStore";
 import {
-  Search,
   Copy,
   Check,
   Globe,
@@ -19,7 +18,6 @@ export default function ResponseViewer() {
     "body",
   );
   const [copied, setCopied] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
   const [compilingPreview, setCompilingPreview] = useState(false);
   const [previewCounter, setPreviewCounter] = useState(0);
 
@@ -46,20 +44,10 @@ export default function ResponseViewer() {
 
   const getStatusColor = (code: number) => {
     if (code >= 200 && code < 300)
-      return "text-brand-success border-brand-success/20 bg-brand-success/5 shadow-[0_0_10px_rgba(16,185,129,0.1)]";
+      return "text-emerald-400 border-emerald-500/25 bg-emerald-500/10 shadow-[0_0_15px_rgba(16,185,129,0.15)]";
     if (code >= 300 && code < 400)
-      return "text-blue-400 border-blue-500/20 bg-blue-500/5 shadow-[0_0_10px_rgba(99,102,241,0.1)]";
-    return "text-brand-error border-brand-error/20 bg-brand-error/5 shadow-[0_0_10px_rgba(244,63,94,0.1)]";
-  };
-
-  const isJson = (str: string) => {
-    if (!str) return false;
-    try {
-      JSON.parse(str);
-      return true;
-    } catch {
-      return false;
-    }
+      return "text-blue-400 border-blue-500/25 bg-blue-500/10 shadow-[0_0_15px_rgba(59,130,246,0.15)]";
+    return "text-rose-400 border-rose-500/25 bg-rose-500/10 shadow-[0_0_15px_rgba(244,63,94,0.15)]";
   };
 
   const formattedLines = useMemo(() => {
@@ -80,13 +68,13 @@ export default function ResponseViewer() {
 
           let valClass = "text-slate-300";
           if (val.includes('"')) {
-            valClass = "text-brand-success";
+            valClass = "text-emerald-400";
           } else if (val.includes("true") || val.includes("false")) {
             valClass = "text-purple-400";
           } else if (val.includes("null")) {
             valClass = "text-slate-500";
           } else if (/\d/.test(val)) {
-            valClass = "text-brand-warning";
+            valClass = "text-amber-400";
           }
 
           return { key, val, valClass, raw: line };
@@ -108,15 +96,11 @@ export default function ResponseViewer() {
     if (!formattedLines) return null;
 
     return formattedLines.map((line, idx) => {
-      const hasMatch =
-        searchQuery &&
-        line.raw.toLowerCase().includes(searchQuery.toLowerCase());
-
       let renderedLine;
       if (line.key) {
         renderedLine = (
           <span>
-            <span className="text-brand-primary">{line.key}</span>
+            <span className="text-indigo-400 font-semibold">{line.key}</span>
             <span className={line.valClass!}>{line.val}</span>
           </span>
         );
@@ -127,17 +111,15 @@ export default function ResponseViewer() {
       return (
         <div
           key={idx}
-          className={`flex hover:bg-white/[0.02] px-3 font-mono text-[11px] leading-relaxed transition-standard ${
-            hasMatch ? "bg-brand-primary/20 text-white font-semibold" : ""
-          }`}
+          className="flex hover:bg-white/[0.02] px-3 font-mono text-xs leading-5 transition-standard"
         >
           {/* Line Number Panel */}
-          <span className="w-8 shrink-0 text-right select-none pr-3 border-r border-white/5 text-slate-600 font-mono text-[10px]">
+          <span className="w-9 shrink-0 text-right select-none pr-3 border-r border-white/5 text-slate-600 font-mono text-[10px] h-5 leading-5">
             {idx + 1}
           </span>
 
           {/* Formatted Text View */}
-          <span className="pl-3 whitespace-pre-wrap">{renderedLine}</span>
+          <span className="pl-3 whitespace-pre-wrap leading-5">{renderedLine}</span>
         </div>
       );
     });
@@ -198,25 +180,37 @@ export default function ResponseViewer() {
     }
   };
 
+  // Dynamic glow depending on code
+  const getGlowStyle = (code: number | undefined) => {
+    if (!code) return "shadow-[0_0_40px_rgba(0,0,0,0.35)] border-white/10";
+    if (code >= 200 && code < 300)
+      return "shadow-[0_0_45px_rgba(16,185,129,0.06)] border-emerald-500/15";
+    if (code >= 300 && code < 400)
+      return "shadow-[0_0_45px_rgba(59,130,246,0.06)] border-blue-500/15";
+    return "shadow-[0_0_45px_rgba(244,63,94,0.06)] border-rose-500/15";
+  };
+
+  const currentGlow = getGlowStyle(lastResponse?.status);
+
   return (
-    <div className="glass-panel rounded-xl overflow-hidden flex flex-col h-[340px] shadow-[0_0_30px_rgba(0,0,0,0.3)] z-10 shrink-0">
+    <div className={`glass-panel rounded-2xl overflow-hidden flex flex-col h-[350px] z-10 shrink-0 border transition-all duration-300 ${currentGlow}`}>
       {/* 1. Frosted Metadata Banner */}
-      <div className="h-12 bg-white/[0.01] border-b border-white/5 px-4 flex items-center justify-between shrink-0">
+      <div className="h-12 bg-white/[0.02] border-b border-white/5 px-4 flex items-center justify-between shrink-0">
         {/* Status Metrics or Idle state details */}
         {lastResponse ? (
-          <div className="flex items-center gap-3.5">
+          <div className="flex items-center gap-3">
             {/* Status Code Pill */}
             <div
-              className={`flex items-center gap-1.5 border px-2.5 py-1 rounded-md text-xs font-semibold ${getStatusColor(lastResponse.status)}`}
+              className={`flex items-center gap-1.5 border px-2.5 py-1 rounded-lg text-xs font-semibold ${getStatusColor(lastResponse.status)}`}
             >
               <span>{lastResponse.status}</span>
-              <span className="opacity-75 font-normal text-[10px] uppercase tracking-wide">
+              <span className="opacity-70 font-normal text-[9px] uppercase tracking-wider">
                 {lastResponse.statusText}
               </span>
             </div>
 
             {/* Latency Pill */}
-            <div className="flex items-center gap-1.5 bg-white/[0.02] border border-white/5 px-2.5 py-1 rounded-md text-xs font-medium text-slate-300">
+            <div className="flex items-center gap-1.5 bg-brand-layer-2/40 border border-white/5 px-2.5 py-1 rounded-lg text-xs font-medium text-slate-300">
               <Clock className="w-3.5 h-3.5 text-slate-400" />
               <span>{lastResponse.latency}ms</span>
               {lastResponse.latency > 500 && (
@@ -227,39 +221,37 @@ export default function ResponseViewer() {
             </div>
 
             {/* Payload Size Pill */}
-            <div className="flex items-center gap-1.5 bg-white/[0.02] border border-white/5 px-2.5 py-1 rounded-md text-xs font-medium text-slate-300">
+            <div className="flex items-center gap-1.5 bg-brand-layer-2/40 border border-white/5 px-2.5 py-1 rounded-lg text-xs font-medium text-slate-300">
               <Database className="w-3.5 h-3.5 text-slate-400" />
               <span>{lastResponse.size}</span>
             </div>
           </div>
         ) : (
-          <div className="flex items-center gap-2 text-xs text-slate-500 font-medium italic">
+          <div className="flex items-center gap-2 text-[11px] text-slate-500 font-medium select-none">
             <Globe className="w-4 h-4 text-slate-600" />
-            <span>
-              Response Workbench Idle. Send a request to initiate compiling.
-            </span>
+            <span>Response Workbench Idle</span>
           </div>
         )}
 
         {/* Tab switcher options */}
         {lastResponse && (
-          <div className="flex items-center gap-1 text-[11px] font-semibold">
+          <div className="flex items-center gap-1 text-[10px] font-semibold bg-brand-layer-2/50 p-1 rounded-lg border border-white/5">
             <button
               onClick={() => setActiveTab("body")}
-              className={`px-3 py-1.5 rounded transition-standard cursor-pointer ${
+              className={`px-3 py-1 rounded-md transition-standard cursor-pointer text-xs font-semibold ${
                 activeTab === "body"
-                  ? "bg-white/5 text-white"
-                  : "text-slate-400 hover:text-slate-200"
+                  ? "bg-brand-primary/10 text-white shadow-[0_1px_3px_rgba(0,0,0,0.2)] border border-brand-primary/15"
+                  : "text-slate-400 hover:text-slate-200 border border-transparent"
               }`}
             >
               Response Body
             </button>
             <button
               onClick={() => setActiveTab("headers")}
-              className={`px-3 py-1.5 rounded transition-standard cursor-pointer ${
+              className={`px-3 py-1 rounded-md transition-standard cursor-pointer text-xs font-semibold ${
                 activeTab === "headers"
-                  ? "bg-white/5 text-white"
-                  : "text-slate-400 hover:text-slate-200"
+                  ? "bg-brand-primary/10 text-white shadow-[0_1px_3px_rgba(0,0,0,0.2)] border border-brand-primary/15"
+                  : "text-slate-400 hover:text-slate-200 border border-transparent"
               }`}
             >
               Headers ({Object.keys(lastResponse.headers).length})
@@ -269,10 +261,10 @@ export default function ResponseViewer() {
                 setActiveTab("preview");
                 setPreviewCounter((c) => c + 1);
               }}
-              className={`px-3 py-1.5 rounded transition-standard cursor-pointer ${
+              className={`px-3 py-1 rounded-md transition-standard cursor-pointer text-xs font-semibold ${
                 activeTab === "preview"
-                  ? "bg-white/5 text-white"
-                  : "text-slate-400 hover:text-slate-200"
+                  ? "bg-brand-primary/10 text-white shadow-[0_1px_3px_rgba(0,0,0,0.2)] border border-brand-primary/15"
+                  : "text-slate-400 hover:text-slate-200 border border-transparent"
               }`}
             >
               Preview
@@ -285,10 +277,10 @@ export default function ResponseViewer() {
       <div className="flex-1 min-h-0 bg-[#060814]/40 relative">
         {/* Loading Spinner overlay during active runner execution */}
         {isExecuting && (
-          <div className="absolute inset-0 bg-[#060814]/70 backdrop-blur-sm z-30 flex flex-col items-center justify-center gap-3">
+          <div className="absolute inset-0 bg-[#060814]/80 backdrop-blur-md z-30 flex flex-col items-center justify-center gap-3">
             <div className="w-8 h-8 rounded-full border-2 border-brand-primary/20 border-t-brand-primary animate-spin" />
-            <span className="text-xs font-mono text-brand-primary animate-pulse">
-              awaiting remote kafka socket headers...
+            <span className="text-[11px] font-mono text-brand-primary animate-pulse">
+              Executing API request...
             </span>
           </div>
         )}
@@ -299,52 +291,35 @@ export default function ResponseViewer() {
             {activeTab === "body" && (
               <div className="flex-1 min-h-0 flex flex-col">
                 {/* Search & Copy tools strip */}
-                <div className="h-9 border-b border-white/5 px-4 flex items-center justify-between shrink-0 bg-[#0B0F19]/40">
-                  <div className="relative w-44">
-                    <input
-                      type="text"
-                      placeholder={
-                        isJson(lastResponse.body)
-                          ? "Query JSON nodes..."
-                          : "Search response..."
-                      }
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      className="w-full pl-6 pr-2 py-1 bg-transparent border-0 text-[10px] text-slate-300 placeholder-slate-600 focus:outline-none"
-                    />
-                    <Search className="absolute left-0 top-2.5 w-3 h-3 text-slate-600" />
-                  </div>
-
+                <div className="h-10 border-b border-white/5 px-4 flex items-center justify-end shrink-0 bg-[#0B0F19]/40">
                   <button
                     onClick={handleCopy}
-                    className="flex items-center gap-1 text-[10px] text-slate-400 hover:text-white transition-standard cursor-pointer"
+                    className="flex items-center gap-1.5 bg-brand-layer-2/50 hover:bg-white/[0.04] border border-white/5 hover:border-white/10 px-2.5 py-1 rounded text-[10px] font-semibold text-slate-300 transition-standard cursor-pointer shadow-[0_1px_3px_rgba(0,0,0,0.1)]"
                     aria-label="Copy response body to clipboard"
                   >
                     {copied ? (
                       <>
-                        <Check className="w-3 h-3 text-brand-success" />
-                        <span className="text-brand-success">
-                          Copied payload
-                        </span>
+                        <Check className="w-3.5 h-3.5 text-brand-success" />
+                        <span className="text-brand-success">Copied!</span>
                       </>
                     ) : (
                       <>
-                        <Copy className="w-3 h-3" />
-                        Copy Raw
+                        <Copy className="w-3.5 h-3.5 text-slate-400" />
+                        <span>Copy Raw</span>
                       </>
                     )}
                   </button>
                 </div>
 
                 {/* Main scrollable highlighted code block */}
-                <div className="flex-1 overflow-auto py-3 bg-[#060814]/20 select-text">
+                <div className="flex-1 overflow-auto py-3 bg-[#060814]/20 select-text custom-scrollbar">
                   {renderFormattedJson()}
                 </div>
               </div>
             )}
 
             {activeTab === "headers" && (
-              <div className="flex-1 overflow-auto p-4 select-text">
+              <div className="flex-1 overflow-auto p-4 select-text custom-scrollbar">
                 <table className="w-full text-left text-[11px] font-mono text-slate-400 border-collapse">
                   <thead>
                     <tr className="border-b border-white/5 text-[9px] text-slate-500 font-semibold uppercase tracking-wider pb-1">
@@ -392,15 +367,20 @@ export default function ResponseViewer() {
           </div>
         ) : (
           /* Empty/Idle placeholder overlay */
-          <div className="h-full flex flex-col items-center justify-center text-center p-6 gap-2">
-            <Code className="w-10 h-10 text-slate-800 animate-float" />
-            <p className="text-xs text-slate-500 font-medium">
-              Awaiting Execution Dispatcher
-            </p>
-            <p className="text-[10px] text-slate-600 leading-relaxed max-w-xs">
-              Select an endpoint from collections sidebar tree, configure
-              parameters, and press the glow 'Send' trigger to verify.
-            </p>
+          <div className="h-full flex flex-col items-center justify-center text-center p-6 gap-3 select-none relative overflow-hidden">
+            <div className="absolute inset-0 ambient-glow-1 opacity-45 pointer-events-none" />
+            <div className="w-14 h-14 rounded-2xl bg-brand-layer-2/65 border border-white/10 flex items-center justify-center animate-float shadow-[0_4px_20px_rgba(0,0,0,0.4)] z-10">
+              <Code className="w-6 h-6 text-brand-primary" />
+            </div>
+            <div className="space-y-1.5 z-10">
+              <p className="text-xs text-slate-300 font-semibold tracking-wide">
+                Awaiting Execution Dispatcher
+              </p>
+              <p className="text-[10px] text-slate-500 leading-relaxed max-w-xs px-2">
+                Select an endpoint from collections sidebar, configure your
+                parameters, and press the <span className="text-brand-primary font-bold">'Send'</span> button to execute.
+              </p>
+            </div>
           </div>
         )}
       </div>

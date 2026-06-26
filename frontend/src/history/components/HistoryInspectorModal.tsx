@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { useHistoryStore } from "../store/historyStore";
 import type { HistoryInspectorModalProps } from "../types/HistoryInspectorModalProps";
 import {
@@ -53,11 +54,47 @@ export default function HistoryInspectorModal({
     return "text-brand-error bg-brand-error/5 border-brand-error/10";
   };
 
-  const formatHeaders = (headers: { [key: string]: string }) => {
-    if (!headers || Object.keys(headers).length === 0) return "None";
-    return Object.entries(headers)
+  const formatHeaders = (headers: any) => {
+    if (!headers) return "None";
+    let parsed = headers;
+    if (typeof headers === "string") {
+      try {
+        parsed = JSON.parse(headers);
+      } catch {
+        return headers;
+      }
+    }
+    if (!parsed || typeof parsed !== "object" || Object.keys(parsed).length === 0) {
+      return "None";
+    }
+    return Object.entries(parsed)
       .map(([k, v]) => `${k}: ${v}`)
       .join("\n");
+  };
+
+  const formatBody = (body: any) => {
+    if (!body) return "";
+    try {
+      if (typeof body === "object") {
+        return JSON.stringify(body, null, 2);
+      }
+      const parsed = JSON.parse(body);
+      return JSON.stringify(parsed, null, 2);
+    } catch {
+      return body;
+    }
+  };
+
+  const getAuthValueObject = (val: any) => {
+    if (!val) return null;
+    if (typeof val === "string") {
+      try {
+        return JSON.parse(val);
+      } catch {
+        return null;
+      }
+    }
+    return val;
   };
 
   const handleDelete = async () => {
@@ -75,33 +112,33 @@ export default function HistoryInspectorModal({
 
   if (!item) return null;
 
-  return (
+  return createPortal(
     <div
-      className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+      className="fixed inset-0 bg-black/70 backdrop-blur-md z-[9999] flex items-center justify-center p-4"
       onClick={onClose}
     >
       <div
-        className="glass-panel w-full max-w-2xl rounded-xl shadow-2xl relative flex flex-col max-h-[90vh]"
+        className="glass-panel w-full max-w-2xl rounded-2xl shadow-2xl relative flex flex-col max-h-[90vh] border border-white/10 animate-float"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Top accent bar */}
-        <div className="absolute top-0 left-0 right-0 h-[2px] bg-brand-primary rounded-t-xl" />
+        <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-brand-primary via-brand-secondary to-pink-500 opacity-90" />
 
         {/* Header */}
         <div className="flex items-center justify-between p-5 border-b border-white/5 shrink-0">
-          <h3 className="text-xs font-bold font-display text-white uppercase tracking-wider">
+          <h3 className="text-sm font-semibold font-display text-white">
             History Inspector
           </h3>
           <button
             onClick={onClose}
-            className="p-1 hover:bg-white/5 text-slate-500 hover:text-slate-300 rounded cursor-pointer transition-standard"
+            className="p-1.5 hover:bg-white/5 text-slate-400 hover:text-white rounded-lg cursor-pointer transition-standard"
           >
             <X className="w-4 h-4" />
           </button>
         </div>
 
         {/* Scrollable body */}
-        <div className="flex-1 overflow-y-auto p-5 space-y-5 text-xs">
+        <div className="flex-1 overflow-y-auto p-5 space-y-5 text-xs custom-scrollbar">
           {/* Summary row */}
           <div className="grid grid-cols-3 gap-3 p-3 bg-white/[0.01] border border-white/5 rounded-lg font-mono">
             <div>
@@ -172,7 +209,7 @@ export default function HistoryInspectorModal({
               <div className="space-y-1">
                 <p className="text-[10px] text-slate-500 uppercase">Body</p>
                 <pre className="p-3 bg-brand-layer-2 border border-white/5 rounded-lg font-mono text-[10px] text-slate-300 whitespace-pre-wrap break-all select-all overflow-auto max-h-40">
-                  {item.requestBody}
+                  {formatBody(item.requestBody)}
                 </pre>
               </div>
             )}
@@ -196,7 +233,7 @@ export default function HistoryInspectorModal({
               <div className="space-y-1">
                 <p className="text-[10px] text-slate-500 uppercase">Body</p>
                 <pre className="p-3 bg-brand-layer-2 border border-white/5 rounded-lg font-mono text-[10px] text-slate-300 whitespace-pre-wrap break-all select-all overflow-auto max-h-40">
-                  {item.responseBody}
+                  {formatBody(item.responseBody)}
                 </pre>
               </div>
             )}
@@ -253,16 +290,21 @@ export default function HistoryInspectorModal({
 
             {item.authType &&
               item.authType.toLowerCase() !== "none" &&
-              item.authValue &&
-              Object.keys(item.authValue).length > 0 && (
-                <div className="space-y-1">
-                  <p className="text-[10px] text-slate-500 uppercase">
-                    Auth Value
-                  </p>
-                  <pre className="p-3 bg-brand-layer-2 border border-white/5 rounded-lg font-mono text-[10px] text-slate-300 whitespace-pre-wrap break-all select-all overflow-auto max-h-32">
-                    {JSON.stringify(item.authValue, null, 2)}
-                  </pre>
-                </div>
+              item.authValue && (
+                (() => {
+                  const authObj = getAuthValueObject(item.authValue);
+                  if (!authObj || typeof authObj !== "object" || Object.keys(authObj).length === 0) return null;
+                  return (
+                    <div className="space-y-1">
+                      <p className="text-[10px] text-slate-500 uppercase">
+                        Auth Value
+                      </p>
+                      <pre className="p-3 bg-brand-layer-2 border border-white/5 rounded-lg font-mono text-[10px] text-slate-300 whitespace-pre-wrap break-all select-all overflow-auto max-h-32">
+                        {JSON.stringify(authObj, null, 2)}
+                      </pre>
+                    </div>
+                  );
+                })()
               )}
           </div>
         </div>
@@ -271,7 +313,7 @@ export default function HistoryInspectorModal({
         <div className="p-5 border-t border-white/5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 shrink-0">
           <div>
             {error && (
-              <span className="text-[11px] text-brand-error font-medium">
+              <span className="text-xs text-brand-error font-medium">
                 {error}
               </span>
             )}
@@ -279,17 +321,18 @@ export default function HistoryInspectorModal({
           <button
             onClick={handleDelete}
             disabled={isLoading}
-            className="px-4 py-1.5 bg-brand-error/10 hover:bg-brand-error border border-brand-error/20 hover:border-brand-error text-brand-error hover:text-white font-semibold rounded-lg transition-standard text-xs cursor-pointer flex items-center justify-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-4 py-2 bg-brand-error/10 hover:bg-brand-error border border-brand-error/20 hover:border-brand-error text-brand-error hover:text-white font-semibold rounded-lg transition-standard text-xs cursor-pointer flex items-center justify-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isLoading ? (
               <Loader2 className="w-3.5 h-3.5 animate-spin" />
             ) : (
               <Trash2 className="w-3.5 h-3.5" />
             )}
-            {isLoading ? "Deleting..." : "Delete"}
+            {isLoading ? "Deleting..." : "Delete Entry"}
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

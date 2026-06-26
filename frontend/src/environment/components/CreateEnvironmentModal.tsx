@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { useEnvironmentStore } from "../store/environmentStore";
-import { FolderPlus, Loader2 } from "lucide-react";
+import { FolderPlus, Loader2, X } from "lucide-react";
 import type { EnvironmentColor } from "../types/EnvironmentColor";
 import type { ModalProps } from "../../common/types/ModalProps";
 
@@ -53,22 +54,34 @@ export default function CreateEnvironmentModal({
 
   if (!isOpen) return null;
 
-  return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="glass-panel w-full max-w-sm rounded-xl p-6 shadow-2xl relative animate-float">
-        <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-brand-primary to-brand-secondary" />
+  return createPortal(
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      {/* Backdrop */}
+      <div className="fixed inset-0 bg-black/70 backdrop-blur-md" onClick={onClose} />
 
-        <h3 className="text-base font-semibold font-display text-white flex items-center gap-2 mb-2">
+      <div className="glass-panel w-full max-w-sm rounded-2xl p-6 shadow-2xl relative animate-float border border-white/10 z-10">
+        {/* Top card accent line */}
+        <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-brand-primary via-brand-secondary to-pink-500 opacity-90" />
+
+        {/* Close button */}
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 p-1.5 hover:bg-white/5 rounded-lg text-slate-400 hover:text-white transition-standard cursor-pointer"
+        >
+          <X className="w-4 h-4" />
+        </button>
+
+        <h3 className="text-base font-semibold font-display text-white flex items-center gap-2 mb-1">
           <FolderPlus className="w-5 h-5 text-brand-primary" />
           Initialize Fresh Environment
         </h3>
-        <p className="text-[11px] text-slate-400 mb-6">
+        <p className="text-[10px] text-slate-400 mb-6">
           Create a scoping container for environment keys.
         </p>
 
         <form onSubmit={handleAddEnv} className="space-y-4">
-          <div className="space-y-1">
-            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">
+          <div className="space-y-1.5">
+            <label className="text-[9px] font-bold text-slate-500 uppercase tracking-wider pl-0.5">
               Environment Name
             </label>
             <input
@@ -77,25 +90,35 @@ export default function CreateEnvironmentModal({
               value={newEnvName}
               onChange={(e) => setNewEnvName(e.target.value)}
               placeholder="e.g. UAT Sandbox"
-              className="block w-full px-3 py-2 bg-brand-layer-2 border border-white/5 rounded-lg text-xs text-slate-200 focus:outline-none focus:border-brand-primary"
+              className="block w-full px-3 py-2 bg-brand-layer-2/50 border border-white/5 rounded-lg text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-brand-primary/60 focus:ring-2 focus:ring-brand-primary/10 transition-standard"
             />
           </div>
 
-          <div className="space-y-2">
-            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">
-              Environment Color
-            </label>
-            <div className="flex items-center gap-3 bg-brand-layer-2/50 p-2.5 rounded-lg border border-white/5">
+          <div className="space-y-2.5">
+            <div className="flex justify-between items-center px-0.5">
+              <label className="text-[9px] font-bold text-slate-500 uppercase tracking-wider">
+                Environment Theme
+              </label>
+              <span className={`text-[10px] font-semibold tracking-wide ${
+                selectedColor === 'EMERALD' ? 'text-brand-success' :
+                selectedColor === 'AMBER' ? 'text-brand-warning' :
+                selectedColor === 'BLUE' ? 'text-blue-400' :
+                selectedColor === 'ROSE' ? 'text-rose-400' : 'text-slate-400'
+              }`}>
+                {selectedColor.charAt(0) + selectedColor.slice(1).toLowerCase()}
+              </span>
+            </div>
+            <div className="flex items-center justify-between bg-brand-layer-2/30 p-3 rounded-xl border border-white/5">
               {(["EMERALD", "AMBER", "GREY", "BLUE", "ROSE"] as const).map(
                 (color) => {
                   const colorMap = {
                     EMERALD:
-                      "bg-brand-success shadow-[0_0_8px_rgba(16,185,129,0.3)]",
+                      "bg-brand-success shadow-[0_0_12px_rgba(16,185,129,0.25)]",
                     AMBER:
-                      "bg-brand-warning shadow-[0_0_8px_rgba(245,158,11,0.3)]",
-                    BLUE: "bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.3)]",
-                    ROSE: "bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.3)]",
-                    GREY: "bg-slate-400 shadow-[0_0_8px_rgba(148,163,184,0.3)]",
+                      "bg-brand-warning shadow-[0_0_12px_rgba(245,158,11,0.25)]",
+                    BLUE: "bg-blue-500 shadow-[0_0_12px_rgba(59,130,246,0.25)]",
+                    ROSE: "bg-rose-500 shadow-[0_0_12px_rgba(244,63,94,0.25)]",
+                    GREY: "bg-slate-400 shadow-[0_0_12px_rgba(148,163,184,0.25)]",
                   };
                   const isSelected = selectedColor === color;
                   return (
@@ -103,17 +126,13 @@ export default function CreateEnvironmentModal({
                       key={color}
                       type="button"
                       onClick={() => setSelectedColor(color)}
-                      className={`w-6 h-6 rounded-full transition-all cursor-pointer flex items-center justify-center border-2 ${
+                      className={`w-7 h-7 rounded-lg transition-all duration-200 cursor-pointer flex items-center justify-center border-2 ${
                         isSelected
-                          ? "border-white scale-110"
-                          : "border-transparent hover:scale-105"
+                          ? "border-white scale-110 shadow-lg ring-2 ring-brand-primary/40"
+                          : "border-transparent hover:scale-105 opacity-70 hover:opacity-100"
                       } ${colorMap[color]}`}
                       title={color.toUpperCase()}
-                    >
-                      {isSelected && (
-                        <span className="w-1.5 h-1.5 rounded-full bg-white" />
-                      )}
-                    </button>
+                    />
                   );
                 },
               )}
@@ -121,24 +140,17 @@ export default function CreateEnvironmentModal({
           </div>
 
           {error && (
-            <div className="text-[11px] text-rose-400 bg-rose-950/20 border border-rose-900/30 rounded-lg p-2.5">
-              {error}
+            <div className="text-xs text-brand-error bg-brand-error/10 border border-brand-error/20 rounded-lg p-3 flex items-center gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-brand-error shrink-0" />
+              <span>{error}</span>
             </div>
           )}
 
-          <div className="flex gap-3 justify-end pt-4">
-            <button
-              type="button"
-              onClick={onClose}
-              disabled={isLoading}
-              className="px-3.5 py-2 hover:bg-white/5 rounded-lg text-xs font-semibold text-slate-400 transition-standard cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              Cancel
-            </button>
+          <div className="flex justify-end pt-2">
             <button
               type="submit"
               disabled={isLoading}
-              className="px-4 py-2 bg-brand-primary hover:bg-brand-secondary text-white rounded-lg text-xs font-semibold hover:shadow-[0_0_12px_rgba(99,102,241,0.3)] transition-standard cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5"
+              className="px-4 py-2 bg-gradient-to-r from-brand-primary via-brand-secondary to-pink-500 hover:shadow-[0_0_20px_rgba(99,102,241,0.4)] hover:scale-[1.01] active:scale-[0.99] text-white rounded-lg text-xs font-semibold transition-standard cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5"
             >
               {isLoading && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
               {isLoading ? "Initializing..." : "Initialize Scope"}
@@ -146,6 +158,7 @@ export default function CreateEnvironmentModal({
           </div>
         </form>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

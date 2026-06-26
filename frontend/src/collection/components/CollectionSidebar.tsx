@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { useCollectionStore } from "../store/collectionStore";
 import { useRequestStore } from "../../request/store/requestStore";
 import type { RequestItem } from "../../request/types/RequestItem";
@@ -12,6 +13,7 @@ import {
   FilePlus,
   RefreshCw,
   Plus,
+  X,
 } from "lucide-react";
 
 export default function CollectionSidebar() {
@@ -96,7 +98,7 @@ export default function CollectionSidebar() {
     }
   };
 
-  const handleAddNewItem = async (e: React.FormEvent) => {
+  const handleAddNewItem = async (e: React.SubmitEvent) => {
     e.preventDefault();
     if (!newItemName.trim() || !showAddModal || isLoading) return;
 
@@ -205,11 +207,10 @@ export default function CollectionSidebar() {
             <div key={collection.id} className="space-y-1">
               {/* Collection Title Panel */}
               <div
-                className={`flex items-center justify-between px-2 py-1.5 rounded-md group relative transition-standard ${
-                  isActive
+                className={`flex items-center justify-between px-2 py-1.5 rounded-md group relative transition-standard ${isActive
                     ? "bg-brand-primary/10 text-white font-semibold"
                     : "hover:bg-white/[0.01]"
-                }`}
+                  }`}
               >
                 {isActive && (
                   <span className="absolute left-0 top-1 bottom-1 w-[2px] bg-brand-primary rounded-r" />
@@ -222,9 +223,8 @@ export default function CollectionSidebar() {
                       toggleCollection(collection.id);
                     }
                   }}
-                  className={`text-xs font-bold truncate tracking-wide flex items-center gap-1.5 cursor-pointer flex-1 min-w-0 ${
-                    isActive ? "text-white" : "text-slate-300 hover:text-white"
-                  }`}
+                  className={`text-xs font-bold truncate tracking-wide flex items-center gap-1.5 cursor-pointer flex-1 min-w-0 ${isActive ? "text-white" : "text-slate-300 hover:text-white"
+                    }`}
                 >
                   <span
                     onClick={(e) => {
@@ -347,18 +347,30 @@ export default function CollectionSidebar() {
       </div>
 
       {/* 5. Create Folders / Request Dialog */}
-      {showAddModal && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="glass-panel w-full max-w-sm rounded-xl p-5 shadow-2xl relative">
-            <div className="absolute top-0 left-0 right-0 h-[2px] bg-brand-primary" />
+      {showAddModal && createPortal(
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          {/* Backdrop */}
+          <div className="fixed inset-0 bg-black/70 backdrop-blur-md" onClick={handleCloseModal} />
 
-            <h3 className="text-xs font-bold font-display text-white uppercase tracking-wider mb-4">
-              Add New {showAddModal.type}
+          <div className="glass-panel w-full max-w-sm rounded-2xl p-6 shadow-2xl relative border border-white/10 animate-float z-10">
+            {/* Top card accent line */}
+            <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-brand-primary via-brand-secondary to-pink-500 opacity-90" />
+
+            {/* Close button */}
+            <button
+              onClick={handleCloseModal}
+              className="absolute top-4 right-4 p-1.5 hover:bg-white/5 rounded-lg text-slate-400 hover:text-white transition-standard cursor-pointer"
+            >
+              <X className="w-4 h-4" />
+            </button>
+
+            <h3 className="text-sm font-semibold font-display text-white mb-4">
+              Add New {showAddModal.type.charAt(0).toUpperCase() + showAddModal.type.slice(1)}
             </h3>
 
             <form onSubmit={handleAddNewItem} className="space-y-4">
-              <div className="space-y-1">
-                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">
+              <div className="space-y-1.5">
+                <label className="text-[9px] font-bold text-slate-500 uppercase tracking-wider pl-0.5">
                   {showAddModal.type} name
                 </label>
                 <input
@@ -375,13 +387,13 @@ export default function CollectionSidebar() {
                         ? "Authentication Suite"
                         : "Post Authenticate"
                   }
-                  className="block w-full px-3 py-2 bg-brand-layer-2 border border-white/5 rounded-lg text-xs text-slate-200 focus:outline-none focus:border-brand-primary disabled:opacity-50"
+                  className="block w-full px-3 py-2 bg-brand-layer-2/50 border border-white/5 rounded-lg text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-brand-primary/60 focus:ring-2 focus:ring-brand-primary/10 transition-standard disabled:opacity-50"
                 />
               </div>
 
               {showAddModal.type === "collection" && (
-                <div className="space-y-1">
-                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">
+                <div className="space-y-1.5">
+                  <label className="text-[9px] font-bold text-slate-500 uppercase tracking-wider pl-0.5">
                     Collection description
                   </label>
                   <textarea
@@ -390,14 +402,14 @@ export default function CollectionSidebar() {
                     placeholder="Describe the purpose of this collection..."
                     rows={3}
                     disabled={isLoading}
-                    className="block w-full px-3 py-2 bg-brand-layer-2 border border-white/5 rounded-lg text-xs text-slate-200 focus:outline-none focus:border-brand-primary resize-none disabled:opacity-50"
+                    className="block w-full px-3 py-2 bg-brand-layer-2/50 border border-white/5 rounded-lg text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-brand-primary/60 focus:ring-2 focus:ring-brand-primary/10 transition-standard resize-none disabled:opacity-50"
                   />
                 </div>
               )}
 
               {showAddModal.type === "request" && (
-                <div className="space-y-1">
-                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">
+                <div className="space-y-1.5">
+                  <label className="text-[9px] font-bold text-slate-500 uppercase tracking-wider pl-0.5">
                     HTTP method
                   </label>
                   <select
@@ -406,7 +418,7 @@ export default function CollectionSidebar() {
                     onChange={(e) =>
                       setNewRequestType(e.target.value as RequestItem["method"])
                     }
-                    className="block w-full bg-brand-layer-2 border border-white/5 rounded-lg text-xs text-slate-300 p-2 focus:outline-none focus:border-brand-primary disabled:opacity-50"
+                    className="block w-full bg-brand-layer-2/50 border border-white/5 rounded-lg text-xs text-slate-300 p-2 focus:outline-none focus:border-brand-primary/60 focus:ring-2 focus:ring-brand-primary/10 transition-standard disabled:opacity-50"
                   >
                     <option value="GET">GET</option>
                     <option value="POST">POST</option>
@@ -418,31 +430,25 @@ export default function CollectionSidebar() {
               )}
 
               {error && (
-                <div className="text-[11px] text-rose-400 bg-rose-950/20 border border-rose-900/30 rounded-lg p-2.5">
-                  {error}
+                <div className="text-xs text-brand-error bg-brand-error/10 border border-brand-error/20 rounded-lg p-3 flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-brand-error shrink-0" />
+                  <span>{error}</span>
                 </div>
               )}
 
-              <div className="flex gap-3 justify-end pt-4">
-                <button
-                  type="button"
-                  onClick={handleCloseModal}
-                  disabled={isLoading}
-                  className="px-3 py-1.5 hover:bg-white/5 rounded-lg text-[11px] font-semibold text-slate-400 cursor-pointer disabled:opacity-50"
-                >
-                  Cancel
-                </button>
+              <div className="flex justify-end pt-2">
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className="px-3.5 py-1.5 bg-brand-primary hover:bg-brand-secondary text-white rounded-lg text-[11px] font-semibold cursor-pointer disabled:opacity-50"
+                  className="px-4 py-1.5 bg-gradient-to-r from-brand-primary via-brand-secondary to-pink-500 hover:shadow-[0_0_12px_rgba(99,102,241,0.35)] text-white rounded-lg text-[11px] font-semibold transition-standard cursor-pointer disabled:opacity-50"
                 >
                   {isLoading ? "Adding..." : "Confirm Add"}
                 </button>
               </div>
             </form>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );
