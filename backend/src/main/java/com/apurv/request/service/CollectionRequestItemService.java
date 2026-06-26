@@ -157,7 +157,7 @@ public class CollectionRequestItemService {
                                 .authValue(requestItem.getAuthValue())
                                 .timeoutMs(requestItem.getTimeoutMs() != null ? requestItem.getTimeoutMs() : 5000)
                                 .createdBy(requestItem.getCreatedBy().getUsername())
-                                .updatedBy(requestItem.getUpdatedBy().getUsername())
+                                .updatedBy(requestItem.getUpdatedBy() != null ? requestItem.getUpdatedBy().getUsername() : null)
                                 .createdAt(requestItem.getCreatedAt())
                                 .updatedAt(requestItem.getUpdatedAt())
                                 .build();

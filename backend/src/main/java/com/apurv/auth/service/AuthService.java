@@ -121,6 +121,8 @@ public class AuthService {
         }
 
         User user = token.getUser();
+        refreshTokenRepository.delete(token);
+        refreshTokenRepository.flush();
         AuthResponse response = buildAuthResponse(user);
 
         log.info("Access token refreshed for user with email {} and username: {}", user.getEmail(), user.getUsername());

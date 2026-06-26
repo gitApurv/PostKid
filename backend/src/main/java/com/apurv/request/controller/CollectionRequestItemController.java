@@ -23,7 +23,7 @@ import com.apurv.request.dto.RequestItemResponse;
 import com.apurv.request.service.CollectionRequestItemService;
 import com.apurv.request.service.RequestExecutionService;
 
-import io.swagger.v3.oas.annotations.parameters.RequestBody;
+import org.springframework.web.bind.annotation.RequestBody;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
