@@ -36,6 +36,7 @@ public class WorkspaceService {
     private final UserRepository userRepository;
     private final WorkspaceAuthorizationService workspaceAuthorizationService;
 
+    @Transactional
     public WorkspaceResponse createWorkspace(WorkspaceRequest request, User currentUser) {
         Workspace workspace = new Workspace();
         workspace.setName(request.getName());
@@ -53,6 +54,7 @@ public class WorkspaceService {
         return toWorkspaceResponse(savedWorkspace, 1);
     }
 
+    @Transactional
     public WorkspaceResponse createDefaultWorkspace(User user) {
         Workspace workspace = new Workspace();
         workspace.setName("My Workspace");
@@ -91,6 +93,7 @@ public class WorkspaceService {
         return toWorkspaceResponse(workspace, memberCount);
     }
 
+    @Transactional
     public WorkspaceResponse updateWorkspace(UUID workspaceId, WorkspaceRequest request, User currentUser) {
         Workspace workspace = getWorkspace(workspaceId);
 
@@ -105,6 +108,7 @@ public class WorkspaceService {
         return toWorkspaceResponse(updatedWorkspace, memberCount);
     }
 
+    @Transactional
     public void deleteWorkspace(UUID workspaceId, User currentUser) {
         Workspace workspace = getWorkspace(workspaceId);
 
@@ -120,6 +124,7 @@ public class WorkspaceService {
         log.info("Workspace with id {} deleted by user {}", workspaceId, currentUser.getId());
     }
 
+    @Transactional
     public MemberResponse inviteMember(UUID workspaceId, InviteMemberRequest request, User currentUser) {
         Workspace workspace = getWorkspace(workspaceId);
 
@@ -144,6 +149,7 @@ public class WorkspaceService {
         return toMemberResponse(savedWorkspaceMember);
     }
 
+    @Transactional
     public void removeMember(UUID workspaceId, UUID userId, User currentUser) {
         Workspace workspace = getWorkspace(workspaceId);
 

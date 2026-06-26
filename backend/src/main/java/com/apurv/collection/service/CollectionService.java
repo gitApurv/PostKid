@@ -18,9 +18,6 @@ import com.apurv.collection.repository.FolderRepository;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.Cacheable;
-import org.springframework.cache.annotation.Caching;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -36,7 +33,6 @@ public class CollectionService {
     private final WorkspaceAuthorizationService workspaceAuthorizationService;
 
     @Transactional
-    @CacheEvict(value = "collections", key = "#currentUser.id.toString()")
     public CollectionResponse createCollection(UUID workspaceId, CollectionRequest request, User currentUser) {
         Workspace workspace = findWorkspaceById(workspaceId, "Workspace not found");
 
@@ -58,7 +54,6 @@ public class CollectionService {
     }
 
     @Transactional(readOnly = true)
-    @Cacheable(value = "collections", key = "#currentUser.id.toString()")
     public List<CollectionResponse> getAllCollections(UUID workspaceId, User currentUser) {
         Workspace workspace = findWorkspaceById(workspaceId, "Workspace not found");
 
@@ -72,9 +67,6 @@ public class CollectionService {
     }
 
     @Transactional
-    @Caching(evict = {
-            @CacheEvict(value = "collections", key = "#currentUser.id.toString()")
-    })
     public CollectionResponse updateCollection(UUID workspaceId, UUID collectionId, CollectionRequest request,
             User currentUser) {
         Workspace workspace = findWorkspaceById(workspaceId, "Workspace not found");
@@ -97,9 +89,6 @@ public class CollectionService {
     }
 
     @Transactional
-    @Caching(evict = {
-            @CacheEvict(value = "collections", key = "#currentUser.id.toString()")
-    })
     public void deleteCollection(UUID workspaceId, UUID collectionId, User currentUser) {
         Workspace workspace = findWorkspaceById(workspaceId, "Workspace not found");
 

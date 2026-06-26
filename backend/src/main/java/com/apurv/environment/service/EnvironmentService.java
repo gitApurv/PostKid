@@ -5,8 +5,6 @@ import java.util.UUID;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.Cacheable;
 
 import com.apurv.auth.entity.User;
 import com.apurv.collection.entity.Collection;
@@ -40,7 +38,6 @@ public class EnvironmentService {
         private final EnvironmentVariableRepository environmentVariableRepository;
 
         @Transactional
-        @CacheEvict(value = "environments", key = "#currentUser.getId().toString()")
         public EnvironmentResponse createEnvironment(UUID workspaceId, UUID collectionId, EnvironmentRequest request,
                         User currentUser) {
                 Workspace workspace = findWorkspaceById(workspaceId, "Workspace not found");
@@ -69,7 +66,6 @@ public class EnvironmentService {
         }
 
         @Transactional(readOnly = true)
-        @Cacheable(value = "environments", key = "#currentUser.getId().toString()")
         public List<EnvironmentResponse> getAllEnvironments(UUID workspaceId, UUID collectionId, User currentUser) {
                 Workspace workspace = findWorkspaceById(workspaceId, "Workspace not found");
 
@@ -85,7 +81,6 @@ public class EnvironmentService {
         }
 
         @Transactional
-        @CacheEvict(value = "environments", key = "#currentUser.getId().toString()")
         public EnvironmentResponse updateEnvironment(UUID workspaceId, UUID collectionId, UUID environmentId,
                         EnvironmentRequest request,
                         User currentUser) {
@@ -117,7 +112,6 @@ public class EnvironmentService {
         }
 
         @Transactional
-        @CacheEvict(value = "environments", key = "#currentUser.getId().toString()")
         public void deleteEnvironment(UUID workspaceId, UUID collectionId, UUID environmentId, User currentUser) {
                 Workspace workspace = findWorkspaceById(workspaceId, "Workspace not found");
 

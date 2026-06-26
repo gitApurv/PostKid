@@ -2,7 +2,6 @@ package com.apurv.environment.service;
 
 import java.util.UUID;
 
-import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 
 import com.apurv.auth.entity.User;
@@ -32,7 +31,6 @@ public class EnvironmentVariableService {
         private final WorkspaceAuthorizationService workspaceAuthorizationService;
 
         @Transactional
-        @CacheEvict(value = "environments", key = "#currentUser.getId().toString()")
         public VariableResponse addVariable(UUID workspaceId, UUID collectionId, UUID environmentId,
                         VariableRequest request,
                         User currentUser) {
@@ -69,7 +67,6 @@ public class EnvironmentVariableService {
         }
 
         @Transactional
-        @CacheEvict(value = "environments", key = "#currentUser.getId().toString()")
         public VariableResponse updateVariable(UUID workspaceId, UUID collectionId, UUID environmentId, UUID variableId,
                         VariableRequest request,
                         User currentUser) {
@@ -106,7 +103,6 @@ public class EnvironmentVariableService {
         }
 
         @Transactional
-        @CacheEvict(value = "environments", key = "#currentUser.getId().toString()")
         public void deleteVariable(UUID workspaceId, UUID collectionId, UUID environmentId, UUID variableId,
                         User currentUser) {
                 Workspace workspace = findWorkspaceById(workspaceId, "Workspace not found");
