@@ -24,6 +24,9 @@ export default function CollectionSidebar() {
   const fetchCollectionDetailsAction = useCollectionStore(
     (state) => state.fetchCollectionDetailsAction,
   );
+  const fetchFolderDetailsAction = useCollectionStore(
+    (state) => state.fetchFolderDetailsAction,
+  );
   const addCollectionAction = useCollectionStore(
     (state) => state.addCollectionAction,
   );
@@ -36,6 +39,9 @@ export default function CollectionSidebar() {
   );
   const deleteRequestAction = useCollectionStore(
     (state) => state.deleteRequestAction,
+  );
+  const toggleFolderExpansionAction = useCollectionStore(
+    (state) => state.toggleFolderExpansionAction,
   );
 
   const activeCollectionId = useRequestStore(
@@ -129,6 +135,37 @@ export default function CollectionSidebar() {
       setError(response.error || `Failed to add ${type}.`);
       setIsLoading(false);
     } else {
+      if (collectionId) {
+        if (!folderId) {
+          setExpandedCollections((prev) => ({
+            ...prev,
+            [collectionId]: true,
+          }));
+          const collection = collections.find((collection) => collection.id === collectionId);
+          if (collection && !collection.isLoaded && !collection.isLoading) {
+            await fetchCollectionDetailsAction(collectionId);
+          }
+        } else {
+          toggleFolderExpansionAction(folderId, true);
+          const findFolderInCollections = (folders: any[], id: string): any => {
+            for (const folder of folders) {
+              if (folder.id === id) return folder;
+              if (folder.subFolders) {
+                const found = findFolderInCollections(folder.subFolders, id);
+                if (found) return found;
+              }
+            }
+            return null;
+          };
+          const collection = collections.find((collection) => collection.id === collectionId);
+          if (collection && collection.folders) {
+            const folder = findFolderInCollections(collection.folders, folderId);
+            if (folder && !folder.isLoaded && !folder.isLoading) {
+              await fetchFolderDetailsAction(collectionId, folderId);
+            }
+          }
+        }
+      }
       setNewItemName("");
       setNewItemDescription("");
       setIsLoading(false);
@@ -208,8 +245,8 @@ export default function CollectionSidebar() {
               {/* Collection Title Panel */}
               <div
                 className={`flex items-center justify-between px-2 py-1.5 rounded-md group relative transition-standard ${isActive
-                    ? "bg-brand-primary/10 text-white font-semibold"
-                    : "hover:bg-white/[0.01]"
+                  ? "bg-brand-primary/10 text-white font-semibold"
+                  : "hover:bg-white/[0.01]"
                   }`}
               >
                 {isActive && (

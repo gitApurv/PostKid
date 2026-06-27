@@ -6,6 +6,8 @@ import type { RequestItemRequest } from "../../request/types/RequestItemRequest"
 
 export interface CollectionState {
   collections: CollectionItem[];
+  expandedFolderIds: Record<string, boolean>;
+  toggleFolderExpansionAction: (folderId: string, expand?: boolean) => void;
 
   fetchCollectionsAction: () => Promise<{ success: boolean; error?: string }>;
 

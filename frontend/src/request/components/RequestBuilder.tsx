@@ -66,6 +66,7 @@ export default function RequestBuilder() {
 
   const [isEditingName, setIsEditingName] = useState(false);
   const [editName, setEditName] = useState("");
+  const [localUrl, setLocalUrl] = useState("");
 
   useEffect(() => {
     if (activeRequest) {
@@ -73,6 +74,12 @@ export default function RequestBuilder() {
       setIsEditingName(false);
     }
   }, [activeRequest?.id]);
+
+  useEffect(() => {
+    if (activeRequest) {
+      setLocalUrl(activeRequest.url);
+    }
+  }, [activeRequest?.id, activeRequest?.url]);
 
   const methodDropdownRef = useRef<HTMLDivElement>(null);
   const envDropdownRef = useRef<HTMLDivElement>(null);
@@ -254,7 +261,7 @@ export default function RequestBuilder() {
   };
 
   const hasCurlyBraces =
-    activeRequest?.url.includes("{{") && activeRequest?.url.includes("}}");
+    localUrl.includes("{{") && localUrl.includes("}}");
 
   if (!activeRequest) return null;
 
@@ -415,10 +422,24 @@ export default function RequestBuilder() {
         <div className="flex-1 px-3 relative flex items-center min-w-0">
           <input
             type="text"
-            value={activeRequest.url}
-            onChange={(e) => handleUpdateRequest({ url: e.target.value })}
+            value={showResolvedUrl ? getResolvedUrl(localUrl) : localUrl}
+            onChange={(e) => setLocalUrl(e.target.value)}
+            onBlur={() => {
+              if (activeRequest && localUrl !== activeRequest.url) {
+                handleUpdateRequest({ url: localUrl });
+              }
+            }}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                if (activeRequest && localUrl !== activeRequest.url) {
+                  handleUpdateRequest({ url: localUrl });
+                }
+                e.currentTarget.blur();
+              }
+            }}
             className="w-full bg-transparent border-0 text-slate-200 text-xs font-mono py-1.5 focus:outline-none focus:ring-0 placeholder-slate-600"
             placeholder="{{base_url}}/endpoint"
+            disabled={showResolvedUrl}
           />
 
           {/* Neon variable indicator highlighting */}

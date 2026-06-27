@@ -40,8 +40,8 @@ export const useRequestStore = create<RequestState>((set, get) => ({
     if (!active)
       return { success: false, error: "No active request to update" };
 
-    const wId = useWorkspaceStore.getState().activeWorkspaceId;
-    if (!wId) {
+    const workspaceId = useWorkspaceStore.getState().activeWorkspaceId;
+    if (!workspaceId) {
       return { success: false, error: "No active workspace selected" };
     }
 
@@ -76,21 +76,21 @@ export const useRequestStore = create<RequestState>((set, get) => ({
     };
 
     const targetUrl = updated.folderId
-      ? `/workspaces/${wId}/collections/${updated.collectionId}/folders/${updated.folderId}/requests/${updated.id}`
-      : `/workspaces/${wId}/collections/${updated.collectionId}/requests/${updated.id}`;
+      ? `/workspaces/${workspaceId}/collections/${updated.collectionId}/folders/${updated.folderId}/requests/${updated.id}`
+      : `/workspaces/${workspaceId}/collections/${updated.collectionId}/requests/${updated.id}`;
 
     try {
       await api.put(targetUrl, payload);
 
       useCollectionStore.getState().syncRequestInTreeAction(updated);
       return { success: true };
-    } catch (e) {
-      console.error("Failed to save active request updates:", e);
+    } catch (error) {
+      console.error("Failed to save active request updates:", error);
       let errorMessage = "Failed to update request details.";
-      if (axios.isAxiosError(e)) {
-        errorMessage = e.response?.data?.message || e.message || errorMessage;
-      } else if (e instanceof Error) {
-        errorMessage = e.message;
+      if (axios.isAxiosError(error)) {
+        errorMessage = error.response?.data?.message || error.message || errorMessage;
+      } else if (error instanceof Error) {
+        errorMessage = error.message;
       }
       return { success: false, error: errorMessage };
     }

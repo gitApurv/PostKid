@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { useCollectionStore } from "../store/collectionStore";
 import RequestTreeItem from "./RequestTreeItem";
 import {
@@ -30,12 +29,15 @@ export default function FolderTreeItem({
     (state) => state.fetchFolderDetailsAction,
   );
 
-  const [isExpanded, setIsExpanded] = useState(false);
+  const isExpanded = useCollectionStore((state) => !!state.expandedFolderIds[folder.id]);
+  const toggleFolderExpansionAction = useCollectionStore(
+    (state) => state.toggleFolderExpansionAction,
+  );
 
   const handleExpandToggle = async (e: React.MouseEvent) => {
     e.stopPropagation();
     const nextState = !isExpanded;
-    setIsExpanded(nextState);
+    toggleFolderExpansionAction(folder.id, nextState);
     if (nextState && !folder.isLoaded && !folder.isLoading) {
       const response = await fetchFolderDetailsAction(collectionId, folder.id);
       if (response && !response.success) {

@@ -50,6 +50,19 @@ const updateCollectionInList = (
 
 export const useCollectionStore = create<CollectionState>((set) => ({
   collections: [],
+  expandedFolderIds: {},
+
+  toggleFolderExpansionAction: (folderId, expand) => {
+    set((state) => {
+      const nextState = expand !== undefined ? expand : !state.expandedFolderIds[folderId];
+      return {
+        expandedFolderIds: {
+          ...state.expandedFolderIds,
+          [folderId]: nextState,
+        },
+      };
+    });
+  },
 
   fetchCollectionsAction: async () => {
     const wId = useWorkspaceStore.getState().activeWorkspaceId;
@@ -308,6 +321,15 @@ export const useCollectionStore = create<CollectionState>((set) => ({
           (collection) => collection.id !== id,
         ),
       }));
+
+      const requestStore = useRequestStore.getState();
+      if (
+        requestStore.activeRequest?.collectionId === id ||
+        requestStore.activeCollectionId === id
+      ) {
+        requestStore.setActiveCollectionAction(null);
+      }
+
       return { success: true };
     } catch (error) {
       console.error("Failed to delete collection:", error);
@@ -566,6 +588,51 @@ export const useCollectionStore = create<CollectionState>((set) => ({
 
         return { collections };
       });
+
+      const activeRequest = useRequestStore.getState().activeRequest;
+      if (activeRequest) {
+        const isRequestInDeletedFolderOrSub = (
+          folders: FolderItem[],
+          targetFolderId: string,
+          activeReqId: string,
+        ): boolean => {
+          const findAndCheck = (list: FolderItem[]): boolean => {
+            for (const folder of list) {
+              if (folder.id === targetFolderId) {
+                const checkInside = (f: FolderItem): boolean => {
+                  if (f.requestItems?.some((r) => r.id === activeReqId)) return true;
+                  if (f.subFolders) {
+                    for (const sf of f.subFolders) {
+                      if (checkInside(sf)) return true;
+                    }
+                  }
+                  return false;
+                };
+                return checkInside(folder);
+              }
+              if (folder.subFolders) {
+                if (findAndCheck(folder.subFolders)) return true;
+              }
+            }
+            return false;
+          };
+          return findAndCheck(folders);
+        };
+
+        const collection = useCollectionStore.getState().collections.find((c: any) => c.id === collectionId);
+        if (collection && collection.folders) {
+          if (
+            isRequestInDeletedFolderOrSub(
+              collection.folders,
+              folderId,
+              activeRequest.id,
+            )
+          ) {
+            useRequestStore.getState().setActiveRequestDirectlyAction(null);
+          }
+        }
+      }
+
       return { success: true };
     } catch (error) {
       console.error("Failed to delete folder:", error);

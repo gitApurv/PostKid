@@ -16,4 +16,5 @@ export interface WorkspaceState {
   fetchMembersAction: (workspaceId: string) => Promise<{ success: boolean; data?: MemberResponse[]; error?: string }>;
   inviteMemberAction: (workspaceId: string, request: InviteMemberRequest) => Promise<{ success: boolean; data?: MemberResponse; error?: string }>;
   removeMemberAction: (workspaceId: string, userId: string) => Promise<{ success: boolean; error?: string }>;
+  leaveWorkspaceAction: (workspaceId: string) => Promise<{ success: boolean; error?: string }>;
 }

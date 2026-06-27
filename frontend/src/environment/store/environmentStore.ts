@@ -20,13 +20,13 @@ export const useEnvironmentStore = create<EnvironmentState>((set) => ({
   },
 
   fetchEnvironmentsAction: async (collectionId: string) => {
-    const wId = useWorkspaceStore.getState().activeWorkspaceId;
-    if (!wId) {
+    const workspaceId = useWorkspaceStore.getState().activeWorkspaceId;
+    if (!workspaceId) {
       return { success: false, error: "No active workspace selected" };
     }
     try {
       const fetchEnvironmentsResponse =
-        await api.get<ApiResponse<EnvironmentResponse[]>>(`/workspaces/${wId}/collections/${collectionId}/environments`);
+        await api.get<ApiResponse<EnvironmentResponse[]>>(`/workspaces/${workspaceId}/collections/${collectionId}/environments`);
       if (
         fetchEnvironmentsResponse.data.success &&
         fetchEnvironmentsResponse.data.data
@@ -66,14 +66,14 @@ export const useEnvironmentStore = create<EnvironmentState>((set) => ({
   },
 
   addEnvironmentAction: async (collectionId: string, request: EnvironmentRequest) => {
-    const wId = useWorkspaceStore.getState().activeWorkspaceId;
-    if (!wId) {
+    const workspaceId = useWorkspaceStore.getState().activeWorkspaceId;
+    if (!workspaceId) {
       return { success: false, error: "No active workspace selected" };
     }
     try {
       const addEnvironmentResponse = await api.post<
         ApiResponse<EnvironmentResponse>
-      >(`/workspaces/${wId}/collections/${collectionId}/environments`, request);
+      >(`/workspaces/${workspaceId}/collections/${collectionId}/environments`, request);
       if (
         addEnvironmentResponse.data.success &&
         addEnvironmentResponse.data.data
@@ -119,14 +119,14 @@ export const useEnvironmentStore = create<EnvironmentState>((set) => ({
     environmentId: string,
     request: EnvironmentRequest,
   ) => {
-    const wId = useWorkspaceStore.getState().activeWorkspaceId;
-    if (!wId) {
+    const workspaceId = useWorkspaceStore.getState().activeWorkspaceId;
+    if (!workspaceId) {
       return { success: false, error: "No active workspace selected" };
     }
     try {
       const editEnvironmentResponse = await api.put<
         ApiResponse<EnvironmentResponse>
-      >(`/workspaces/${wId}/collections/${collectionId}/environments/${environmentId}`, request);
+      >(`/workspaces/${workspaceId}/collections/${collectionId}/environments/${environmentId}`, request);
       if (
         editEnvironmentResponse.data.success &&
         editEnvironmentResponse.data.data
@@ -170,13 +170,13 @@ export const useEnvironmentStore = create<EnvironmentState>((set) => ({
   },
 
   deleteEnvironmentAction: async (collectionId: string, environmentId: string) => {
-    const wId = useWorkspaceStore.getState().activeWorkspaceId;
-    if (!wId) {
+    const workspaceId = useWorkspaceStore.getState().activeWorkspaceId;
+    if (!workspaceId) {
       return { success: false, error: "No active workspace selected" };
     }
     try {
       const deleteEnvironmentResponse = await api.delete<ApiResponse<void>>(
-        `/workspaces/${wId}/collections/${collectionId}/environments/${environmentId}`,
+        `/workspaces/${workspaceId}/collections/${collectionId}/environments/${environmentId}`,
       );
       if (deleteEnvironmentResponse.data.success) {
         set((state) => ({
@@ -214,13 +214,13 @@ export const useEnvironmentStore = create<EnvironmentState>((set) => ({
     environmentId: string,
     request: VariableRequest,
   ) => {
-    const wId = useWorkspaceStore.getState().activeWorkspaceId;
-    if (!wId) {
+    const workspaceId = useWorkspaceStore.getState().activeWorkspaceId;
+    if (!workspaceId) {
       return { success: false, error: "No active workspace selected" };
     }
     try {
       const addVariableResponse = await api.post<ApiResponse<VariableResponse>>(
-        `/workspaces/${wId}/collections/${collectionId}/environments/${environmentId}/variables`,
+        `/workspaces/${workspaceId}/collections/${collectionId}/environments/${environmentId}/variables`,
         request,
       );
       if (addVariableResponse.data.success && addVariableResponse.data.data) {
@@ -265,14 +265,14 @@ export const useEnvironmentStore = create<EnvironmentState>((set) => ({
     variableId: string,
     request: VariableRequest,
   ) => {
-    const wId = useWorkspaceStore.getState().activeWorkspaceId;
-    if (!wId) {
+    const workspaceId = useWorkspaceStore.getState().activeWorkspaceId;
+    if (!workspaceId) {
       return { success: false, error: "No active workspace selected" };
     }
     try {
       const updateVariableResponse = await api.put<
         ApiResponse<VariableResponse>
-      >(`/workspaces/${wId}/collections/${collectionId}/environments/${environmentId}/variables/${variableId}`, request);
+      >(`/workspaces/${workspaceId}/collections/${collectionId}/environments/${environmentId}/variables/${variableId}`, request);
       if (
         updateVariableResponse.data.success &&
         updateVariableResponse.data.data
@@ -316,13 +316,13 @@ export const useEnvironmentStore = create<EnvironmentState>((set) => ({
   },
 
   deleteVariableAction: async (collectionId: string, environmentId: string, variableId: string) => {
-    const wId = useWorkspaceStore.getState().activeWorkspaceId;
-    if (!wId) {
+    const workspaceId = useWorkspaceStore.getState().activeWorkspaceId;
+    if (!workspaceId) {
       return { success: false, error: "No active workspace selected" };
     }
     try {
       const deleteVariableResponse = await api.delete<ApiResponse<void>>(
-        `/workspaces/${wId}/collections/${collectionId}/environments/${environmentId}/variables/${variableId}`,
+        `/workspaces/${workspaceId}/collections/${collectionId}/environments/${environmentId}/variables/${variableId}`,
       );
       if (deleteVariableResponse.data.success) {
         set((state) => ({

@@ -160,7 +160,6 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
   setActiveWorkspaceAction: async (workspaceId: string | null) => {
     set({ activeWorkspaceId: workspaceId });
 
-    // Clear environments state as they are scoped to a collection
     useEnvironmentStore.setState({ environments: [], activeEnvironmentId: "" });
 
     await useCollectionStore.getState().fetchCollectionsAction();
@@ -170,11 +169,11 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
 
   fetchMembersAction: async (workspaceId: string) => {
     try {
-      const res = await api.get<ApiResponse<MemberResponse[]>>(`/workspaces/${workspaceId}/members`);
-      if (res.data.success && res.data.data) {
-        return { success: true, data: res.data.data };
+      const fetchMembersResponse = await api.get<ApiResponse<MemberResponse[]>>(`/workspaces/${workspaceId}/members`);
+      if (fetchMembersResponse.data.success && fetchMembersResponse.data.data) {
+        return { success: true, data: fetchMembersResponse.data.data };
       }
-      return { success: false, error: res.data.message || "Failed to fetch members." };
+      return { success: false, error: fetchMembersResponse.data.message || "Failed to fetch members." };
     } catch (error) {
       console.error("Failed to fetch members:", error);
       let errorMessage = "Failed to fetch members.";
@@ -189,17 +188,16 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
 
   inviteMemberAction: async (workspaceId: string, request: InviteMemberRequest) => {
     try {
-      const res = await api.post<ApiResponse<MemberResponse>>(`/workspaces/${workspaceId}/members`, request);
-      if (res.data.success && res.data.data) {
-        // Also increment memberCount in workspaces list
+      const inviteMemberResponse = await api.post<ApiResponse<MemberResponse>>(`/workspaces/${workspaceId}/members`, request);
+      if (inviteMemberResponse.data.success && inviteMemberResponse.data.data) {
         set((state) => ({
-          workspaces: state.workspaces.map((w) =>
-            w.id === workspaceId ? { ...w, memberCount: w.memberCount + 1 } : w
+          workspaces: state.workspaces.map((workspace) =>
+            workspace.id === workspaceId ? { ...workspace, memberCount: workspace.memberCount + 1 } : workspace
           ),
         }));
-        return { success: true, data: res.data.data };
+        return { success: true, data: inviteMemberResponse.data.data };
       }
-      return { success: false, error: res.data.message || "Failed to invite member." };
+      return { success: false, error: inviteMemberResponse.data.message || "Failed to invite member." };
     } catch (error) {
       console.error("Failed to invite member:", error);
       let errorMessage = "Failed to invite member.";
@@ -214,20 +212,38 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
 
   removeMemberAction: async (workspaceId: string, userId: string) => {
     try {
-      const res = await api.delete<ApiResponse<void>>(`/workspaces/${workspaceId}/members/${userId}`);
-      if (res.data.success) {
-        // Decrement memberCount in workspaces list
+      const removeMemberResponse = await api.delete<ApiResponse<void>>(`/workspaces/${workspaceId}/members/${userId}`);
+      if (removeMemberResponse.data.success) {
         set((state) => ({
-          workspaces: state.workspaces.map((w) =>
-            w.id === workspaceId ? { ...w, memberCount: Math.max(1, w.memberCount - 1) } : w
+          workspaces: state.workspaces.map((workspace) =>
+            workspace.id === workspaceId ? { ...workspace, memberCount: Math.max(1, workspace.memberCount - 1) } : workspace
           ),
         }));
         return { success: true };
       }
-      return { success: false, error: res.data.message || "Failed to remove member." };
+      return { success: false, error: removeMemberResponse.data.message || "Failed to remove member." };
     } catch (error) {
       console.error("Failed to remove member:", error);
       let errorMessage = "Failed to remove member.";
+      if (axios.isAxiosError<ApiResponse<unknown>>(error)) {
+        errorMessage = error.response?.data?.message || error.message || errorMessage;
+      } else if (error instanceof Error) {
+        errorMessage = error.message;
+      }
+      return { success: false, error: errorMessage };
+    }
+  },
+
+  leaveWorkspaceAction: async (workspaceId: string) => {
+    try {
+      const leaveWorkspaceResponse = await api.delete<ApiResponse<void>>(`/workspaces/${workspaceId}/members/leave`);
+      if (leaveWorkspaceResponse.data.success) {
+        return { success: true };
+      }
+      return { success: false, error: leaveWorkspaceResponse.data.message || "Failed to leave workspace." };
+    } catch (error) {
+      console.error("Failed to leave workspace:", error);
+      let errorMessage = "Failed to leave workspace.";
       if (axios.isAxiosError<ApiResponse<unknown>>(error)) {
         errorMessage = error.response?.data?.message || error.message || errorMessage;
       } else if (error instanceof Error) {
