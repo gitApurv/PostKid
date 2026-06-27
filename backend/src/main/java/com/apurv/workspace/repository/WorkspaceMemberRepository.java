@@ -15,7 +15,7 @@ public interface WorkspaceMemberRepository
 
     public Optional<WorkspaceMember> findByWorkspaceIdAndUserId(UUID workspaceId, UUID userId);
 
-    public List<WorkspaceMember> findAllByWorkspaceId(UUID workspaceId);
+    public List<WorkspaceMember> findAllByWorkspaceIdOrderByJoinedAt(UUID workspaceId);
 
     public int countByWorkspaceId(UUID workspaceId);
 

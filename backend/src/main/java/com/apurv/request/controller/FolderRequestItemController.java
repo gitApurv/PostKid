@@ -22,7 +22,7 @@ import com.apurv.request.dto.ExecutionResponse;
 import com.apurv.request.dto.RequestItemRequest;
 import com.apurv.request.dto.RequestItemResponse;
 import com.apurv.request.service.RequestExecutionService;
-import com.apurv.request.service.FolderRequesItemService;
+import com.apurv.request.service.FolderRequestItemService;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -32,7 +32,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class FolderRequestItemController {
 
-        private final FolderRequesItemService folderRequestItemService;
+        private final FolderRequestItemService folderRequestItemService;
         private final RequestExecutionService requestExecutionService;
 
         @PostMapping("/execute")

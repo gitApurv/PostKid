@@ -116,6 +116,18 @@ public class WorkspaceController {
                 return ResponseEntity.ok(ApiResponse.success("Member removed", null));
         }
 
+        @DeleteMapping("/{workspaceId}/members/leave")
+        public ResponseEntity<ApiResponse<Void>> leaveWorkspace(
+                        @PathVariable UUID workspaceId,
+                        @AuthenticationPrincipal User currentUser) {
+
+                workspaceService.removeMember(
+                                workspaceId,
+                                currentUser.getId(),
+                                currentUser);
+                return ResponseEntity.ok(ApiResponse.success("Left workspace successfully", null));
+        }
+
         @GetMapping("/{workspaceId}/members")
         public ResponseEntity<ApiResponse<List<MemberResponse>>> getMembers(
                         @PathVariable UUID workspaceId,

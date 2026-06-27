@@ -57,8 +57,8 @@ public class WorkspaceService {
     @Transactional
     public WorkspaceResponse createDefaultWorkspace(User user) {
         Workspace workspace = new Workspace();
-        workspace.setName("My Workspace");
-        workspace.setDescription("Default workspace");
+        workspace.setName(user.getUsername() + "'s workspace");
+        workspace.setDescription("Default workspace for user " + user.getUsername());
         workspace.setOwner(user);
         workspace.setDefault(true);
         Workspace savedWorkspace = workspaceRepository.save(workspace);
@@ -112,12 +112,12 @@ public class WorkspaceService {
     public void deleteWorkspace(UUID workspaceId, User currentUser) {
         Workspace workspace = getWorkspace(workspaceId);
 
-        if (workspace.isDefault()) {
-            throw new IllegalArgumentException("Default workspace cannot be deleted");
-        }
-
         if (!workspace.getOwner().getId().equals(currentUser.getId())) {
             throw new AccessDeniedException("Only the workspace owner can delete the workspace");
+        }
+
+        if (workspace.isDefault()) {
+            throw new IllegalArgumentException("Default workspace cannot be deleted");
         }
 
         workspaceRepository.delete(workspace);
@@ -157,7 +157,9 @@ public class WorkspaceService {
             throw new IllegalArgumentException("Cannot remove the workspace owner from the workspace");
         }
 
-        workspaceAuthorizationService.requireRole(workspaceId, currentUser.getId(), WorkspaceRole.ADMIN);
+        if (!currentUser.getId().equals(userId)) {
+            workspaceAuthorizationService.requireRole(workspaceId, currentUser.getId(), WorkspaceRole.ADMIN);
+        }
 
         WorkspaceMember workspaceMember = workspaceMemberRepository.findByWorkspaceIdAndUserId(workspaceId, userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Member not found in the workspace"));
@@ -172,7 +174,8 @@ public class WorkspaceService {
 
         workspaceAuthorizationService.requireRole(workspaceId, currentUser.getId(), WorkspaceRole.ADMIN);
 
-        List<WorkspaceMember> workspaceMembers = workspaceMemberRepository.findAllByWorkspaceId(workspaceId);
+        List<WorkspaceMember> workspaceMembers = workspaceMemberRepository
+                .findAllByWorkspaceIdOrderByJoinedAt(workspaceId);
         return workspaceMembers.stream()
                 .map(this::toMemberResponse)
                 .collect(Collectors.toList());
