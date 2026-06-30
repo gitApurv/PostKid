@@ -1,7 +1,17 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuthStore } from "../store/authStore";
-import { Mail, Lock, User, Terminal, ArrowRight, Check, Activity, ShieldCheck, Cpu } from "lucide-react";
+import {
+  Mail,
+  Lock,
+  User,
+  Terminal,
+  ArrowRight,
+  Check,
+  Activity,
+  ShieldCheck,
+  Cpu,
+} from "lucide-react";
 
 export default function RegisterPage() {
   const registerAction = useAuthStore((state) => state.registerAction);
@@ -89,10 +99,13 @@ export default function RegisterPage() {
           <div className="space-y-4">
             <h2 className="text-4xl font-display font-extrabold text-white leading-tight">
               Setup workspaces, <br />
-              <span className="bg-gradient-to-r from-brand-primary via-brand-secondary to-pink-500 bg-clip-text text-transparent">collaborate instantly.</span>
+              <span className="bg-gradient-to-r from-brand-primary via-brand-secondary to-pink-500 bg-clip-text text-transparent">
+                collaborate instantly.
+              </span>
             </h2>
             <p className="text-slate-400 text-sm max-w-md leading-relaxed">
-              Create developer workspaces to organize collections, configure environments, and manage members with granular roles.
+              Create developer workspaces to organize collections, configure
+              environments, and manage members with granular roles.
             </p>
           </div>
 
@@ -104,11 +117,15 @@ export default function RegisterPage() {
                 <span className="w-2.5 h-2.5 rounded-full bg-yellow-500/60" />
                 <span className="w-2.5 h-2.5 rounded-full bg-green-500/60" />
               </div>
-              <span className="text-[10px] font-mono text-slate-500 select-none">workspace-bootstrap.sh</span>
+              <span className="text-[10px] font-mono text-slate-500 select-none">
+                workspace-bootstrap.sh
+              </span>
             </div>
 
             <div className="p-5 font-mono text-[11px] space-y-3">
-              <div className="text-slate-500 border-b border-white/5 pb-2">Initializing PostKid Workspace Bootstrap...</div>
+              <div className="text-slate-500 border-b border-white/5 pb-2">
+                Initializing PostKid Workspace Bootstrap...
+              </div>
               <div className="flex gap-2 text-slate-300">
                 <span className="text-brand-success">✓</span>
                 <span>Generating workspace database schemas</span>
@@ -118,8 +135,12 @@ export default function RegisterPage() {
                 <span>Preparing environment variable scopes</span>
               </div>
               <div className="flex gap-2 text-slate-300">
-                <span className="text-brand-secondary animate-pulse-slow">●</span>
-                <span className="text-slate-400">Awaiting developer registration...</span>
+                <span className="text-brand-secondary animate-pulse-slow">
+                  ●
+                </span>
+                <span className="text-slate-400">
+                  Awaiting developer registration...
+                </span>
               </div>
             </div>
           </div>
@@ -248,7 +269,9 @@ export default function RegisterPage() {
                 </div>
                 <div className="flex justify-between items-center text-[10px] text-slate-400">
                   <span>Password Strength</span>
-                  <span className="font-semibold text-slate-300">{strength}%</span>
+                  <span className="font-semibold text-slate-300">
+                    {strength}%
+                  </span>
                 </div>
               </div>
 
@@ -305,11 +328,13 @@ export default function RegisterPage() {
                 <label className="absolute left-10 -top-2 text-[9px] font-semibold text-brand-primary/70 bg-brand-layer-1 px-1 rounded transition-standard pointer-events-none">
                   Confirm Password
                 </label>
-                {password && confirmPassword && password !== confirmPassword && (
-                  <span className="absolute right-3 top-2.5 text-[9px] text-brand-error font-medium">
-                    Mismatch
-                  </span>
-                )}
+                {password &&
+                  confirmPassword &&
+                  password !== confirmPassword && (
+                    <span className="absolute right-3 top-2.5 text-[9px] text-brand-error font-medium">
+                      Mismatch
+                    </span>
+                  )}
               </div>
 
               {/* Submit Button */}

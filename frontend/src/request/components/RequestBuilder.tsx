@@ -68,18 +68,18 @@ export default function RequestBuilder() {
   const [editName, setEditName] = useState("");
   const [localUrl, setLocalUrl] = useState("");
 
-  useEffect(() => {
+  const [prevRequestId, setPrevRequestId] = useState<string | undefined>(activeRequest?.id);
+  const [prevRequestUrl, setPrevRequestUrl] = useState<string | undefined>(activeRequest?.url);
+
+  if (activeRequest?.id !== prevRequestId || activeRequest?.url !== prevRequestUrl) {
+    setPrevRequestId(activeRequest?.id);
+    setPrevRequestUrl(activeRequest?.url);
     if (activeRequest) {
       setEditName(activeRequest.name);
       setIsEditingName(false);
-    }
-  }, [activeRequest?.id]);
-
-  useEffect(() => {
-    if (activeRequest) {
       setLocalUrl(activeRequest.url);
     }
-  }, [activeRequest?.id, activeRequest?.url]);
+  }
 
   const methodDropdownRef = useRef<HTMLDivElement>(null);
   const envDropdownRef = useRef<HTMLDivElement>(null);
@@ -206,8 +206,6 @@ export default function RequestBuilder() {
     }
   };
 
-
-
   const handleGridChange = (
     type: "params" | "headers",
     index: number,
@@ -260,13 +258,14 @@ export default function RequestBuilder() {
     }
   };
 
-  const hasCurlyBraces =
-    localUrl.includes("{{") && localUrl.includes("}}");
+  const hasCurlyBraces = localUrl.includes("{{") && localUrl.includes("}}");
 
   if (!activeRequest) return null;
 
   return (
-    <div className={`glass-panel rounded-2xl p-5 space-y-4 flex flex-col h-[440px] z-10 shrink-0 transition-all duration-300 ${currentStyles.glow}`}>
+    <div
+      className={`glass-panel rounded-2xl p-5 space-y-4 flex flex-col h-[440px] z-10 shrink-0 transition-all duration-300 ${currentStyles.glow}`}
+    >
       {/* Top API URL Builder strip */}
       <div className="space-y-2">
         <div className="flex items-center justify-between">
@@ -340,8 +339,12 @@ export default function RequestBuilder() {
                             : "bg-slate-400 shadow-[0_0_6px_#94A3B8]"
                   }`}
                 />
-                <span>{activeEnvironment ? activeEnvironment.name : "Select Env"}</span>
-                <ChevronDown className={`w-3 h-3 text-slate-500 transition-transform duration-200 ${envDropdownOpen ? "rotate-180 text-slate-300" : ""}`} />
+                <span>
+                  {activeEnvironment ? activeEnvironment.name : "Select Env"}
+                </span>
+                <ChevronDown
+                  className={`w-3 h-3 text-slate-500 transition-transform duration-200 ${envDropdownOpen ? "rotate-180 text-slate-300" : ""}`}
+                />
               </button>
 
               {envDropdownOpen && (
@@ -365,7 +368,9 @@ export default function RequestBuilder() {
                               : "text-slate-400 hover:text-slate-200 hover:bg-white/[0.02] border border-transparent"
                           }`}
                         >
-                          <span className="truncate text-[10px]">{environment.name}</span>
+                          <span className="truncate text-[10px]">
+                            {environment.name}
+                          </span>
                           {isSelected && (
                             <span className="w-1 h-1 rounded-full bg-brand-primary shadow-[0_0_8px_rgba(99,102,241,0.8)] shrink-0" />
                           )}
@@ -819,7 +824,9 @@ export default function RequestBuilder() {
                       (activeRequest.bodyJson || "").split("\n").length,
                     ),
                   }).map((_, i) => (
-                    <div key={i} className="h-5 leading-5">{i + 1}</div>
+                    <div key={i} className="h-5 leading-5">
+                      {i + 1}
+                    </div>
                   ))}
                 </div>
 
@@ -867,6 +874,6 @@ export default function RequestBuilder() {
           )}
         </div>
       </div>
-    </div >
+    </div>
   );
 }

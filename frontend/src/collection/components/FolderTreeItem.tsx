@@ -29,7 +29,9 @@ export default function FolderTreeItem({
     (state) => state.fetchFolderDetailsAction,
   );
 
-  const isExpanded = useCollectionStore((state) => !!state.expandedFolderIds[folder.id]);
+  const isExpanded = useCollectionStore(
+    (state) => !!state.expandedFolderIds[folder.id],
+  );
   const toggleFolderExpansionAction = useCollectionStore(
     (state) => state.toggleFolderExpansionAction,
   );
@@ -66,7 +68,11 @@ export default function FolderTreeItem({
         `Are you sure you want to permanently delete API request '${name}'?`,
       )
     ) {
-      const response = await deleteRequestAction(collectionId, folder.id, reqId);
+      const response = await deleteRequestAction(
+        collectionId,
+        folder.id,
+        reqId,
+      );
       if (response && !response.success) {
         alert(response.error || "Failed to delete request.");
       }

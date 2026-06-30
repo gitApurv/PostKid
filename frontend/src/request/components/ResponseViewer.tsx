@@ -119,7 +119,9 @@ export default function ResponseViewer() {
           </span>
 
           {/* Formatted Text View */}
-          <span className="pl-3 whitespace-pre-wrap leading-5">{renderedLine}</span>
+          <span className="pl-3 whitespace-pre-wrap leading-5">
+            {renderedLine}
+          </span>
         </div>
       );
     });
@@ -193,7 +195,9 @@ export default function ResponseViewer() {
   const currentGlow = getGlowStyle(lastResponse?.status);
 
   return (
-    <div className={`glass-panel rounded-2xl overflow-hidden flex flex-col h-[350px] z-10 shrink-0 border transition-all duration-300 ${currentGlow}`}>
+    <div
+      className={`glass-panel rounded-2xl overflow-hidden flex flex-col h-[350px] z-10 shrink-0 border transition-all duration-300 ${currentGlow}`}
+    >
       {/* 1. Frosted Metadata Banner */}
       <div className="h-12 bg-white/[0.02] border-b border-white/5 px-4 flex items-center justify-between shrink-0">
         {/* Status Metrics or Idle state details */}
@@ -378,7 +382,9 @@ export default function ResponseViewer() {
               </p>
               <p className="text-[10px] text-slate-500 leading-relaxed max-w-xs px-2">
                 Select an endpoint from collections sidebar, configure your
-                parameters, and press the <span className="text-brand-primary font-bold">'Send'</span> button to execute.
+                parameters, and press the{" "}
+                <span className="text-brand-primary font-bold">'Send'</span>{" "}
+                button to execute.
               </p>
             </div>
           </div>

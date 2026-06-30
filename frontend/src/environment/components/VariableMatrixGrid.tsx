@@ -1,8 +1,12 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo } from "react";
 import { useEnvironmentStore } from "../store/environmentStore";
 import { Trash2, FolderPlus, Edit3 } from "lucide-react";
 
-export default function VariableMatrixGrid({ collectionId }: { collectionId: string }) {
+export default function VariableMatrixGrid({
+  collectionId,
+}: {
+  collectionId: string;
+}) {
   const environments = useEnvironmentStore((state) => state.environments);
   const activeEnvironmentId = useEnvironmentStore(
     (state) => state.activeEnvironmentId,
@@ -34,12 +38,19 @@ export default function VariableMatrixGrid({ collectionId }: { collectionId: str
       (environment) => environment.id === activeEnvironmentId,
     ) || environments[0];
 
-  useEffect(() => {
+  const [prevEnvId, setPrevEnvId] = useState<string | undefined>(activeEnv?.id);
+  const [prevEnvName, setPrevEnvName] = useState<string | undefined>(
+    activeEnv?.name,
+  );
+
+  if (activeEnv?.id !== prevEnvId || activeEnv?.name !== prevEnvName) {
+    setPrevEnvId(activeEnv?.id);
+    setPrevEnvName(activeEnv?.name);
     if (activeEnv) {
       setEditName(activeEnv.name);
       setIsEditingName(false);
     }
-  }, [activeEnv?.id, activeEnv?.name]);
+  }
 
   const filteredVariables = activeEnv?.variables || [];
 
@@ -57,7 +68,7 @@ export default function VariableMatrixGrid({ collectionId }: { collectionId: str
       }
     }
     return list;
-  }, [filteredVariables, editingValues]);
+  }, [filteredVariables, editingValues, phantomRow]);
 
   const handleSaveEnvName = async () => {
     if (!activeEnv) return;
@@ -122,10 +133,15 @@ export default function VariableMatrixGrid({ collectionId }: { collectionId: str
     } else {
       const targetVar = filteredVariables[index];
       if (key !== targetVar.key || value !== targetVar.value) {
-        response = await updateVariableAction(collectionId, activeEnv.id, targetVar.id, {
-          key: key.trim(),
-          value: value.trim(),
-        });
+        response = await updateVariableAction(
+          collectionId,
+          activeEnv.id,
+          targetVar.id,
+          {
+            key: key.trim(),
+            value: value.trim(),
+          },
+        );
       }
     }
     if (response && !response.success) {

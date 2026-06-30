@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { createPortal } from "react-dom";
 import { useHistoryStore } from "../store/historyStore";
 import { AlertTriangle, Loader2 } from "lucide-react";
@@ -12,12 +12,14 @@ export default function ClearHistoryModal({ isOpen, onClose }: ModalProps) {
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  useEffect(() => {
+  const [prevIsOpen, setPrevIsOpen] = useState(isOpen);
+  if (isOpen !== prevIsOpen) {
+    setPrevIsOpen(isOpen);
     if (isOpen) {
       setError(null);
       setIsLoading(false);
     }
-  }, [isOpen]);
+  }
 
   const handleClear = async () => {
     if (isLoading) return;
@@ -80,6 +82,6 @@ export default function ClearHistoryModal({ isOpen, onClose }: ModalProps) {
         </div>
       </div>
     </div>,
-    document.body
+    document.body,
   );
 }

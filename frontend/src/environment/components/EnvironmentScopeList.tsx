@@ -31,12 +31,6 @@ export default function EnvironmentScopeList({
     loadEnvironments();
   }, [fetchEnvironments, collectionId]);
 
-  useEffect(() => {
-    if (environments.length > 0 && !activeEnvironmentId) {
-      setActiveEnvironment(environments[0].id);
-    }
-  }, [environments, activeEnvironmentId, setActiveEnvironment]);
-
   const handleDeleteEnv = async (id: string, name: string) => {
     if (
       confirm(
@@ -74,14 +68,16 @@ export default function EnvironmentScopeList({
               <div
                 key={environment.id}
                 onClick={() => setActiveEnvironment(environment.id)}
-                className={`group w-full flex items-center justify-between px-3 py-3 rounded-lg border transition-all cursor-pointer ${isActive
+                className={`group w-full flex items-center justify-between px-3 py-3 rounded-lg border transition-all cursor-pointer ${
+                  isActive
                     ? "bg-[#0B0F19] border-brand-success shadow-[0_0_12px_rgba(16,185,129,0.06)]"
                     : "bg-white/[0.01] border-white/5 hover:border-white/10 hover:bg-white/[0.02]"
-                  }`}
+                }`}
               >
                 <div className="flex items-center gap-2.5 overflow-hidden">
                   <span
-                    className={`w-2 h-2 rounded-full shrink-0 ${environment.color === "EMERALD"
+                    className={`w-2 h-2 rounded-full shrink-0 ${
+                      environment.color === "EMERALD"
                         ? "bg-brand-success shadow-[0_0_6px_#10B981]"
                         : environment.color === "AMBER"
                           ? "bg-brand-warning shadow-[0_0_6px_#F59E0B]"
@@ -90,7 +86,7 @@ export default function EnvironmentScopeList({
                             : environment.color === "ROSE"
                               ? "bg-rose-500 shadow-[0_0_6px_#F43F5E]"
                               : "bg-slate-400 shadow-[0_0_6px_#94A3B8]"
-                      } ${isActive ? "animate-pulse" : ""}`}
+                    } ${isActive ? "animate-pulse" : ""}`}
                   />
                   <span
                     className={`text-xs font-medium truncate ${isActive ? "text-white" : "text-slate-400"}`}

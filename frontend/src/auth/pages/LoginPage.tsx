@@ -1,7 +1,17 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuthStore } from "../store/authStore";
-import { User, Lock, Eye, EyeOff, Terminal, ArrowRight, Activity, ShieldCheck, Cpu } from "lucide-react";
+import {
+  User,
+  Lock,
+  Eye,
+  EyeOff,
+  Terminal,
+  ArrowRight,
+  Activity,
+  ShieldCheck,
+  Cpu,
+} from "lucide-react";
 
 export default function LoginPage() {
   const loginAction = useAuthStore((state) => state.loginAction);
@@ -58,10 +68,13 @@ export default function LoginPage() {
           <div className="space-y-4">
             <h2 className="text-4xl font-display font-extrabold text-white leading-tight">
               Manage collections, <br />
-              <span className="bg-gradient-to-r from-brand-primary via-brand-secondary to-pink-500 bg-clip-text text-transparent">execute requests.</span>
+              <span className="bg-gradient-to-r from-brand-primary via-brand-secondary to-pink-500 bg-clip-text text-transparent">
+                execute requests.
+              </span>
             </h2>
             <p className="text-slate-400 text-sm max-w-md leading-relaxed">
-              Organize API requests into collections and folders, toggle environment variables, and collaborate across workspaces.
+              Organize API requests into collections and folders, toggle
+              environment variables, and collaborate across workspaces.
             </p>
           </div>
 
@@ -73,24 +86,36 @@ export default function LoginPage() {
                 <span className="w-2.5 h-2.5 rounded-full bg-yellow-500/60" />
                 <span className="w-2.5 h-2.5 rounded-full bg-green-500/60" />
               </div>
-              <span className="text-[10px] font-mono text-slate-500 select-none">workspace-details.json</span>
+              <span className="text-[10px] font-mono text-slate-500 select-none">
+                workspace-details.json
+              </span>
             </div>
 
             <div className="p-5 font-mono text-[11px] space-y-4">
               <div className="flex items-center gap-2 bg-brand-layer-2/50 border border-white/5 p-2 rounded-lg">
-                <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-brand-success/20 text-brand-success">GET</span>
-                <span className="text-slate-300 truncate">https://api.postkid.com/api/v1/workspaces</span>
+                <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-brand-success/20 text-brand-success">
+                  GET
+                </span>
+                <span className="text-slate-300 truncate">
+                  https://api.postkid.com/api/v1/workspaces
+                </span>
               </div>
 
               <div className="space-y-2">
-                <span className="text-[9px] font-bold text-slate-500 block uppercase tracking-wider">Active Workspace Settings</span>
+                <span className="text-[9px] font-bold text-slate-500 block uppercase tracking-wider">
+                  Active Workspace Settings
+                </span>
                 <div className="space-y-1.5">
                   <div className="flex justify-between text-slate-400 bg-white/[0.02] px-2.5 py-1 rounded border border-white/5">
-                    <span className="text-brand-primary font-medium">workspace_role</span>
+                    <span className="text-brand-primary font-medium">
+                      workspace_role
+                    </span>
                     <span>"ADMIN"</span>
                   </div>
                   <div className="flex justify-between text-slate-400 bg-white/[0.02] px-2.5 py-1 rounded border border-white/5">
-                    <span className="text-brand-primary font-medium">variables_count</span>
+                    <span className="text-brand-primary font-medium">
+                      variables_count
+                    </span>
                     <span className="text-brand-warning">12</span>
                   </div>
                 </div>

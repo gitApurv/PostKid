@@ -76,10 +76,12 @@ export default function CollectionSidebar() {
     loadCollections();
   }, []);
 
-  useEffect(() => {
+  const [prevShowAddModal, setPrevShowAddModal] = useState<typeof showAddModal>(showAddModal);
+  if (showAddModal !== prevShowAddModal) {
+    setPrevShowAddModal(showAddModal);
     setError(null);
     setIsLoading(false);
-  }, [showAddModal]);
+  }
 
   const toggleCollection = async (collectionId: string) => {
     const nextState = !expandedCollections[collectionId];
@@ -141,7 +143,9 @@ export default function CollectionSidebar() {
             ...prev,
             [collectionId]: true,
           }));
-          const collection = collections.find((collection) => collection.id === collectionId);
+          const collection = collections.find(
+            (collection) => collection.id === collectionId,
+          );
           if (collection && !collection.isLoaded && !collection.isLoading) {
             await fetchCollectionDetailsAction(collectionId);
           }
@@ -157,9 +161,14 @@ export default function CollectionSidebar() {
             }
             return null;
           };
-          const collection = collections.find((collection) => collection.id === collectionId);
+          const collection = collections.find(
+            (collection) => collection.id === collectionId,
+          );
           if (collection && collection.folders) {
-            const folder = findFolderInCollections(collection.folders, folderId);
+            const folder = findFolderInCollections(
+              collection.folders,
+              folderId,
+            );
             if (folder && !folder.isLoaded && !folder.isLoading) {
               await fetchFolderDetailsAction(collectionId, folderId);
             }
@@ -197,7 +206,12 @@ export default function CollectionSidebar() {
     }
   };
 
-  const handleDeleteRequest = async (collectionId: string, folderId: string | null, reqId: string, name: string) => {
+  const handleDeleteRequest = async (
+    collectionId: string,
+    folderId: string | null,
+    reqId: string,
+    name: string,
+  ) => {
     if (
       confirm(
         `Are you sure you want to permanently delete API request '${name}'?`,
@@ -209,7 +223,6 @@ export default function CollectionSidebar() {
       }
     }
   };
-
 
   return (
     <div className="w-64 bg-[#0B0F19] border-r border-white/5 h-full flex flex-col shrink-0 overflow-hidden relative z-30">
@@ -244,10 +257,11 @@ export default function CollectionSidebar() {
             <div key={collection.id} className="space-y-1">
               {/* Collection Title Panel */}
               <div
-                className={`flex items-center justify-between px-2 py-1.5 rounded-md group relative transition-standard ${isActive
-                  ? "bg-brand-primary/10 text-white font-semibold"
-                  : "hover:bg-white/[0.01]"
-                  }`}
+                className={`flex items-center justify-between px-2 py-1.5 rounded-md group relative transition-standard ${
+                  isActive
+                    ? "bg-brand-primary/10 text-white font-semibold"
+                    : "hover:bg-white/[0.01]"
+                }`}
               >
                 {isActive && (
                   <span className="absolute left-0 top-1 bottom-1 w-[2px] bg-brand-primary rounded-r" />
@@ -260,8 +274,9 @@ export default function CollectionSidebar() {
                       toggleCollection(collection.id);
                     }
                   }}
-                  className={`text-xs font-bold truncate tracking-wide flex items-center gap-1.5 cursor-pointer flex-1 min-w-0 ${isActive ? "text-white" : "text-slate-300 hover:text-white"
-                    }`}
+                  className={`text-xs font-bold truncate tracking-wide flex items-center gap-1.5 cursor-pointer flex-1 min-w-0 ${
+                    isActive ? "text-white" : "text-slate-300 hover:text-white"
+                  }`}
                 >
                   <span
                     onClick={(e) => {
@@ -360,7 +375,9 @@ export default function CollectionSidebar() {
                       <RequestTreeItem
                         key={request.id}
                         request={request}
-                        onDelete={(reqId, name) => handleDeleteRequest(collection.id, null, reqId, name)}
+                        onDelete={(reqId, name) =>
+                          handleDeleteRequest(collection.id, null, reqId, name)
+                        }
                       />
                     ))}
 
@@ -384,109 +401,117 @@ export default function CollectionSidebar() {
       </div>
 
       {/* 5. Create Folders / Request Dialog */}
-      {showAddModal && createPortal(
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          {/* Backdrop */}
-          <div className="fixed inset-0 bg-black/70 backdrop-blur-md" onClick={handleCloseModal} />
-
-          <div className="glass-panel w-full max-w-sm rounded-2xl p-6 shadow-2xl relative border border-white/10 animate-float z-10">
-            {/* Top card accent line */}
-            <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-brand-primary via-brand-secondary to-pink-500 opacity-90" />
-
-            {/* Close button */}
-            <button
+      {showAddModal &&
+        createPortal(
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            {/* Backdrop */}
+            <div
+              className="fixed inset-0 bg-black/70 backdrop-blur-md"
               onClick={handleCloseModal}
-              className="absolute top-4 right-4 p-1.5 hover:bg-white/5 rounded-lg text-slate-400 hover:text-white transition-standard cursor-pointer"
-            >
-              <X className="w-4 h-4" />
-            </button>
+            />
 
-            <h3 className="text-sm font-semibold font-display text-white mb-4">
-              Add New {showAddModal.type.charAt(0).toUpperCase() + showAddModal.type.slice(1)}
-            </h3>
+            <div className="glass-panel w-full max-w-sm rounded-2xl p-6 shadow-2xl relative border border-white/10 animate-float z-10">
+              {/* Top card accent line */}
+              <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-brand-primary via-brand-secondary to-pink-500 opacity-90" />
 
-            <form onSubmit={handleAddNewItem} className="space-y-4">
-              <div className="space-y-1.5">
-                <label className="text-[9px] font-bold text-slate-500 uppercase tracking-wider pl-0.5">
-                  {showAddModal.type} name
-                </label>
-                <input
-                  type="text"
-                  required
-                  autoFocus
-                  disabled={isLoading}
-                  value={newItemName}
-                  onChange={(e) => setNewItemName(e.target.value)}
-                  placeholder={
-                    showAddModal.type === "collection"
-                      ? "User Service APIs"
-                      : showAddModal.type === "folder"
-                        ? "Authentication Suite"
-                        : "Post Authenticate"
-                  }
-                  className="block w-full px-3 py-2 bg-brand-layer-2/50 border border-white/5 rounded-lg text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-brand-primary/60 focus:ring-2 focus:ring-brand-primary/10 transition-standard disabled:opacity-50"
-                />
-              </div>
+              {/* Close button */}
+              <button
+                onClick={handleCloseModal}
+                className="absolute top-4 right-4 p-1.5 hover:bg-white/5 rounded-lg text-slate-400 hover:text-white transition-standard cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
 
-              {showAddModal.type === "collection" && (
+              <h3 className="text-sm font-semibold font-display text-white mb-4">
+                Add New{" "}
+                {showAddModal.type.charAt(0).toUpperCase() +
+                  showAddModal.type.slice(1)}
+              </h3>
+
+              <form onSubmit={handleAddNewItem} className="space-y-4">
                 <div className="space-y-1.5">
                   <label className="text-[9px] font-bold text-slate-500 uppercase tracking-wider pl-0.5">
-                    Collection description
+                    {showAddModal.type} name
                   </label>
-                  <textarea
-                    value={newItemDescription}
-                    onChange={(e) => setNewItemDescription(e.target.value)}
-                    placeholder="Describe the purpose of this collection..."
-                    rows={3}
+                  <input
+                    type="text"
+                    required
+                    autoFocus
                     disabled={isLoading}
-                    className="block w-full px-3 py-2 bg-brand-layer-2/50 border border-white/5 rounded-lg text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-brand-primary/60 focus:ring-2 focus:ring-brand-primary/10 transition-standard resize-none disabled:opacity-50"
+                    value={newItemName}
+                    onChange={(e) => setNewItemName(e.target.value)}
+                    placeholder={
+                      showAddModal.type === "collection"
+                        ? "User Service APIs"
+                        : showAddModal.type === "folder"
+                          ? "Authentication Suite"
+                          : "Post Authenticate"
+                    }
+                    className="block w-full px-3 py-2 bg-brand-layer-2/50 border border-white/5 rounded-lg text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-brand-primary/60 focus:ring-2 focus:ring-brand-primary/10 transition-standard disabled:opacity-50"
                   />
                 </div>
-              )}
 
-              {showAddModal.type === "request" && (
-                <div className="space-y-1.5">
-                  <label className="text-[9px] font-bold text-slate-500 uppercase tracking-wider pl-0.5">
-                    HTTP method
-                  </label>
-                  <select
-                    value={newRequestType}
+                {showAddModal.type === "collection" && (
+                  <div className="space-y-1.5">
+                    <label className="text-[9px] font-bold text-slate-500 uppercase tracking-wider pl-0.5">
+                      Collection description
+                    </label>
+                    <textarea
+                      value={newItemDescription}
+                      onChange={(e) => setNewItemDescription(e.target.value)}
+                      placeholder="Describe the purpose of this collection..."
+                      rows={3}
+                      disabled={isLoading}
+                      className="block w-full px-3 py-2 bg-brand-layer-2/50 border border-white/5 rounded-lg text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-brand-primary/60 focus:ring-2 focus:ring-brand-primary/10 transition-standard resize-none disabled:opacity-50"
+                    />
+                  </div>
+                )}
+
+                {showAddModal.type === "request" && (
+                  <div className="space-y-1.5">
+                    <label className="text-[9px] font-bold text-slate-500 uppercase tracking-wider pl-0.5">
+                      HTTP method
+                    </label>
+                    <select
+                      value={newRequestType}
+                      disabled={isLoading}
+                      onChange={(e) =>
+                        setNewRequestType(
+                          e.target.value as RequestItem["method"],
+                        )
+                      }
+                      className="block w-full bg-brand-layer-2/50 border border-white/5 rounded-lg text-xs text-slate-300 p-2 focus:outline-none focus:border-brand-primary/60 focus:ring-2 focus:ring-brand-primary/10 transition-standard disabled:opacity-50"
+                    >
+                      <option value="GET">GET</option>
+                      <option value="POST">POST</option>
+                      <option value="PUT">PUT</option>
+                      <option value="DELETE">DELETE</option>
+                      <option value="PATCH">PATCH</option>
+                    </select>
+                  </div>
+                )}
+
+                {error && (
+                  <div className="text-xs text-brand-error bg-brand-error/10 border border-brand-error/20 rounded-lg p-3 flex items-center gap-2">
+                    <span className="w-1.5 h-1.5 rounded-full bg-brand-error shrink-0" />
+                    <span>{error}</span>
+                  </div>
+                )}
+
+                <div className="flex justify-end pt-2">
+                  <button
+                    type="submit"
                     disabled={isLoading}
-                    onChange={(e) =>
-                      setNewRequestType(e.target.value as RequestItem["method"])
-                    }
-                    className="block w-full bg-brand-layer-2/50 border border-white/5 rounded-lg text-xs text-slate-300 p-2 focus:outline-none focus:border-brand-primary/60 focus:ring-2 focus:ring-brand-primary/10 transition-standard disabled:opacity-50"
+                    className="px-4 py-1.5 bg-gradient-to-r from-brand-primary via-brand-secondary to-pink-500 hover:shadow-[0_0_12px_rgba(99,102,241,0.35)] text-white rounded-lg text-[11px] font-semibold transition-standard cursor-pointer disabled:opacity-50"
                   >
-                    <option value="GET">GET</option>
-                    <option value="POST">POST</option>
-                    <option value="PUT">PUT</option>
-                    <option value="DELETE">DELETE</option>
-                    <option value="PATCH">PATCH</option>
-                  </select>
+                    {isLoading ? "Adding..." : "Confirm Add"}
+                  </button>
                 </div>
-              )}
-
-              {error && (
-                <div className="text-xs text-brand-error bg-brand-error/10 border border-brand-error/20 rounded-lg p-3 flex items-center gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-brand-error shrink-0" />
-                  <span>{error}</span>
-                </div>
-              )}
-
-              <div className="flex justify-end pt-2">
-                <button
-                  type="submit"
-                  disabled={isLoading}
-                  className="px-4 py-1.5 bg-gradient-to-r from-brand-primary via-brand-secondary to-pink-500 hover:shadow-[0_0_12px_rgba(99,102,241,0.35)] text-white rounded-lg text-[11px] font-semibold transition-standard cursor-pointer disabled:opacity-50"
-                >
-                  {isLoading ? "Adding..." : "Confirm Add"}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>,
-        document.body
-      )}
+              </form>
+            </div>
+          </div>,
+          document.body,
+        )}
     </div>
   );
 }

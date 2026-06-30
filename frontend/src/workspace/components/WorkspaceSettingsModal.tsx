@@ -1,7 +1,18 @@
 import { useState } from "react";
 import { useWorkspaceStore } from "../store/workspaceStore";
 import { useAuthStore } from "../../auth/store/authStore";
-import { Plus, Trash2, Edit3, Check, X, Loader2, Settings, Users, UserPlus, LogOut } from "lucide-react";
+import {
+  Plus,
+  Trash2,
+  Edit3,
+  Check,
+  X,
+  Loader2,
+  Settings,
+  Users,
+  UserPlus,
+  LogOut,
+} from "lucide-react";
 import type { WorkspaceRole, MemberResponse } from "../types/MemberResponse";
 import md5 from "blueimp-md5";
 
@@ -39,9 +50,15 @@ export default function WorkspaceSettingsModal({
   const [editDescription, setEditDescription] = useState("");
   const [isSaving, setIsSaving] = useState(false);
 
-  const [expandedWorkspaceId, setExpandedWorkspaceId] = useState<string | null>(null);
-  const [membersMap, setMembersMap] = useState<Record<string, MemberResponse[]>>({});
-  const [loadingMembers, setLoadingMembers] = useState<Record<string, boolean>>({});
+  const [expandedWorkspaceId, setExpandedWorkspaceId] = useState<string | null>(
+    null,
+  );
+  const [membersMap, setMembersMap] = useState<
+    Record<string, MemberResponse[]>
+  >({});
+  const [loadingMembers, setLoadingMembers] = useState<Record<string, boolean>>(
+    {},
+  );
   const [inviteEmail, setInviteEmail] = useState("");
   const [inviteRole, setInviteRole] = useState<WorkspaceRole>("MEMBER");
   const [isInviting, setIsInviting] = useState(false);
@@ -95,7 +112,11 @@ export default function WorkspaceSettingsModal({
   };
 
   const handleDelete = async (id: string, name: string) => {
-    if (confirm(`Are you sure you want to permanently delete workspace "${name}"?`)) {
+    if (
+      confirm(
+        `Are you sure you want to permanently delete workspace "${name}"?`,
+      )
+    ) {
       const res = await deleteWorkspaceAction(id);
       if (!res.success) {
         alert(res.error || "Failed to delete workspace.");
@@ -146,21 +167,34 @@ export default function WorkspaceSettingsModal({
     setIsInviting(false);
   };
 
-  const handleRemoveMember = async (workspaceId: string, userId: string, username: string, email: string) => {
-    const isSelf = !userId || (currentUser && (currentUser.email === email || currentUser.name === username));
+  const handleRemoveMember = async (
+    workspaceId: string,
+    userId: string,
+    username: string,
+    email: string,
+  ) => {
+    const isSelf =
+      !userId ||
+      (currentUser &&
+        (currentUser.email === email || currentUser.name === username));
     const confirmMessage = isSelf
       ? "Are you sure you want to leave this workspace?"
       : `Are you sure you want to remove member "${username}" from this workspace?`;
 
     if (confirm(confirmMessage)) {
-      const res = isSelf ? await leaveWorkspaceAction(workspaceId) : await removeMemberAction(workspaceId, userId);
+      const res = isSelf
+        ? await leaveWorkspaceAction(workspaceId)
+        : await removeMemberAction(workspaceId, userId);
       if (res.success) {
         if (isSelf) {
           useWorkspaceStore.setState((state) => {
-            const updatedWorkspaces = state.workspaces.filter((workspace) => workspace.id !== workspaceId);
+            const updatedWorkspaces = state.workspaces.filter(
+              (workspace) => workspace.id !== workspaceId,
+            );
             let nextActiveId = state.activeWorkspaceId;
             if (state.activeWorkspaceId === workspaceId) {
-              nextActiveId = updatedWorkspaces.length > 0 ? updatedWorkspaces[0].id : null;
+              nextActiveId =
+                updatedWorkspaces.length > 0 ? updatedWorkspaces[0].id : null;
             }
             return {
               workspaces: updatedWorkspaces,
@@ -173,11 +207,18 @@ export default function WorkspaceSettingsModal({
         } else {
           setMembersMap((prev) => ({
             ...prev,
-            [workspaceId]: (prev[workspaceId] || []).filter((m) => m.userId !== userId),
+            [workspaceId]: (prev[workspaceId] || []).filter(
+              (m) => m.userId !== userId,
+            ),
           }));
         }
       } else {
-        alert(res.error || (isSelf ? "Failed to leave workspace." : "Failed to remove member."));
+        alert(
+          res.error ||
+            (isSelf
+              ? "Failed to leave workspace."
+              : "Failed to remove member."),
+        );
       }
     }
   };
@@ -185,7 +226,10 @@ export default function WorkspaceSettingsModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       {/* Backdrop */}
-      <div className="fixed inset-0 bg-black/70 backdrop-blur-md" onClick={onClose} />
+      <div
+        className="fixed inset-0 bg-black/70 backdrop-blur-md"
+        onClick={onClose}
+      />
 
       {/* Modal Container */}
       <div className="glass-panel w-full max-w-2xl rounded-2xl p-6 sm:p-7 shadow-[0_0_50px_rgba(99,102,241,0.1)] relative flex flex-col max-h-[85vh] animate-float z-10 border border-white/10">
@@ -200,7 +244,8 @@ export default function WorkspaceSettingsModal({
               Workspace Settings
             </h3>
             <p className="text-[10px] text-slate-400">
-              Manage your API sandboxes, invite members, and configure collaboration scopes.
+              Manage your API sandboxes, invite members, and configure
+              collaboration scopes.
             </p>
           </div>
           <button
@@ -234,18 +279,25 @@ export default function WorkspaceSettingsModal({
                         setActiveWorkspaceAction(workspace.id);
                       }
                     }}
-                    className={`p-4 rounded-xl border transition-all duration-300 space-y-3.5 ${!isCurrentActive && !isEditingThis
-                      ? "cursor-pointer hover:border-brand-primary/30 hover:bg-brand-primary/[0.01]"
-                      : ""
-                      } ${isCurrentActive
+                    className={`p-4 rounded-xl border transition-all duration-300 space-y-3.5 ${
+                      !isCurrentActive && !isEditingThis
+                        ? "cursor-pointer hover:border-brand-primary/30 hover:bg-brand-primary/[0.01]"
+                        : ""
+                    } ${
+                      isCurrentActive
                         ? "bg-brand-primary/[0.03] border-brand-primary/20 shadow-[0_0_20px_rgba(99,102,241,0.03)]"
                         : "bg-white/[0.01] border-white/5 hover:border-white/10 hover:bg-white/[0.02]"
-                      }`}
+                    }`}
                   >
                     {isEditingThis ? (
-                      <div className="space-y-3.5" onClick={(e) => e.stopPropagation()}>
+                      <div
+                        className="space-y-3.5"
+                        onClick={(e) => e.stopPropagation()}
+                      >
                         <div className="space-y-1">
-                          <label className="text-[9px] font-bold text-slate-500 uppercase tracking-wider">Workspace Name</label>
+                          <label className="text-[9px] font-bold text-slate-500 uppercase tracking-wider">
+                            Workspace Name
+                          </label>
                           <input
                             type="text"
                             value={editName}
@@ -254,7 +306,9 @@ export default function WorkspaceSettingsModal({
                           />
                         </div>
                         <div className="space-y-1">
-                          <label className="text-[9px] font-bold text-slate-500 uppercase tracking-wider">Description</label>
+                          <label className="text-[9px] font-bold text-slate-500 uppercase tracking-wider">
+                            Description
+                          </label>
                           <textarea
                             value={editDescription}
                             onChange={(e) => setEditDescription(e.target.value)}
@@ -304,7 +358,8 @@ export default function WorkspaceSettingsModal({
                             )}
                           </div>
                           <p className="text-[11px] text-slate-400 leading-relaxed max-w-xl">
-                            {workspace.description || "No description provided."}
+                            {workspace.description ||
+                              "No description provided."}
                           </p>
                           <div className="flex items-center gap-3 text-[10px] text-slate-500 pt-1.5">
                             <span className="flex items-center gap-1 bg-white/[0.02] px-1.5 py-0.5 rounded border border-white/5">
@@ -312,17 +367,28 @@ export default function WorkspaceSettingsModal({
                               {workspace.memberCount} member(s)
                             </span>
                             <span>•</span>
-                            <span>Owner: <strong className="text-slate-400">{workspace.ownerUsername}</strong></span>
+                            <span>
+                              Owner:{" "}
+                              <strong className="text-slate-400">
+                                {workspace.ownerUsername}
+                              </strong>
+                            </span>
                           </div>
                         </div>
 
                         {/* Actions */}
-                        <div className="flex items-center gap-1 shrink-0" onClick={(e) => e.stopPropagation()}>
+                        <div
+                          className="flex items-center gap-1 shrink-0"
+                          onClick={(e) => e.stopPropagation()}
+                        >
                           <button
                             onClick={() => handleToggleMembers(workspace.id)}
                             disabled={isMembersLoading}
-                            className={`p-1.5 rounded-lg transition-standard cursor-pointer ${isMembersExpanded ? "bg-brand-primary/10 text-brand-primary" : "hover:bg-white/5 text-slate-400 hover:text-slate-200"
-                              }`}
+                            className={`p-1.5 rounded-lg transition-standard cursor-pointer ${
+                              isMembersExpanded
+                                ? "bg-brand-primary/10 text-brand-primary"
+                                : "hover:bg-white/5 text-slate-400 hover:text-slate-200"
+                            }`}
                             title="Manage Members"
                           >
                             {isMembersLoading ? (
@@ -336,7 +402,7 @@ export default function WorkspaceSettingsModal({
                               handleStartEdit(
                                 workspace.id,
                                 workspace.name,
-                                workspace.description
+                                workspace.description,
                               )
                             }
                             className="p-1.5 hover:bg-white/5 rounded-lg text-slate-400 hover:text-slate-200 transition-standard cursor-pointer"
@@ -344,10 +410,12 @@ export default function WorkspaceSettingsModal({
                           >
                             <Edit3 className="w-4 h-4" />
                           </button>
-                          {!workspace.isDefault && (
-                            workspace.ownerUsername === currentUser?.name ? (
+                          {!workspace.isDefault &&
+                            (workspace.ownerUsername === currentUser?.name ? (
                               <button
-                                onClick={() => handleDelete(workspace.id, workspace.name)}
+                                onClick={() =>
+                                  handleDelete(workspace.id, workspace.name)
+                                }
                                 className="p-1.5 hover:bg-brand-error/10 rounded-lg text-slate-400 hover:text-brand-error transition-standard cursor-pointer"
                                 title="Delete Workspace"
                               >
@@ -360,7 +428,7 @@ export default function WorkspaceSettingsModal({
                                     workspace.id,
                                     "",
                                     currentUser?.name || "",
-                                    currentUser?.email || ""
+                                    currentUser?.email || "",
                                   )
                                 }
                                 className="p-1.5 hover:bg-brand-error/10 rounded-lg text-slate-400 hover:text-brand-error transition-standard cursor-pointer"
@@ -368,15 +436,17 @@ export default function WorkspaceSettingsModal({
                               >
                                 <LogOut className="w-4 h-4" />
                               </button>
-                            )
-                          )}
+                            ))}
                         </div>
                       </div>
                     )}
 
                     {/* Members Collapsible Panel */}
                     {isMembersExpanded && (
-                      <div className="border-t border-white/5 pt-4 mt-3 space-y-4 pl-1" onClick={(e) => e.stopPropagation()}>
+                      <div
+                        className="border-t border-white/5 pt-4 mt-3 space-y-4 pl-1"
+                        onClick={(e) => e.stopPropagation()}
+                      >
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-2">
                             <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
@@ -409,7 +479,9 @@ export default function WorkspaceSettingsModal({
                               />
                               <select
                                 value={inviteRole}
-                                onChange={(e) => setInviteRole(e.target.value as WorkspaceRole)}
+                                onChange={(e) =>
+                                  setInviteRole(e.target.value as WorkspaceRole)
+                                }
                                 className="bg-brand-layer-2 border border-white/5 rounded-md text-[11px] text-slate-200 px-2 py-1.5 focus:outline-none focus:border-brand-primary/60 transition-standard"
                               >
                                 <option value="ADMIN">ADMIN</option>
@@ -451,27 +523,44 @@ export default function WorkspaceSettingsModal({
                                         <span className="font-semibold text-slate-200 truncate">
                                           {member.username}
                                         </span>
-                                        <span className={`px-1.5 py-0.5 rounded text-[8px] font-bold uppercase tracking-wider border leading-none shrink-0 ${member.role === 'ADMIN'
-                                          ? 'bg-brand-secondary/10 border-brand-secondary/20 text-brand-secondary'
-                                          : member.role === 'MEMBER'
-                                            ? 'bg-brand-primary/10 border-brand-primary/20 text-brand-primary'
-                                            : 'bg-white/5 border-white/10 text-slate-400'
-                                          }`}>
+                                        <span
+                                          className={`px-1.5 py-0.5 rounded text-[8px] font-bold uppercase tracking-wider border leading-none shrink-0 ${
+                                            member.role === "ADMIN"
+                                              ? "bg-brand-secondary/10 border-brand-secondary/20 text-brand-secondary"
+                                              : member.role === "MEMBER"
+                                                ? "bg-brand-primary/10 border-brand-primary/20 text-brand-primary"
+                                                : "bg-white/5 border-white/10 text-slate-400"
+                                          }`}
+                                        >
                                           {member.role}
                                         </span>
                                       </div>
-                                      <p className="text-[10px] text-slate-500 truncate">{member.email}</p>
+                                      <p className="text-[10px] text-slate-500 truncate">
+                                        {member.email}
+                                      </p>
                                     </div>
                                   </div>
 
                                   {/* Delete member button */}
-                                  {workspace.ownerUsername !== member.username && (
+                                  {workspace.ownerUsername !==
+                                    member.username && (
                                     <button
                                       onClick={() =>
-                                        handleRemoveMember(workspace.id, member.userId, member.username, member.email)
+                                        handleRemoveMember(
+                                          workspace.id,
+                                          member.userId,
+                                          member.username,
+                                          member.email,
+                                        )
                                       }
                                       className="p-1.5 hover:bg-brand-error/15 text-slate-500 hover:text-brand-error rounded transition-standard cursor-pointer shrink-0"
-                                      title={currentUser && (currentUser.email === member.email || currentUser.name === member.username) ? "Leave Workspace" : "Remove Member"}
+                                      title={
+                                        currentUser &&
+                                        (currentUser.email === member.email ||
+                                          currentUser.name === member.username)
+                                          ? "Leave Workspace"
+                                          : "Remove Member"
+                                      }
                                     >
                                       <Trash2 className="w-3.5 h-3.5" />
                                     </button>
@@ -502,14 +591,17 @@ export default function WorkspaceSettingsModal({
                 Create New Workspace
               </h4>
               <p className="text-[10px] text-slate-400">
-                Setup a fresh, isolated sandbox for variables, collections, and team collaboration.
+                Setup a fresh, isolated sandbox for variables, collections, and
+                team collaboration.
               </p>
             </div>
 
             <form onSubmit={handleCreate} className="space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-1.5">
-                  <label className="text-[9px] font-bold text-slate-500 uppercase tracking-wider pl-0.5">Workspace Name</label>
+                  <label className="text-[9px] font-bold text-slate-500 uppercase tracking-wider pl-0.5">
+                    Workspace Name
+                  </label>
                   <input
                     type="text"
                     required
@@ -520,7 +612,9 @@ export default function WorkspaceSettingsModal({
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-[9px] font-bold text-slate-500 uppercase tracking-wider pl-0.5">Description (Optional)</label>
+                  <label className="text-[9px] font-bold text-slate-500 uppercase tracking-wider pl-0.5">
+                    Description (Optional)
+                  </label>
                   <input
                     type="text"
                     value={newWorkspaceDescription}

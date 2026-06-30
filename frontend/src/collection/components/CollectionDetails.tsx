@@ -29,7 +29,9 @@ export default function CollectionDetails() {
     (state) => state.fetchEnvironmentsAction,
   );
   const workspaces = useWorkspaceStore((state) => state.workspaces);
-  const activeWorkspaceId = useWorkspaceStore((state) => state.activeWorkspaceId);
+  const activeWorkspaceId = useWorkspaceStore(
+    (state) => state.activeWorkspaceId,
+  );
   const activeWorkspace = workspaces.find((w) => w.id === activeWorkspaceId);
 
   const collection = collections.find(
@@ -49,14 +51,25 @@ export default function CollectionDetails() {
     }
   }, [activeCollectionId, fetchEnvironments]);
 
-  useEffect(() => {
+  const [prevCollectionId, setPrevCollectionId] = useState<string | undefined>(collection?.id);
+  const [prevCollectionName, setPrevCollectionName] = useState<string | undefined>(collection?.name);
+  const [prevCollectionDesc, setPrevCollectionDesc] = useState<string | undefined>(collection?.description);
+
+  if (
+    collection?.id !== prevCollectionId ||
+    collection?.name !== prevCollectionName ||
+    collection?.description !== prevCollectionDesc
+  ) {
+    setPrevCollectionId(collection?.id);
+    setPrevCollectionName(collection?.name);
+    setPrevCollectionDesc(collection?.description);
     if (collection) {
       setEditName(collection.name);
       setEditDescription(collection.description || "");
       setIsEditing(false);
       setErrorMsg("");
     }
-  }, [activeCollectionId, collection?.name, collection?.description]);
+  }
 
   if (!collection) {
     return (
@@ -243,7 +256,10 @@ export default function CollectionDetails() {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-          <EnvironmentScopeList collectionId={activeCollectionId!} onAddClick={() => setShowAddEnvModal(true)} />
+          <EnvironmentScopeList
+            collectionId={activeCollectionId!}
+            onAddClick={() => setShowAddEnvModal(true)}
+          />
           <VariableMatrixGrid collectionId={activeCollectionId!} />
         </div>
       </div>

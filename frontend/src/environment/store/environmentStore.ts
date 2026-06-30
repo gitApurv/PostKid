@@ -42,7 +42,15 @@ export const useEnvironmentStore = create<EnvironmentState>((set) => ({
               value: variable.value,
             })),
           }));
-        set({ environments });
+        set((state) => ({
+          environments,
+          activeEnvironmentId:
+            environments.length > 0 &&
+            (!state.activeEnvironmentId ||
+              !environments.some((e) => e.id === state.activeEnvironmentId))
+              ? environments[0].id
+              : state.activeEnvironmentId,
+        }));
         return { success: true };
       } else {
         return {

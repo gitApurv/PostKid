@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { createPortal } from "react-dom";
 import { useEnvironmentStore } from "../store/environmentStore";
 import { FolderPlus, Loader2, X } from "lucide-react";
@@ -20,14 +20,16 @@ export default function CreateEnvironmentModal({
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  useEffect(() => {
+  const [prevIsOpen, setPrevIsOpen] = useState(isOpen);
+  if (isOpen !== prevIsOpen) {
+    setPrevIsOpen(isOpen);
     if (isOpen) {
       setNewEnvName("");
       setSelectedColor("EMERALD");
       setError(null);
       setIsLoading(false);
     }
-  }, [isOpen]);
+  }
 
   const handleAddEnv = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -57,7 +59,10 @@ export default function CreateEnvironmentModal({
   return createPortal(
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       {/* Backdrop */}
-      <div className="fixed inset-0 bg-black/70 backdrop-blur-md" onClick={onClose} />
+      <div
+        className="fixed inset-0 bg-black/70 backdrop-blur-md"
+        onClick={onClose}
+      />
 
       <div className="glass-panel w-full max-w-sm rounded-2xl p-6 shadow-2xl relative animate-float border border-white/10 z-10">
         {/* Top card accent line */}
@@ -99,12 +104,19 @@ export default function CreateEnvironmentModal({
               <label className="text-[9px] font-bold text-slate-500 uppercase tracking-wider">
                 Environment Theme
               </label>
-              <span className={`text-[10px] font-semibold tracking-wide ${
-                selectedColor === 'EMERALD' ? 'text-brand-success' :
-                selectedColor === 'AMBER' ? 'text-brand-warning' :
-                selectedColor === 'BLUE' ? 'text-blue-400' :
-                selectedColor === 'ROSE' ? 'text-rose-400' : 'text-slate-400'
-              }`}>
+              <span
+                className={`text-[10px] font-semibold tracking-wide ${
+                  selectedColor === "EMERALD"
+                    ? "text-brand-success"
+                    : selectedColor === "AMBER"
+                      ? "text-brand-warning"
+                      : selectedColor === "BLUE"
+                        ? "text-blue-400"
+                        : selectedColor === "ROSE"
+                          ? "text-rose-400"
+                          : "text-slate-400"
+                }`}
+              >
                 {selectedColor.charAt(0) + selectedColor.slice(1).toLowerCase()}
               </span>
             </div>
@@ -159,6 +171,6 @@ export default function CreateEnvironmentModal({
         </form>
       </div>
     </div>,
-    document.body
+    document.body,
   );
 }

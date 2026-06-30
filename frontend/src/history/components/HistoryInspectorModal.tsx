@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { createPortal } from "react-dom";
 import { useHistoryStore } from "../store/historyStore";
 import type { HistoryInspectorModalProps } from "../types/HistoryInspectorModalProps";
@@ -24,10 +24,12 @@ export default function HistoryInspectorModal({
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  useEffect(() => {
+  const [prevItem, setPrevItem] = useState(item);
+  if (item !== prevItem) {
+    setPrevItem(item);
     setError(null);
     setIsLoading(false);
-  }, [item]);
+  }
 
   const getMethodColor = (method: string) => {
     switch (method) {
@@ -64,7 +66,11 @@ export default function HistoryInspectorModal({
         return headers;
       }
     }
-    if (!parsed || typeof parsed !== "object" || Object.keys(parsed).length === 0) {
+    if (
+      !parsed ||
+      typeof parsed !== "object" ||
+      Object.keys(parsed).length === 0
+    ) {
       return "None";
     }
     return Object.entries(parsed)
@@ -290,22 +296,26 @@ export default function HistoryInspectorModal({
 
             {item.authType &&
               item.authType.toLowerCase() !== "none" &&
-              item.authValue && (
-                (() => {
-                  const authObj = getAuthValueObject(item.authValue);
-                  if (!authObj || typeof authObj !== "object" || Object.keys(authObj).length === 0) return null;
-                  return (
-                    <div className="space-y-1">
-                      <p className="text-[10px] text-slate-500 uppercase">
-                        Auth Value
-                      </p>
-                      <pre className="p-3 bg-brand-layer-2 border border-white/5 rounded-lg font-mono text-[10px] text-slate-300 whitespace-pre-wrap break-all select-all overflow-auto max-h-32">
-                        {JSON.stringify(authObj, null, 2)}
-                      </pre>
-                    </div>
-                  );
-                })()
-              )}
+              item.authValue &&
+              (() => {
+                const authObj = getAuthValueObject(item.authValue);
+                if (
+                  !authObj ||
+                  typeof authObj !== "object" ||
+                  Object.keys(authObj).length === 0
+                )
+                  return null;
+                return (
+                  <div className="space-y-1">
+                    <p className="text-[10px] text-slate-500 uppercase">
+                      Auth Value
+                    </p>
+                    <pre className="p-3 bg-brand-layer-2 border border-white/5 rounded-lg font-mono text-[10px] text-slate-300 whitespace-pre-wrap break-all select-all overflow-auto max-h-32">
+                      {JSON.stringify(authObj, null, 2)}
+                    </pre>
+                  </div>
+                );
+              })()}
           </div>
         </div>
 
@@ -333,6 +343,6 @@ export default function HistoryInspectorModal({
         </div>
       </div>
     </div>,
-    document.body
+    document.body,
   );
 }

@@ -6,9 +6,15 @@ import { useLocation } from "react-router-dom";
 
 export default function Navbar() {
   const workspaces = useWorkspaceStore((state) => state.workspaces);
-  const activeWorkspaceId = useWorkspaceStore((state) => state.activeWorkspaceId);
-  const setActiveWorkspace = useWorkspaceStore((state) => state.setActiveWorkspaceAction);
-  const fetchWorkspaces = useWorkspaceStore((state) => state.fetchWorkspacesAction);
+  const activeWorkspaceId = useWorkspaceStore(
+    (state) => state.activeWorkspaceId,
+  );
+  const setActiveWorkspace = useWorkspaceStore(
+    (state) => state.setActiveWorkspaceAction,
+  );
+  const fetchWorkspaces = useWorkspaceStore(
+    (state) => state.fetchWorkspacesAction,
+  );
 
   const activeWorkspace = workspaces.find((w) => w.id === activeWorkspaceId);
   const [isOpen, setIsOpen] = useState(false);
@@ -67,7 +73,9 @@ export default function Navbar() {
                 <span className="text-[11px] font-semibold truncate max-w-[140px]">
                   {activeWorkspace ? activeWorkspace.name : "Select Workspace"}
                 </span>
-                <ChevronDown className={`w-3.5 h-3.5 shrink-0 text-slate-500 transition-transform duration-200 ${isOpen ? "rotate-180 text-slate-300" : ""}`} />
+                <ChevronDown
+                  className={`w-3.5 h-3.5 shrink-0 text-slate-500 transition-transform duration-200 ${isOpen ? "rotate-180 text-slate-300" : ""}`}
+                />
               </button>
 
               {isOpen && (
@@ -85,10 +93,11 @@ export default function Navbar() {
                             setActiveWorkspace(w.id);
                             setIsOpen(false);
                           }}
-                          className={`w-full text-left px-2.5 py-2 text-xs rounded-lg transition-standard flex items-center justify-between cursor-pointer ${isSelected
-                            ? "bg-brand-primary/10 text-white font-medium border border-brand-primary/10"
-                            : "text-slate-400 hover:text-slate-200 hover:bg-white/[0.02] border border-transparent"
-                            }`}
+                          className={`w-full text-left px-2.5 py-2 text-xs rounded-lg transition-standard flex items-center justify-between cursor-pointer ${
+                            isSelected
+                              ? "bg-brand-primary/10 text-white font-medium border border-brand-primary/10"
+                              : "text-slate-400 hover:text-slate-200 hover:bg-white/[0.02] border border-transparent"
+                          }`}
                         >
                           <span className="truncate text-xs">{w.name}</span>
                           {isSelected && (
@@ -114,7 +123,6 @@ export default function Navbar() {
             </div>
           )}
         </div>
-
       </header>
 
       <WorkspaceSettingsModal
@@ -124,4 +132,3 @@ export default function Navbar() {
     </>
   );
 }
-

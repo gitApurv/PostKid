@@ -34,7 +34,6 @@ const updateFolderInList = (
   });
 };
 
-
 const updateCollectionInList = (
   collections: CollectionItem[],
   collectionId: string,
@@ -54,7 +53,8 @@ export const useCollectionStore = create<CollectionState>((set) => ({
 
   toggleFolderExpansionAction: (folderId, expand) => {
     set((state) => {
-      const nextState = expand !== undefined ? expand : !state.expandedFolderIds[folderId];
+      const nextState =
+        expand !== undefined ? expand : !state.expandedFolderIds[folderId];
       return {
         expandedFolderIds: {
           ...state.expandedFolderIds,
@@ -71,8 +71,9 @@ export const useCollectionStore = create<CollectionState>((set) => ({
       return { success: true };
     }
     try {
-      const collectionsRes =
-        await api.get<ApiResponse<CollectionResponse[]>>(`/workspaces/${wId}/collections`);
+      const collectionsRes = await api.get<ApiResponse<CollectionResponse[]>>(
+        `/workspaces/${wId}/collections`,
+      );
       if (collectionsRes.data.success && collectionsRes.data.data) {
         const collections: CollectionItem[] = collectionsRes.data.data.map(
           (collection) => ({
@@ -129,56 +130,60 @@ export const useCollectionStore = create<CollectionState>((set) => ({
         `/workspaces/${wId}/collections/${collectionId}/requests`,
       );
 
-      const folders: FolderItem[] = (foldersRes.data.data || []).map((folder) => ({
-        id: folder.id,
-        name: folder.name,
-        collectionId: collectionId,
-        parentFolderId: null,
-        subFolderCount: folder.subFolderCount,
-        subFolders: [],
-        requestItems: [],
-        isLoaded: false,
-      }));
-
-      const requests: RequestItem[] = (requestsRes.data.data || []).map((request) => {
-        const urlObj = request.url ? request.url.split("?") : [""];
-        const paramString = urlObj[1] || "";
-        const params = paramString
-          .split("&")
-          .filter(Boolean)
-          .map((param) => {
-            const [key, value] = param.split("=");
-            return {
-              key,
-              value: decodeURIComponent(value || ""),
-              active: true,
-            };
-          });
-
-        const headers = request.headers
-          ? Object.entries(request.headers).map(([key, value]) => ({
-              key,
-              value: value as string,
-              active: true,
-            }))
-          : [];
-
-        return {
-          id: request.id,
-          name: request.name,
-          method: request.method,
-          url: request.url || "",
-          params,
-          headers,
-          bodyType: request.body ? "json" : "none",
-          bodyJson: request.body || "",
-          authType: request.authType || "none",
-          authValue: request.authValue || {},
-          folderId: null,
+      const folders: FolderItem[] = (foldersRes.data.data || []).map(
+        (folder) => ({
+          id: folder.id,
+          name: folder.name,
           collectionId: collectionId,
-          timeoutMs: request.timeoutMs || 5000,
-        };
-      });
+          parentFolderId: null,
+          subFolderCount: folder.subFolderCount,
+          subFolders: [],
+          requestItems: [],
+          isLoaded: false,
+        }),
+      );
+
+      const requests: RequestItem[] = (requestsRes.data.data || []).map(
+        (request) => {
+          const urlObj = request.url ? request.url.split("?") : [""];
+          const paramString = urlObj[1] || "";
+          const params = paramString
+            .split("&")
+            .filter(Boolean)
+            .map((param) => {
+              const [key, value] = param.split("=");
+              return {
+                key,
+                value: decodeURIComponent(value || ""),
+                active: true,
+              };
+            });
+
+          const headers = request.headers
+            ? Object.entries(request.headers).map(([key, value]) => ({
+                key,
+                value: value as string,
+                active: true,
+              }))
+            : [];
+
+          return {
+            id: request.id,
+            name: request.name,
+            method: request.method,
+            url: request.url || "",
+            params,
+            headers,
+            bodyType: request.body ? "json" : "none",
+            bodyJson: request.body || "",
+            authType: request.authType || "none",
+            authValue: request.authValue || {},
+            folderId: null,
+            collectionId: collectionId,
+            timeoutMs: request.timeoutMs || 5000,
+          };
+        },
+      );
 
       set((state) => ({
         collections: updateCollectionInList(
@@ -385,45 +390,47 @@ export const useCollectionStore = create<CollectionState>((set) => ({
         }),
       );
 
-      const requests: RequestItem[] = (requestsRes.data.data || []).map((request) => {
-        const urlObj = request.url ? request.url.split("?") : [""];
-        const paramString = urlObj[1] || "";
-        const params = paramString
-          .split("&")
-          .filter(Boolean)
-          .map((param) => {
-            const [key, value] = param.split("=");
-            return {
-              key,
-              value: decodeURIComponent(value || ""),
-              active: true,
-            };
-          });
+      const requests: RequestItem[] = (requestsRes.data.data || []).map(
+        (request) => {
+          const urlObj = request.url ? request.url.split("?") : [""];
+          const paramString = urlObj[1] || "";
+          const params = paramString
+            .split("&")
+            .filter(Boolean)
+            .map((param) => {
+              const [key, value] = param.split("=");
+              return {
+                key,
+                value: decodeURIComponent(value || ""),
+                active: true,
+              };
+            });
 
-        const headers = request.headers
-          ? Object.entries(request.headers).map(([key, value]) => ({
-              key,
-              value: value as string,
-              active: true,
-            }))
-          : [];
+          const headers = request.headers
+            ? Object.entries(request.headers).map(([key, value]) => ({
+                key,
+                value: value as string,
+                active: true,
+              }))
+            : [];
 
-        return {
-          id: request.id,
-          name: request.name,
-          method: request.method,
-          url: request.url || "",
-          params,
-          headers,
-          bodyType: request.body ? "json" : "none",
-          bodyJson: request.body || "",
-          authType: request.authType || "none",
-          authValue: request.authValue || {},
-          folderId: folderId,
-          collectionId: collectionId,
-          timeoutMs: request.timeoutMs || 5000,
-        };
-      });
+          return {
+            id: request.id,
+            name: request.name,
+            method: request.method,
+            url: request.url || "",
+            params,
+            headers,
+            bodyType: request.body ? "json" : "none",
+            bodyJson: request.body || "",
+            authType: request.authType || "none",
+            authValue: request.authValue || {},
+            folderId: folderId,
+            collectionId: collectionId,
+            timeoutMs: request.timeoutMs || 5000,
+          };
+        },
+      );
 
       set((state) => {
         const collections = state.collections.map((collection) => {
@@ -480,10 +487,9 @@ export const useCollectionStore = create<CollectionState>((set) => ({
         ? `/workspaces/${wId}/collections/${collectionId}/folders/${req.parentFolderId}/subfolders`
         : `/workspaces/${wId}/collections/${collectionId}/folders`;
 
-      const addFolderRes = await api.post<ApiResponse<FolderResponse>>(
-        url,
-        { name: req.name }
-      );
+      const addFolderRes = await api.post<ApiResponse<FolderResponse>>(url, {
+        name: req.name,
+      });
 
       if (addFolderRes.data.success && addFolderRes.data.data) {
         const newFolder: FolderItem = {
@@ -600,7 +606,8 @@ export const useCollectionStore = create<CollectionState>((set) => ({
             for (const folder of list) {
               if (folder.id === targetFolderId) {
                 const checkInside = (f: FolderItem): boolean => {
-                  if (f.requestItems?.some((r) => r.id === activeReqId)) return true;
+                  if (f.requestItems?.some((r) => r.id === activeReqId))
+                    return true;
                   if (f.subFolders) {
                     for (const sf of f.subFolders) {
                       if (checkInside(sf)) return true;
@@ -619,7 +626,9 @@ export const useCollectionStore = create<CollectionState>((set) => ({
           return findAndCheck(folders);
         };
 
-        const collection = useCollectionStore.getState().collections.find((c: any) => c.id === collectionId);
+        const collection = useCollectionStore
+          .getState()
+          .collections.find((c: any) => c.id === collectionId);
         if (collection && collection.folders) {
           if (
             isRequestInDeletedFolderOrSub(
