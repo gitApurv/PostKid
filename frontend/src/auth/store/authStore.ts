@@ -1,12 +1,9 @@
 import { create } from "zustand";
 import md5 from "blueimp-md5";
-import type { AuthState } from "../types/AuthState";
-import api from "../../config/axios";
-import axios from "axios";
-import type { ApiResponse } from "../../common/types/ApiResponse";
-import type { AuthResponse } from "../types/AuthResponse";
+import type AuthState from "../types/state/AuthState";
+import AuthService from "../service/AuthService";
 
-export const useAuthStore = create<AuthState>((set) => ({
+const useAuthStore = create<AuthState>((set, get) => ({
   isAuthenticated: !!localStorage.getItem("accessToken"),
   currentUser: (() => {
     const user = localStorage.getItem("currentUser");
@@ -20,112 +17,82 @@ export const useAuthStore = create<AuthState>((set) => ({
     return null;
   })(),
 
+  // Mutations
+  setAuthenticated: (isAuthenticated) => set({ isAuthenticated }),
+  setCurrentUser: (currentUser) => set({ currentUser }),
+
+  // Actions
   loginAction: async (req) => {
-    try {
-      const response = await api.post<ApiResponse<AuthResponse>>(
-        "/auth/login",
-        req,
-      );
-      if (response.data.success && response.data.data) {
-        const authData = response.data.data;
-        localStorage.setItem("accessToken", authData.accessToken);
-        localStorage.setItem("refreshToken", authData.refreshToken);
+    const response = await AuthService.login(req);
+    if (response.success && response.data) {
+      const authData = response.data;
+      localStorage.setItem("accessToken", authData.accessToken);
+      localStorage.setItem("refreshToken", authData.refreshToken);
 
-        const hash = md5(authData.email.trim().toLowerCase());
-        const avatarUrl = `https://www.gravatar.com/avatar/${hash}?d=identicon`;
-        const userObj = {
-          name: authData.username,
-          email: authData.email,
-          avatar: avatarUrl,
-        };
-        localStorage.setItem("currentUser", JSON.stringify(userObj));
+      const hash = md5(authData.email.trim().toLowerCase());
+      const avatarUrl = `https://www.gravatar.com/avatar/${hash}?d=identicon`;
+      const userObj = {
+        name: authData.username,
+        email: authData.email,
+        avatar: avatarUrl,
+      };
+      localStorage.setItem("currentUser", JSON.stringify(userObj));
 
-        set({
-          isAuthenticated: true,
-          currentUser: userObj,
-        });
-        return { success: true };
-      } else {
-        return {
-          success: false,
-          error: response.data.message || "Login failed.",
-        };
-      }
-    } catch (err: unknown) {
-      console.error("Login error: ", err);
-      let errMsg = "An error occurred during login.";
-      if (axios.isAxiosError<ApiResponse<AuthResponse>>(err)) {
-        errMsg = err.response?.data?.message || err.message || errMsg;
-      } else if (err instanceof Error) {
-        errMsg = err.message;
-      }
-      return { success: false, error: errMsg };
+      get().setAuthenticated(true);
+      get().setCurrentUser(userObj);
+      return { success: true };
+    } else {
+      return {
+        success: false,
+        error: response.error || "Login failed.",
+      };
     }
   },
 
   registerAction: async (req) => {
-    try {
-      const response = await api.post<ApiResponse<AuthResponse>>(
-        "/auth/register",
-        req,
-      );
-      if (response.data.success && response.data.data) {
-        const authData = response.data.data;
-        localStorage.setItem("accessToken", authData.accessToken);
-        localStorage.setItem("refreshToken", authData.refreshToken);
+    const response = await AuthService.register(req);
+    if (response.success && response.data) {
+      const authData = response.data;
+      localStorage.setItem("accessToken", authData.accessToken);
+      localStorage.setItem("refreshToken", authData.refreshToken);
 
-        const hash = md5(authData.email.trim().toLowerCase());
-        const avatarUrl = `https://www.gravatar.com/avatar/${hash}?d=identicon`;
-        const userObj = {
-          name: authData.username,
-          email: authData.email,
-          avatar: avatarUrl,
-        };
-        localStorage.setItem("currentUser", JSON.stringify(userObj));
+      const hash = md5(authData.email.trim().toLowerCase());
+      const avatarUrl = `https://www.gravatar.com/avatar/${hash}?d=identicon`;
+      const userObj = {
+        name: authData.username,
+        email: authData.email,
+        avatar: avatarUrl,
+      };
+      localStorage.setItem("currentUser", JSON.stringify(userObj));
 
-        set({
-          isAuthenticated: true,
-          currentUser: userObj,
-        });
-        return { success: true };
-      } else {
-        return {
-          success: false,
-          error: response.data.message || "Registration failed.",
-        };
-      }
-    } catch (err: unknown) {
-      console.error("Registration error: ", err);
-      let errMsg = "An error occurred during registration.";
-      if (axios.isAxiosError<ApiResponse<AuthResponse>>(err)) {
-        errMsg = err.response?.data?.message || err.message || errMsg;
-      } else if (err instanceof Error) {
-        errMsg = err.message;
-      }
-      return { success: false, error: errMsg };
+      get().setAuthenticated(true);
+      get().setCurrentUser(userObj);
+      return { success: true };
+    } else {
+      return {
+        success: false,
+        error: response.error || "Registration failed.",
+      };
     }
   },
 
   logoutAction: async () => {
-    let success = true;
-    let error: string | undefined;
-    try {
-      const refreshToken = localStorage.getItem("refreshToken") || "";
-      await api.post("/auth/logout", { refreshToken });
-    } catch (e) {
-      console.error("Logout API failed:", e);
-      success = false;
-      if (axios.isAxiosError(e)) {
-        error = e.response?.data?.message || e.message;
-      } else if (e instanceof Error) {
-        error = e.message;
-      }
-    } finally {
-      localStorage.removeItem("accessToken");
-      localStorage.removeItem("refreshToken");
-      localStorage.removeItem("currentUser");
-      set({ isAuthenticated: false, currentUser: null });
+    const refreshToken = localStorage.getItem("refreshToken") || "";
+    const response = await AuthService.logout(refreshToken);
+
+    localStorage.removeItem("accessToken");
+    localStorage.removeItem("refreshToken");
+    localStorage.removeItem("currentUser");
+
+    get().setAuthenticated(false);
+    get().setCurrentUser(null);
+
+    if (response.success) {
+      return { success: true };
+    } else {
+      return { success: false, error: response.error };
     }
-    return { success, error };
   },
 }));
+
+export default useAuthStore;
