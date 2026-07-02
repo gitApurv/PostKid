@@ -20,4 +20,6 @@ export default interface AuthState {
   ) => Promise<{ success: boolean; error?: string }>;
 
   logoutAction: () => Promise<{ success: boolean; error?: string }>;
+
+  bootstrapAuthAction: () => Promise<{ success: boolean; error?: string }>;
 }
