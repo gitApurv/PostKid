@@ -1,4 +1,4 @@
-export interface HistoryResponse {
+export default interface HistoryItem {
   id: string;
   userId: string;
   requestItemId: string;
