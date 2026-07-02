@@ -1,4 +1,4 @@
-export interface RequestItem {
+export default interface RequestItem {
   id: string;
   name: string;
   method: "GET" | "POST" | "PUT" | "DELETE" | "PATCH";

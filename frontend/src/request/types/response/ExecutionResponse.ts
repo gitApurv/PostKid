@@ -1,4 +1,4 @@
-export interface ExecutionResponse {
+export default interface ExecutionResponse {
   statusCode: number;
   responseHeaders: Record<string, string> | null;
   responseBody: string | null;

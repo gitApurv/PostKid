@@ -1,9 +1,7 @@
-import type { RequestItem } from "./RequestItem";
-
-export interface RequestItemResponse {
+export default interface RequestItemResponse {
   id: string;
   name: string;
-  method: RequestItem["method"];
+  method: "GET" | "POST" | "PUT" | "DELETE" | "PATCH";
   url: string;
   headers: Record<string, string> | null;
   body: string | null;
@@ -15,4 +13,3 @@ export interface RequestItemResponse {
   createdAt: string;
   updatedAt: string;
 }
-
