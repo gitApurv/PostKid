@@ -1,4 +1,4 @@
-export interface WorkspaceResponse {
+export default interface WorkspaceResponse {
   id: string;
   name: string;
   description: string | null;

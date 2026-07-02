@@ -1,6 +1,6 @@
 export type WorkspaceRole = "ADMIN" | "MEMBER" | "VIEWER";
 
-export interface MemberResponse {
+export default interface MemberResponse {
   userId: string;
   username: string;
   email: string;
